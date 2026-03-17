@@ -15,7 +15,7 @@ theme:
   - navigation.footer
   - navigation.tabs
   name: material
-  logo: assets/fablab.png
+  logo: assets/fablab-logo-black-on-transparent.png
   palette:
     # Palette toggle for automatic mode
     - media: "(prefers-color-scheme)"
