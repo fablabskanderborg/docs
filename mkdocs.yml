@@ -1,7 +1,7 @@
 site_name: Fablab Skanderborg
 site_url: https://fablab.dahl.sh
 
-# Markdown Extensions (Diagrammer og infobokse)
+# Markdown Extensions
 markdown_extensions:
   - pymdownx.superfences:
       custom_fences:
@@ -20,14 +20,12 @@ theme:
     - navigation.footer
     - navigation.tabs
   palette:
-    # Automatisk (system)
     - media: "(prefers-color-scheme)"
       toggle:
         icon: material/brightness-auto
         name: Skift til lyst tema
       primary: teal
       accent: deep orange
-    # Lyst tema
     - media: "(prefers-color-scheme: light)"
       scheme: default 
       toggle:
@@ -35,7 +33,6 @@ theme:
         name: Skift til mørkt tema
       primary: teal
       accent: deep orange
-    # Mørkt tema
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
       toggle:
@@ -44,28 +41,26 @@ theme:
       primary: teal
       accent: deep orange
 
-# Plugins (Sprogstyring og søgning)
+# Plugins (Rettet syntaks til i18n)
 plugins:
   - search
   - i18n:
       default_language: da
       languages:
-        da:
+        - locale: da     # Rettet til liste-format
           name: Dansk
-          build: true
-        en:
+          default: true
+        - locale: en     # Rettet til liste-format
           name: English
-          build: true
       fallback_to_default: true
 
-# Navigation (Stier til dine filer)
+# Navigation
 nav:
   - Home: index.md
   - 3D Print: 3d.md
   - Laser: laser.md
   - Precious Plastic:
       - Oversigt: 'Precious Plastic/intro.md'
-      # Fjern '#' herunder når du har oprettet de enkelte .md filer:
       # - 🛡️ Sikkerhed: 'Precious Plastic/sikkerhed.md'
       # - 🧪 Forsøgslog: 'Precious Plastic/log.md'
       # - 📸 Galleri: 'Precious Plastic/galleri.md'
