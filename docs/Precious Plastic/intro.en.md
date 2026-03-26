@@ -1,4 +1,4 @@
-![PLA Flakes](../assets/pp materials flakes.jpg
+![PLA Flakes](../assets/PP_materials_flakes.jpg)
 # ♻️ From Waste to Value: Plastic Recycling in the FabLab
 
 Welcome to our knowledge base on PLA plastic recycling. At FabLab Skanderborg, we don't see failed 3D prints as trash—we see them as a valuable resource waiting for a new shape.
