@@ -1,4 +1,4 @@
-![PLA Flakes](docs/assets/PP_materials_flakes.jpg)
+![PLA Flakes](../assets/PP_materials_flakes.jpg)
 # ♻️ Fra Skrot til Slot: Plast-genanvendelse i FabLab
 
 Velkommen til vores vidensbase om genanvendelse af PLA-plast. I FabLab Skanderborg ser vi ikke mislykkede 3D-prints som affald, men som en værdifuld ressource, der venter på en ny form.
