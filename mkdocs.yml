@@ -40,8 +40,6 @@ theme:
       primary: teal
       accent: deep orange
 
-
-
 # Navigation
 nav:
   - Hjem: index.md
