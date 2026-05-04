@@ -1,0 +1,1 @@
+Laser, 3Dprinter, Vinylcutter, Print&Cut, Acrylic bender, Cupmaker, Heatpress, Sublimation printer, Resin printer

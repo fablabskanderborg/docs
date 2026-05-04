@@ -6,7 +6,6 @@ https://realpython.com/what-is-pip/#using-pip-in-a-python-virtual-environment
 
 
 ```
-python -m venv venv/
 source venv/bin/activate
 
  pip3 --version
