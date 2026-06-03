@@ -1,2 +1,14 @@
-docs/.DS_Store
+# Build files
+build
+site
+
+# Mac OS internals
 .DS_Store
+
+# Caches and logs
+*.cpuprofile
+*.log
+*.tsbuildinfo
+.cache
+.eslintcache
+__pycache__

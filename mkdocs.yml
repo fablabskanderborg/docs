@@ -43,7 +43,10 @@ theme:
 # Navigation
 nav:
   - Hjem: index.md
-  - Maskiner: maskiner.md
+  - Maskiner:
+    - 3D Printere: maskiner/3dprintere.md
+    - Laser: maskiner/laser.md
+    - Print & Cut: maskiner/printncut.md
   - Openlab: openlab.md
   - Precious Plastic:
       - Oversigt: 'Precious Plastic/intro.md'
@@ -67,8 +70,12 @@ plugins:
             Openlab: Openlab
             Precious Plastic: Precious Plastic
             Om: About
+            3D Printere: 3D Printers
       fallback_to_default: true
-  - search
+  - search:
+      lang: 
+        - da
+        - en
 
 
 extra:
