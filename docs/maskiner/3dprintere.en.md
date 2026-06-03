@@ -1,3 +1,6 @@
+---
+title: 3d Printers
+---
 # 3d Printere
 
 ## Bambu Lab X1C

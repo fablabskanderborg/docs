@@ -2,86 +2,184 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
     <url>
         <loc>https://fablabskanderborg.github.io/docs/about/</loc>
-        <lastmod>2026-05-29</lastmod>
+        <lastmod>2026-06-03</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="da" href="https://fablabskanderborg.github.io/docs/about/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://fablabskanderborg.github.io/docs/en/about/"/>
     </url>
     <url>
         <loc>https://fablabskanderborg.github.io/docs/</loc>
-        <lastmod>2026-05-29</lastmod>
+        <lastmod>2026-06-03</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="da" href="https://fablabskanderborg.github.io/docs/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://fablabskanderborg.github.io/docs/en/"/>
     </url>
     <url>
         <loc>https://fablabskanderborg.github.io/docs/maskiner/</loc>
-        <lastmod>2026-05-29</lastmod>
+        <lastmod>2026-06-03</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="da" href="https://fablabskanderborg.github.io/docs/maskiner/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://fablabskanderborg.github.io/docs/en/maskiner/"/>
     </url>
     <url>
         <loc>https://fablabskanderborg.github.io/docs/openlab/</loc>
-        <lastmod>2026-05-29</lastmod>
+        <lastmod>2026-06-03</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="da" href="https://fablabskanderborg.github.io/docs/openlab/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://fablabskanderborg.github.io/docs/en/openlab/"/>
     </url>
     <url>
+        <loc>https://fablabskanderborg.github.io/docs/Precious%20Plastic/</loc>
+        <lastmod>2026-06-03</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="da" href="https://fablabskanderborg.github.io/docs/Precious%20Plastic/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://fablabskanderborg.github.io/docs/en/Precious%20Plastic/"/>
+    </url>
+    <url>
         <loc>https://fablabskanderborg.github.io/docs/Precious%20Plastic/intro/</loc>
-        <lastmod>2026-05-29</lastmod>
+        <lastmod>2026-06-03</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="da" href="https://fablabskanderborg.github.io/docs/Precious%20Plastic/intro/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://fablabskanderborg.github.io/docs/en/Precious%20Plastic/intro/"/>
     </url>
     <url>
         <loc>https://fablabskanderborg.github.io/docs/Precious%20Plastic/sikkerhed/</loc>
-        <lastmod>2026-05-29</lastmod>
+        <lastmod>2026-06-03</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="da" href="https://fablabskanderborg.github.io/docs/Precious%20Plastic/sikkerhed/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://fablabskanderborg.github.io/docs/en/Precious%20Plastic/sikkerhed/"/>
     </url>
     <url>
+        <loc>https://fablabskanderborg.github.io/docs/maskiner/3dprintere/</loc>
+        <lastmod>2026-06-03</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="da" href="https://fablabskanderborg.github.io/docs/maskiner/3dprintere/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://fablabskanderborg.github.io/docs/en/maskiner/3dprintere/"/>
+    </url>
+    <url>
+        <loc>https://fablabskanderborg.github.io/docs/maskiner/arcade/</loc>
+        <lastmod>2026-06-03</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="da" href="https://fablabskanderborg.github.io/docs/maskiner/arcade/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://fablabskanderborg.github.io/docs/en/maskiner/arcade/"/>
+    </url>
+    <url>
+        <loc>https://fablabskanderborg.github.io/docs/maskiner/cnc/</loc>
+        <lastmod>2026-06-03</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="da" href="https://fablabskanderborg.github.io/docs/maskiner/cnc/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://fablabskanderborg.github.io/docs/en/maskiner/cnc/"/>
+    </url>
+    <url>
+        <loc>https://fablabskanderborg.github.io/docs/maskiner/</loc>
+        <lastmod>2026-06-03</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="da" href="https://fablabskanderborg.github.io/docs/maskiner/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://fablabskanderborg.github.io/docs/en/maskiner/"/>
+    </url>
+    <url>
+        <loc>https://fablabskanderborg.github.io/docs/maskiner/laser/</loc>
+        <lastmod>2026-06-03</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="da" href="https://fablabskanderborg.github.io/docs/maskiner/laser/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://fablabskanderborg.github.io/docs/en/maskiner/laser/"/>
+    </url>
+    <url>
+        <loc>https://fablabskanderborg.github.io/docs/maskiner/printncut/</loc>
+        <lastmod>2026-06-03</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="da" href="https://fablabskanderborg.github.io/docs/maskiner/printncut/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://fablabskanderborg.github.io/docs/en/maskiner/printncut/"/>
+    </url>
+    <url>
         <loc>https://fablabskanderborg.github.io/docs/en/about/</loc>
-        <lastmod>2026-05-29</lastmod>
+        <lastmod>2026-06-03</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://fablabskanderborg.github.io/docs/en/about/"/>
         <xhtml:link rel="alternate" hreflang="da" href="https://fablabskanderborg.github.io/docs/about/"/>
     </url>
     <url>
         <loc>https://fablabskanderborg.github.io/docs/en/</loc>
-        <lastmod>2026-05-29</lastmod>
+        <lastmod>2026-06-03</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://fablabskanderborg.github.io/docs/en/"/>
         <xhtml:link rel="alternate" hreflang="da" href="https://fablabskanderborg.github.io/docs/"/>
     </url>
     <url>
         <loc>https://fablabskanderborg.github.io/docs/en/maskiner/</loc>
-        <lastmod>2026-05-29</lastmod>
+        <lastmod>2026-06-03</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://fablabskanderborg.github.io/docs/en/maskiner/"/>
         <xhtml:link rel="alternate" hreflang="da" href="https://fablabskanderborg.github.io/docs/maskiner/"/>
     </url>
     <url>
         <loc>https://fablabskanderborg.github.io/docs/en/openlab/</loc>
-        <lastmod>2026-05-29</lastmod>
+        <lastmod>2026-06-03</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://fablabskanderborg.github.io/docs/en/openlab/"/>
         <xhtml:link rel="alternate" hreflang="da" href="https://fablabskanderborg.github.io/docs/openlab/"/>
     </url>
     <url>
+        <loc>https://fablabskanderborg.github.io/docs/en/Precious%20Plastic/</loc>
+        <lastmod>2026-06-03</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://fablabskanderborg.github.io/docs/en/Precious%20Plastic/"/>
+        <xhtml:link rel="alternate" hreflang="da" href="https://fablabskanderborg.github.io/docs/Precious%20Plastic/"/>
+    </url>
+    <url>
         <loc>https://fablabskanderborg.github.io/docs/en/Precious%20Plastic/intro/</loc>
-        <lastmod>2026-05-29</lastmod>
+        <lastmod>2026-06-03</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://fablabskanderborg.github.io/docs/en/Precious%20Plastic/intro/"/>
         <xhtml:link rel="alternate" hreflang="da" href="https://fablabskanderborg.github.io/docs/Precious%20Plastic/intro/"/>
     </url>
     <url>
         <loc>https://fablabskanderborg.github.io/docs/en/Precious%20Plastic/sikkerhed/</loc>
-        <lastmod>2026-05-29</lastmod>
+        <lastmod>2026-06-03</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://fablabskanderborg.github.io/docs/en/Precious%20Plastic/sikkerhed/"/>
         <xhtml:link rel="alternate" hreflang="da" href="https://fablabskanderborg.github.io/docs/Precious%20Plastic/sikkerhed/"/>
+    </url>
+    <url>
+        <loc>https://fablabskanderborg.github.io/docs/en/maskiner/3dprintere/</loc>
+        <lastmod>2026-06-03</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://fablabskanderborg.github.io/docs/en/maskiner/3dprintere/"/>
+        <xhtml:link rel="alternate" hreflang="da" href="https://fablabskanderborg.github.io/docs/maskiner/3dprintere/"/>
+    </url>
+    <url>
+        <loc>https://fablabskanderborg.github.io/docs/en/maskiner/arcade/</loc>
+        <lastmod>2026-06-03</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://fablabskanderborg.github.io/docs/en/maskiner/arcade/"/>
+        <xhtml:link rel="alternate" hreflang="da" href="https://fablabskanderborg.github.io/docs/maskiner/arcade/"/>
+    </url>
+    <url>
+        <loc>https://fablabskanderborg.github.io/docs/en/maskiner/cnc/</loc>
+        <lastmod>2026-06-03</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://fablabskanderborg.github.io/docs/en/maskiner/cnc/"/>
+        <xhtml:link rel="alternate" hreflang="da" href="https://fablabskanderborg.github.io/docs/maskiner/cnc/"/>
+    </url>
+    <url>
+        <loc>https://fablabskanderborg.github.io/docs/en/maskiner/</loc>
+        <lastmod>2026-06-03</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://fablabskanderborg.github.io/docs/en/maskiner/"/>
+        <xhtml:link rel="alternate" hreflang="da" href="https://fablabskanderborg.github.io/docs/maskiner/"/>
+    </url>
+    <url>
+        <loc>https://fablabskanderborg.github.io/docs/en/maskiner/laser/</loc>
+        <lastmod>2026-06-03</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://fablabskanderborg.github.io/docs/en/maskiner/laser/"/>
+        <xhtml:link rel="alternate" hreflang="da" href="https://fablabskanderborg.github.io/docs/maskiner/laser/"/>
+    </url>
+    <url>
+        <loc>https://fablabskanderborg.github.io/docs/en/maskiner/printncut/</loc>
+        <lastmod>2026-06-03</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://fablabskanderborg.github.io/docs/en/maskiner/printncut/"/>
+        <xhtml:link rel="alternate" hreflang="da" href="https://fablabskanderborg.github.io/docs/maskiner/printncut/"/>
     </url>
 </urlset>

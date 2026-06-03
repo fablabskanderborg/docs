@@ -18,6 +18,7 @@ theme:
     #- navigation.instant
     - navigation.footer
     - navigation.tabs
+    - navigation.indexes
   palette:
     - media: "(prefers-color-scheme)"
       toggle:
@@ -39,20 +40,27 @@ theme:
         name: Skift til system standard
       primary: teal
       accent: deep orange
+# Yderligere CSS
+extra_css:
+  - stylesheets/extra.css
 
 # Navigation
 nav:
   - Hjem: index.md
   - Maskiner:
+    - maskiner/index.md
     - 3D Printere: maskiner/3dprintere.md
     - Laser: maskiner/laser.md
     - Print & Cut: maskiner/printncut.md
+    - CNC: maskiner/cnc.md
+    - Arcade: maskiner/arcade.md
   - Openlab: openlab.md
   - Precious Plastic:
-      - Oversigt: 'Precious Plastic/intro.md'
-      - 🛡️ Sikkerhed: 'Precious Plastic/sikkerhed.md'
-      # - 🧪 Forsøgslog: 'Precious Plastic/log.md'
-      # - 📸 Galleri: 'Precious Plastic/galleri.md'
+    - Precious Plastic/index.md
+    #- Oversigt: 'Precious Plastic/intro.md'
+    - 🛡️ Sikkerhed: Precious Plastic/sikkerhed.md
+    # - 🧪 Forsøgslog: 'Precious Plastic/log.md'
+    # - 📸 Galleri: 'Precious Plastic/galleri.md'
   - Om: about.md
 
 # Plugins (Rettet syntaks til i18n)
