@@ -84,6 +84,8 @@ plugins:
       lang: 
         - da
         - en
+  - optimize:
+      enabled: !ENV [CI, false]
 
 
 extra:
