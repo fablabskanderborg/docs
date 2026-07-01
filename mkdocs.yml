@@ -9,6 +9,9 @@ markdown_extensions:
           class: mermaid
   - admonition
   - attr_list
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
 
 theme:
   name: material
@@ -62,6 +65,9 @@ nav:
     # - 🧪 Forsøgslog: 'Precious Plastic/log.md'
     # - 📸 Galleri: 'Precious Plastic/galleri.md'
   - Om: about.md
+  - Artikler:
+    - articles/index.md
+    - Hjemmesiden: articles/website.md
 
 # Plugins (Rettet syntaks til i18n)
 plugins:
@@ -79,6 +85,8 @@ plugins:
             Precious Plastic: Precious Plastic
             Om: About
             3D Printere: 3D Printers
+            Artikler: Articles
+            Hjemmesiden: The Website
       fallback_to_default: true
   - search:
       lang: 
