@@ -5,9 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Makerspace Skill Tree</title>
   <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- Canvas Confetti -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
-  <!-- Supabase JS Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
@@ -32,10 +30,7 @@
       overflow: hidden;
     }
 
-    /* SCREEN SHAKE ANIMATION */
-    .shake {
-      animation: screenShake 0.3s ease-in-out;
-    }
+    .shake { animation: screenShake 0.3s ease-in-out; }
     @keyframes screenShake {
       0%, 100% { transform: translate(0, 0); }
       20% { transform: translate(-4px, 3px); }
@@ -80,7 +75,7 @@
       text-align: center;
       color: var(--text-muted);
       font-size: 1.1rem;
-      max-width: 400px;
+      max-width: 450px;
       line-height: 1.5;
     }
 
@@ -247,11 +242,8 @@
       transition: color 0.3s;
     }
 
-    .cat-hex-container.completed .cat-big-icon {
-      color: var(--active-green);
-    }
+    .cat-hex-container.completed .cat-big-icon { color: var(--active-green); }
 
-    /* TOOLTIP */
     .hex-container .tooltip,
     .cat-hex-container .cat-tooltip {
       visibility: hidden;
@@ -290,7 +282,6 @@
       opacity: 1;
     }
 
-    /* FLYDENDE EMOJIS EFFEKT */
     .floating-emoji {
       position: fixed;
       pointer-events: none;
@@ -303,25 +294,6 @@
       100% { transform: translate(var(--tx), -70px) scale(1.3); opacity: 0; }
     }
 
-    /* SHOCKWAVE EFFEKT */
-    .shockwave-effect {
-      position: fixed;
-      pointer-events: none;
-      z-index: 14000;
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      border: 4px solid var(--active-green);
-      box-shadow: 0 0 20px var(--active-green), inset 0 0 20px var(--accent-blue);
-      transform: translate(-50%, -50%) scale(0.5);
-      animation: expandWave 1s cubic-bezier(0.1, 0.7, 0.1, 1) forwards;
-    }
-    @keyframes expandWave {
-      0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
-      100% { transform: translate(-50%, -50%) scale(3.5); opacity: 0; }
-    }
-
-    /* SPLASHSCREEN MODAL */
     .splash-modal {
       display: none;
       position: fixed;
@@ -376,7 +348,7 @@
       background: #1e293b;
       padding: 25px;
       border-radius: 8px;
-      width: 440px;
+      width: 460px;
       max-width: 90%;
       max-height: 85vh;
       overflow-y: auto;
@@ -410,10 +382,7 @@
       border-radius: 6px;
       font-weight: bold;
       cursor: pointer;
-      transition: opacity 0.2s;
     }
-    .btn:hover { opacity: 0.9; }
-
     .btn-secondary { background: #475569; color: white; }
     .btn-danger { background: #ef4444; color: white; }
 
@@ -435,7 +404,6 @@
       box-shadow: 0 15px 35px rgba(0,0,0,0.9);
       z-index: 12000;
     }
-
     .tutorial-box h4 { margin: 0 0 8px 0; color: var(--accent-blue); }
     .tutorial-box p { margin: 0 0 15px 0; font-size: 0.85rem; line-height: 1.4; }
     .tutorial-nav { display: flex; justify-content: space-between; align-items: center; }
@@ -454,6 +422,7 @@
     <h1>MAKERSPACE SKILL TREE</h1>
     <div class="header-btns">
       <button class="btn btn-secondary" onclick="startTutorial()">❓ Guide</button>
+      <button class="btn" id="adminBtn" onclick="openAdmin()">⚙️ Admin Panel</button>
       <button class="btn" id="authBtn" onclick="openAuthModal()">🔑 Log ind</button>
     </div>
   </header>
@@ -461,8 +430,9 @@
   <div class="main-container">
     <div class="viewport">
       <div id="emptyState" class="empty-state" style="display:none;">
-        <i data-lucide="loader-2" style="width: 48px; height: 48px; margin-bottom: 15px; color: var(--accent-blue); animation: spin 1s linear infinite;"></i><br>
-        <strong>Henter kompetencer fra Supabase...</strong>
+        <i data-lucide="upload-cloud" style="width: 48px; height: 48px; margin-bottom: 15px; color: var(--accent-blue);"></i><br>
+        <strong id="emptyTitle">Indlæser...</strong><br>
+        <span id="emptyDesc">Åbn Admin Panel for at vælge eller uploade en CSV-fil med kompetencer.</span>
       </div>
       <div class="honeycomb-grid" id="honeycombGrid"></div>
     </div>
@@ -506,6 +476,36 @@
     </div>
   </div>
 
+  <!-- ADMIN MODAL -->
+  <div class="modal" id="adminModal">
+    <div class="modal-box">
+      <h2 style="margin-top:0;">Admin Panel</h2>
+
+      <div class="admin-section">
+        <h3>1. Importer / Opdater Kompetencer (CSV)</h3>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin:0 0 10px 0;">Format: Kategori, Underkategori, ID, Niveau, SVG_Ikon, Kort_Beskrivelse, Kompetence</p>
+        <div style="display:flex; gap:10px;">
+          <input type="file" id="csvFileInput" accept=".csv">
+          <button class="btn" onclick="handleFileUpload()">Upload</button>
+        </div>
+      </div>
+
+      <div class="admin-section">
+        <h3>2. Synlige Kategorier</h3>
+        <div id="adminCategoryList" style="display:flex; flex-direction:column; gap:8px;"></div>
+      </div>
+
+      <div class="admin-section" style="border-bottom:none;">
+        <h3>3. Data-styring</h3>
+        <button class="btn btn-danger" onclick="clearAllData()">Ryd Alt Data (Nulstil Lokalt)</button>
+      </div>
+
+      <div style="text-align: right;">
+        <button class="btn" onclick="closeAdmin()">Luk</button>
+      </div>
+    </div>
+  </div>
+
   <!-- TITLE SPLASHSCREEN -->
   <div class="splash-modal" id="titleSplash">
     <div class="splash-card">
@@ -532,97 +532,16 @@
   </div>
 
   <script>
-    // ==========================================
-    // 1. SUPABASE INITIALISERING
-    // ==========================================
+    // =======================================================
+    // INDSÆT DINE SUPABASE NØGLER HER:
+    // =======================================================
     const SUPABASE_URL = 'https://roxcgmhqtyenmhdubzig.supabase.co/rest/v1/';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJveGNnbWhxdHllbm1oZHViemlnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5NjA3MTgsImV4cCI6MjEwMjUzNjcxOH0.ZBs7GtWZX02ZVTig88DDq-CCSWuGGSGqzvJxdwcsY1g';
     
     let supabaseClient = null;
-    if (SUPABASE_URL !== 'https://roxcgmhqtyenmhdubzig.supabase.co/rest/v1/') {
+    if (SUPABASE_URL && !SUPABASE_URL.includes('INDSÆT_DIN_SUPABASE')) {
       supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
-
-    const DEFAULT_CSV = `Kategori,Underkategori,ID,Niveau,SVG_Ikon,Kort_Beskrivelse,Kompetence
-Filhåndtering,,FIL_FOLDER_MGR,1,folder,Mappe & Navn,"Opret projektmappe & navngiv filer logisk"
-Filhåndtering,,FIL_SEARCH_FILE,2,folder,Fil-søgning,"Brug søgefunktionen til at finde en specifik fil"
-Filhåndtering,,FIL_CLOUD_DRIVE,3,folder,Drev & Sky,"Gem og hent filer fra et eksternt drev eller skyen"
-Filhåndtering,,FIL_VERSION_CTL,4,folder,Versionsstyring,"Brug versionsstyring (v1 v2) til din arbejdsproces"
-Filhåndtering,,FIL_EXT_EXPLAIN,5,folder,Filtyper,"Forklar forskellen på .STL .SVG .3MF .JPG og .PNG"
-Filhåndtering,,FIL_ZIP_ARCHIVE,6,folder,Komprimering,"Saml og komprimér en projektmappe i en .zip-fil til deling og arkivering"
-Filhåndtering,,FIL_CONVERT_FMT,7,folder,CAD/CAM Formater,"Konvertér og eksporter filer mellem udvekslingsformater som .STEP, .DXF og .OBJ"
-Vektorgrafik,Basale Former & Objektstyring,VEK_DOC_SETTINGS,1,Spline-pointer,Dokumentindstillinger,"Ændre dokumentindstillinger og lærredsstørrelse"
-Vektorgrafik,Basale Former & Objektstyring,VEK_DRAW_SHAPES,1,Spline-pointer,Tegne Former,"Tegne grundlæggende objekter såsom cirkel, firkant og polygon"
-Vektorgrafik,Basale Former & Objektstyring,VEK_FILL_STROKE,1,Spline-pointer,Fyld & Streg,"Skifte farve på fyld og streg samt ændre stregtykkelse"
-Vektorgrafik,Basale Former & Objektstyring,VEK_SIZE_COORD,2,Spline-pointer,Størrelse & Koordinater,"Bestemme/ændre størrelsen af grafikken og flytte grafik med præcise koordinater"
-Vektorgrafik,Basale Former & Objektstyring,VEK_MIRROR_ROTATE,2,Spline-pointer,Spejl & Rotér,"Spejle og rotere objekter præcist"
-Vektorgrafik,Objektorganisering & Lag,VEK_ALIGN_DIST,3,Spline-pointer,Justér & Fordél,"Justere og fordele flere objekter i forhold til hinanden"
-Vektorgrafik,Objektorganisering & Lag,VEK_GROUP_COMBINE,3,Spline-pointer,Grupper vs. Kombination,"Gruppere grafik og kende forskel på en gruppe og en kombination"
-Vektorgrafik,Objektorganisering & Lag,VEK_LAYERS_MGR,3,Spline-pointer,Benytte Lag,"Oprette, navngive og styre lag i et vektordokument"
-Vektorgrafik,Objektorganisering & Lag,VEK_TEXT_CTRL,4,Spline-pointer,Tekstkontrol,"Ændre skrifttype og transformere tekstobjekter"
-Vektorgrafik,Stiredigering & Vektormodifikation,VEK_BEZIER_TOOL,4,Spline-pointer,Bezier-værktøj,"Tegne med Bezier-værktøjet og beherske dets forskellige tilstande"
-Vektorgrafik,Stiredigering & Vektormodifikation,VEK_NODE_EDIT,4,Spline-pointer,Node-redigering,"Redigere stier: tilføje/fjerne punkter og ændre opførsel (bue/lige linje, blødt/skarpt hjørne)"
-Vektorgrafik,Stiredigering & Vektormodifikation,VEK_OBJ_TO_PATH,5,Spline-pointer,Objekt til Sti,"Konvertere tekst og objekter/former til stier"
-Vektorgrafik,Stiredigering & Vektormodifikation,VEK_SIMPLIFY_OFFSET,5,Spline-pointer,Simplificér & Offset,"Simplificere en sti samt lave offset og inset på geometri"
-Vektorgrafik,Stiredigering & Vektormodifikation,VEK_BOOLEAN_OP,5,squares-unite,Boolske Operatorer,"Benytte boolske operatorer (Union, Difference, Intersection) til komplekse shapes"
-Vektorgrafik,Avancerede Funktioner Import/Eksport & CAM,VEK_TRACE_BMP,6,Spline-pointer,Spore Billeder,"Spore rasterbilleder (Trace Bitmap) til vektorgrafik"
-Vektorgrafik,Avancerede Funktioner Import/Eksport & CAM,VEK_EXTENSIONS,6,Spline-pointer,Ekstensioner,"Benytte ekstensioner/udvidelser til specialiserede opgaver"
-Vektorgrafik,Avancerede Funktioner Import/Eksport & CAM,VEK_EXPORT_FMT,6,Spline-pointer,Eksport,"Eksportere grafikken til andre relevante filformater"
-Vektorgrafik,Avancerede Funktioner Import/Eksport & CAM,VEK_PRINT_CUT,7,Spline-pointer,Print & Cut,"Forberede en Print and Cut fil med både grafik og skærelinje"
-Rastergrafik,,RAS_PIXEL_UNDERSTAND,1,image,Pixel-forståelse,"Forklar hvad pixels er og hvornår et billede pixelerer"
-Rastergrafik,,RAS_DPI_SETTING,2,image,DPI Opløsning,"Vælg og forklar den rigtige DPI-opløsning til print/raster"
-Rastergrafik,,RAS_BG_REMOVE,3,image,Fjern Baggrund,"Fjern baggrunden fra et rasterbillede"
-Rastergrafik,,RAS_TRACE_BMP,4,image,Trace Bitmap,"Vektorisér et billede eller logo ved brug af Trace Bitmap"
-Rastergrafik,,RAS_COMBINE_VECTOR,5,image,Raster & Vektor,"Kombinér et rasterbillede med en vektor-skærelinje"
-Laserskæring,,LAS_EXHAUST_CHK,1,target,Udsugning & Tjek,"Tjek at udsugningen er tændt og fungerer før start"
-Laserskæring,,LAS_FOCUS_SET,2,target,Laserfokus,"Indstil laserens fokusafstand korrekt til dit materiale"
-Laserskæring,,LAS_SPEED_PWR,3,target,Power & Speed,"Indstil korrekt hastighed og styrke (Power/Speed)"
-Laserskæring,,LAS_MAT_SAFETY,4,target,Lasersikkerhed,"Identificér hvilke materialer der er sikre og usikre at skære i"
-Laserskæring,,LAS_TEST_MATRIX,5,target,Skæreprøve,"Lav en skæreprøve for at finde optimale indstillinger"
-Laserskæring,,LAS_NESTING_OPT,6,target,Nesting,"Optimér dit layout for at mindske spild af restmateriale"
-3D-Printning,,PRI_BED_CLEAN,1,box,Rens Byggeplade,"Rengør byggepladen og tjek for løse rester før printstart"
-3D-Printning,,PRI_FIL_CHANGE,2,box,Skift Filament,"Skift filamentrulle (Load/Unload) korrekt på printeren"
-3D-Printning,,PRI_3MF_PROJECT,3,box,.3MF Projekt,"Gem og åbn et komplet projekt som en .3mf fil"
-3D-Printning,,PRI_SUPP_BRIM,4,box,Support & Brim,"Vurdér om dit print kræver Supports Brim eller ingen af delene"
-3D-Printning,,PRI_FAIL_TROUBLE,5,box,Print-fejl,"Identificér årsagen til et fejlet print og løs problemet"
-3D-Printning,,PRI_AMS_MULTICOLOR,6,box,AMS Flerfarve,"Opsæt og gennemfør et flerfarvet print ved hjælp af AMS"
-3D-Modellering,,DES_NAV_3D,1,axis-3d,3D Navigation,"Navigér frit rundt i 3D-rummet og find de vigtigste værktøjer"
-3D-Modellering,,DES_SKETCH_EXT,2,axis-3d,Skitse & Extrude,"Lav en 2D-skitse og brug Extrude til at give den form"
-3D-Modellering,,DES_PRECISION_MM,3,axis-3d,Præcisionsmål,"Design et objekt efter præcise mål angivet i millimeter"
-3D-Modellering,,DES_CALIPER_RE,4,axis-3d,Skydelære 3D,"Mål en fysisk genstand med skydelære og genskab den i 3D"
-3D-Modellering,,DES_FUNC_DESIGN,5,axis-3d,Funktionelt Emne,"Design et funktionelt emne der løser et konkret problem"
-Folieskæring,,FOL_FEED_SETUP,1,scissors,Isæt Folie,"Isæt skærefolien korrekt i maskinen og tjek fremføringen"
-Folieskæring,,FOL_WEEDING_PRAC,2,scissors,Weeding,"Weeding: Fjern manuelt den overskydende folie fra dit design"
-Folieskæring,,FOL_TRANSFER_TAPE,3,scissors,Transfer Tape,"Transfer: Vælg og brug applikationstape til overførsel"
-Folieskæring,,FOL_HEAT_PRESS,4,scissors,Varmepresse,"Overfør et motiv til tekstil ved brug af sin varmepresse"
-Folieskæring,,FOL_MULTI_LAYER,5,scissors,Flerlags-Folie,"Montér et design bestående af flere lag folie i forskellige farver"
-Elektronik,,ELE_FUME_SAFETY,1,zap,Lodde-udsugning,"Brug altid aktiv udsugning når du lodder for din sikkerhed"
-Elektronik,,ELE_LED_BATTERY,2,zap,Simpel LED,"Få en LED til at lyse ved brug af batteri og modstand"
-Elektronik,,ELE_BREADBOARD,3,zap,Breadboard,"Opbyg et fungerende kredsløb på et breadboard efter tegning"
-Elektronik,,ELE_LED_STRIP,4,zap,LED-bånd Lodning,"Lod ledninger fast på et LED-bånd med en stærk samling"
-Elektronik,,ELE_PSU_VOLT,5,zap,Strømforsyning,"Indstil den korrekte spænding (Volt) på en strømforsyning"
-Elektronik,,ELE_MULTIMETER,6,zap,Multimeter,"Mål spænding og find forbindelser ved brug af multimeter"
-Microcontroller,,MIC_CONNECT_UP,1,cpu,Upload Kode,"Tilslut din micro:bit til computeren og upload første kode"
-Microcontroller,,MIC_BASIC_PROG,2,cpu,Simpelt Program,"Lav et simpelt program (vis navn eller ikon på skærmen)"
-Microcontroller,,MIC_EXT_INPUTS,3,cpu,Eksterne Inputs,"Lav et program der reagerer på eksterne input (knapper/pins)"
-Microcontroller,,MIC_EXT_SENSORS,4,cpu,Sensorer,"Lav et program der benytter eksterne sensorer (lys/temp)"
-Microcontroller,,MIC_DIGITAL_FAB,5,cpu,Digi-Fab Projekt,"Anvend micro:bit som styring i et digitalt fabrikeret projekt"
-Materialekendskab,,MAT_MEASURE_DIM,1,layers,Mål & Tykkelse,"Mål tykkelse og areal af et materiale med skydelære eller lineal"
-Materialekendskab,,MAT_IDENTIFY_BASICS,2,layers,Basis Materialer,"Identificér basis materialer (træ pap kork tekstil metaller printmedier)"
-Materialekendskab,,MAT_MATCH_MACHINE,3,layers,Materiale/Maskine,"Kobl rigtigt materiale til rigtig maskine (f.eks. plasttyper til laser)"
-Materialekendskab,,MAT_FILAMENT_TYPES,4,layers,Filamenttyper,"Forklar egenskaber og begrænsninger for filamenttyper til 3D-print"
-Materialekendskab,,MAT_SELECT_CRITERIA,5,layers,Materialevalg,"Vurdér og vælg det mest velegnede materiale ud fra funktionelle krav"
-Værkstedskultur,,KUL_CLEAN_STATION,1,shield-check,Oprydning,"Ryd op efter dig selv og efterlad maskinen klar til den næste"
-Værkstedskultur,,KUL_SAFETY_RULES,2,shield-check,Sikkerhedsregler,"Overhold alle værkstedets sikkerhedsregler uden at blive mindet om det"
-Værkstedskultur,,KUL_DOCUMENTATION,3,shield-check,Dokumentation,"Dokumentér din proces med billeder af både fejl og succeser"
-Værkstedskultur,,KUL_RESILIENCE_RETRY,4,shield-check,Fejlhåndtering,"Giv ikke op ved fejl find årsagen og prøv igen med en ny løsning"
-Værkstedskultur,,KUL_TEACH_OTHERS,5,shield-check,Lær fra dig,"Lær en anden elev hvordan en maskine eller et program fungerer"
-Digitalt Broderi,,BRO_01,1,spool,Isætning & Ramme,"Isæt stof og stabilisator (vlies) korrekt i broderirammen"
-Digitalt Broderi,,BRO_02,2,spool,Tråd & Trådning,"Tråd maskinen med under- og overtråd og tjek trådspændingen"
-Digitalt Broderi,,BRO_03,3,spool,Standard Mønster,"Hent et færdigt broderidesign (.PES) og placér det præcist på stoffet"
-Digitalt Broderi,,BRO_04,4,spool,Tekst & Skrifttyper,"Opsæt og tilpas tekst med forskellige skrifttyper i Ink/Stitch eller software"
-Digitalt Broderi,,BRO_05,5,spool,Vektorisering til Sting,"Konvertér en vektor-tegning til stingtyper (Satin fill og Tatami)"
-Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et flerfarvet design med automatiske trådklip og skift"`;
 
     const DOMAIN_MAP = {
       'Filhåndtering': '💻 Software',
@@ -651,8 +570,9 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
       return 'Limpistol-Lærling';
     }
 
-    let allSkills = [];
-    let userProgress = {}; // { [skillId]: true }
+    let allSkills = JSON.parse(localStorage.getItem('ms_allSkills')) || [];
+    let hiddenCats = JSON.parse(localStorage.getItem('ms_hiddenCats')) || [];
+    let userProgress = JSON.parse(localStorage.getItem('ms_local_progress')) || {};
     let currentUser = null;
     let manualSubCatExpanded = {};
     let isSignUpMode = false;
@@ -686,88 +606,93 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
       return result;
     }
 
-    function parseLocalCSVText(text) {
+    function parseCSVText(text, showAlert = true) {
       const lines = text.trim().split(/\r?\n/);
-      const skills = [];
+      if (lines.length < 2) return;
+
+      let addedCount = 0;
       for (let i = 1; i < lines.length; i++) {
         if (!lines[i].trim()) continue;
         const values = parseCSVLine(lines[i]);
         if (values.length < 7) continue;
 
-        skills.push({
+        const skill = {
+          cat: values[0],
+          subCat: values[1] || '',
           id: values[2],
-          category: values[0],
-          subcategory: values[1] || '',
-          domain: DOMAIN_MAP[values[0]] || '💻 Software',
           level: parseInt(values[3]) || 1,
-          svg_icon: sanitizeIcon(values[4]),
-          short_desc: values[5],
-          full_desc: values[6].replace(/^"|"$/g, '')
-        });
+          svg: sanitizeIcon(values[4]),
+          shortDesc: values[5],
+          fullDesc: values[6].replace(/^"|"$/g, '')
+        };
+
+        const existingIdx = allSkills.findIndex(s => s.id === skill.id);
+        if (existingIdx >= 0) {
+          allSkills[existingIdx] = skill;
+        } else {
+          allSkills.push(skill);
+          addedCount++;
+        }
       }
-      return skills;
+
+      localStorage.setItem('ms_allSkills', JSON.stringify(allSkills));
+      renderApp();
+      renderAdmin();
+      if (showAlert) alert(`CSV indlæst! ${addedCount} nye kompetencer blev tilføjet/opdateret.`);
     }
 
-    // ==========================================
-    // 2. DATA HENTNING & SUPABASE SEEDING
-    // ==========================================
-    async function initData() {
-      const emptyState = document.getElementById('emptyState');
-      emptyState.style.display = 'block';
+    function handleFileUpload() {
+      const fileInput = document.getElementById('csvFileInput');
+      const file = fileInput.files[0];
+      if (!file) {
+        alert('Vælg venligst en CSV-fil først.');
+        return;
+      }
 
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        parseCSVText(e.target.result, true);
+        fileInput.value = '';
+      };
+      reader.readAsText(file);
+    }
+
+    async function initData() {
       if (!supabaseClient) {
-        // Fallback til standard CSV hvis Supabase URL mangler
-        allSkills = parseLocalCSVText(DEFAULT_CSV);
-        userProgress = JSON.parse(localStorage.getItem('ms_local_progress')) || {};
         renderApp();
         return;
       }
 
       try {
-        // 1. Tjek om der er en aktiv session
         const { data: { session } } = await supabaseClient.auth.getSession();
         if (session) {
           currentUser = session.user;
           updateAuthUI(true, currentUser.email);
+          await fetchUserProgress();
         } else {
           updateAuthUI(false);
         }
 
-        // 2. Hent kompetencer fra skills-tabel
         const { data: skillsData, error: skillsError } = await supabaseClient
           .from('skills')
           .select('*')
           .order('level', { ascending: true });
 
-        if (skillsError) throw skillsError;
-
-        if (!skillsData || skillsData.length === 0) {
-          // Databasen er tom: Seed den med standard-kompetencer
-          const localParsed = parseLocalCSVText(DEFAULT_CSV);
-          await supabaseClient.from('skills').insert(localParsed);
-          allSkills = localParsed;
-        } else {
+        if (!skillsError && skillsData && skillsData.length > 0) {
           allSkills = skillsData.map(s => ({
-            ...s,
             cat: s.category,
-            subCat: s.subcategory,
-            svg: s.svg_icon,
+            subCat: s.subcategory || '',
+            id: s.id,
+            level: s.level,
+            svg: sanitizeIcon(s.svg_icon),
             shortDesc: s.short_desc,
             fullDesc: s.full_desc
           }));
         }
 
-        // 3. Hvis logget ind: Hent brugerens fremskridt
-        if (currentUser) {
-          await fetchUserProgress();
-        } else {
-          userProgress = JSON.parse(localStorage.getItem('ms_local_progress')) || {};
-        }
-
         renderApp();
       } catch (err) {
-        console.error('Fejl under data-initialisering:', err);
-        allSkills = parseLocalCSVText(DEFAULT_CSV);
+        console.error('Fejl under initialisering:', err);
         renderApp();
       }
     }
@@ -785,9 +710,6 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
       }
     }
 
-    // ==========================================
-    // 3. AUTH LOGIK (LOGIN / OPRET BRUGER)
-    // ==========================================
     function updateAuthUI(isLoggedIn, email = '') {
       const authBtn = document.getElementById('authBtn');
       const footerUserName = document.getElementById('footerUserName');
@@ -804,13 +726,10 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
       }
     }
 
-    function openAuthModal() {
-      document.getElementById('authModal').style.display = 'flex';
-    }
-
-    function closeAuthModal() {
-      document.getElementById('authModal').style.display = 'none';
-    }
+    function openAuthModal() { document.getElementById('authModal').style.display = 'flex'; }
+    function closeAuthModal() { document.getElementById('authModal').style.display = 'none'; }
+    function openAdmin() { renderAdmin(); document.getElementById('adminModal').style.display = 'flex'; }
+    function closeAdmin() { document.getElementById('adminModal').style.display = 'none'; renderApp(); }
 
     function toggleAuthMode() {
       isSignUpMode = !isSignUpMode;
@@ -823,7 +742,7 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
 
     async function handleAuthAction() {
       if (!supabaseClient) {
-        alert('Supabase er ikke forbundet endnu. Indtast dine API-nøgler i koden.');
+        alert('Supabase er ikke forbundet endnu. Indtast dine API-nøgler i koden først.');
         return;
       }
 
@@ -840,18 +759,13 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
           const { data, error } = await supabaseClient.auth.signUp({
             email,
             password,
-            options: {
-              data: { username: email.split('@')[0] }
-            }
+            options: { data: { username: email.split('@')[0] } }
           });
           if (error) throw error;
-          alert('Bruger oprettet!');
+          alert('Bruger oprettet! Du er nu logget ind.');
           currentUser = data.user;
         } else {
-          const { data, error } = await supabaseClient.auth.signInWithPassword({
-            email,
-            password
-          });
+          const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
           if (error) throw error;
           currentUser = data.user;
         }
@@ -866,34 +780,15 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
     }
 
     async function handleSignOut() {
-      if (supabaseClient) {
-        await supabaseClient.auth.signOut();
-      }
+      if (supabaseClient) await supabaseClient.auth.signOut();
       currentUser = null;
-      userProgress = {};
+      userProgress = JSON.parse(localStorage.getItem('ms_local_progress')) || {};
       updateAuthUI(false);
       renderApp();
     }
 
-    // ==========================================
-    // 4. FREMSKRIDT & EFFEKTER
-    // ==========================================
     function spawnFloatingEmojis(x, y, category) {
-      const emojiMap = {
-        'Laserskæring': ['🔥', '⚡', '🎯', '💥'],
-        '3D-Printning': ['🧊', '📦', '🏗️', '⚙️'],
-        'Folieskæring': ['✂️', '🎨', '📏', '✨'],
-        'Digitalt Broderi': ['🧵', '🪡', '✨', '🌸'],
-        'Elektronik': ['⚡', '💡', '🔌', '🔋'],
-        'Microcontroller': ['🤖', '💻', '🧠', '⚙️'],
-        'Vektorgrafik': ['✒️', '📐', '🎨', '✨'],
-        'Rastergrafik': ['🖼️', '👾', '🔍', '🎨'],
-        'Filhåndtering': ['📁', '💾', '☁️', '🗂️'],
-        'Materialekendskab': ['🪵', '🔬', '🧱', '📐'],
-        'Værkstedskultur': ['🤝', '🛡️', '🌟', '🛠️'],
-        '3D-Modellering': ['🧊', '📐', '💻', '🌐']
-      };
-      const list = emojiMap[category] || ['⭐', '✨', '🚀', '🎯', '💡'];
+      const list = ['⭐', '✨', '🚀', '🎯', '💡', '🔥', '⚙️'];
       for (let i = 0; i < 5; i++) {
         const el = document.createElement('div');
         el.className = 'floating-emoji';
@@ -920,9 +815,7 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
       }
     }
 
-    function closeTitleSplash() {
-      document.getElementById('titleSplash').style.display = 'none';
-    }
+    function closeTitleSplash() { document.getElementById('titleSplash').style.display = 'none'; }
 
     async function toggleSkill(skillId, event, category) {
       const prevActiveCount = allSkills.filter(s => userProgress[s.id]).length;
@@ -937,18 +830,11 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
         delete userProgress[skillId];
       }
 
-      // Synkroniser til Supabase eller LocalStorage
       if (currentUser && supabaseClient) {
         if (isCompleted) {
-          await supabaseClient.from('user_skills').insert({
-            user_id: currentUser.id,
-            skill_id: skillId
-          });
+          await supabaseClient.from('user_skills').insert({ user_id: currentUser.id, skill_id: skillId });
         } else {
-          await supabaseClient.from('user_skills').delete().match({
-            user_id: currentUser.id,
-            skill_id: skillId
-          });
+          await supabaseClient.from('user_skills').delete().match({ user_id: currentUser.id, skill_id: skillId });
         }
       } else {
         localStorage.setItem('ms_local_progress', JSON.stringify(userProgress));
@@ -972,7 +858,7 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
     function createSkillHex(s, isDone) {
       const hex = document.createElement('div');
       hex.className = `hex-container ${isDone ? 'active' : ''}`;
-      hex.onclick = (e) => toggleSkill(s.id, e, s.cat || s.category);
+      hex.onclick = (e) => toggleSkill(s.id, e, s.cat);
 
       hex.innerHTML = `
         <svg class="hex-svg" viewBox="0 0 100 86.6">
@@ -980,35 +866,43 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
           <polygon class="hex-inner-frame" points="28,9 72,9 90,43.3 72,77.6 28,77.6 10,43.3" />
         </svg>
         <div class="hex-content">
-          <i data-lucide="${s.svg || s.svg_icon}" class="hex-icon"></i>
-          <div class="hex-text">${s.shortDesc || s.short_desc}</div>
+          <i data-lucide="${s.svg}" class="hex-icon"></i>
+          <div class="hex-text">${s.shortDesc}</div>
           <div class="hex-level">${s.level}</div>
         </div>
         <div class="tooltip">
-          <strong>${s.shortDesc || s.short_desc} (Lvl ${s.level})</strong><br>
-          ${s.fullDesc || s.full_desc}
+          <strong>${s.shortDesc} (Lvl ${s.level})</strong><br>
+          ${s.fullDesc}
         </div>
       `;
       return hex;
     }
 
-    // ==========================================
-    // 5. RENDERING AF BIKUBE-GRID
-    // ==========================================
     function renderApp() {
       const honeycombGrid = document.getElementById('honeycombGrid');
       const emptyState = document.getElementById('emptyState');
       honeycombGrid.innerHTML = '';
+
+      if (allSkills.length === 0) {
+        emptyState.style.display = 'block';
+        document.getElementById('footerScore').innerText = '0 / 0';
+        return;
+      }
       emptyState.style.display = 'none';
 
-      const totalSkillsCount = allSkills.length;
-      const activeSkillsCount = allSkills.filter(s => userProgress[s.id]).length;
+      const availableSkills = allSkills.filter(s => !hiddenCats.includes(s.cat));
+      const totalSkillsCount = availableSkills.length;
+      const activeSkillsCount = availableSkills.filter(s => userProgress[s.id]).length;
 
       document.getElementById('footerUserTitle').innerText = getGamificationTitle(activeSkillsCount);
       document.getElementById('footerScore').innerText = `${activeSkillsCount} / ${totalSkillsCount}`;
 
-      DOMAIN_ORDER.forEach(domainName => {
-        const domainSkills = allSkills.filter(s => (s.domain || DOMAIN_MAP[s.category || s.cat]) === domainName);
+      const activeDomains = [...new Set(availableSkills.map(s => DOMAIN_MAP[s.cat] || '💻 Software'))];
+      const orderedDomains = DOMAIN_ORDER.filter(d => activeDomains.includes(d));
+      if (orderedDomains.length === 0 && activeDomains.length > 0) orderedDomains.push(...activeDomains);
+
+      orderedDomains.forEach(domainName => {
+        const domainSkills = availableSkills.filter(s => (DOMAIN_MAP[s.cat] || '💻 Software') === domainName);
         if (domainSkills.length === 0) return;
 
         const domainSection = document.createElement('div');
@@ -1022,14 +916,14 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
         const domainColumns = document.createElement('div');
         domainColumns.className = 'domain-columns';
 
-        const domainCategories = [...new Set(domainSkills.map(s => s.category || s.cat))];
+        const domainCategories = [...new Set(domainSkills.map(s => s.cat))];
 
         domainCategories.forEach(catName => {
-          const catSkills = domainSkills.filter(s => (s.category || s.cat) === catName).sort((a,b) => a.level - b.level);
+          const catSkills = domainSkills.filter(s => s.cat === catName).sort((a,b) => a.level - b.level);
           const col = document.createElement('div');
           col.className = 'column';
 
-          const catIcon = catSkills[0]?.svg || catSkills[0]?.svg_icon || 'folder';
+          const catIcon = catSkills[0]?.svg || 'folder';
           const completedInCat = catSkills.filter(s => userProgress[s.id]).length;
           const isCatFullyCompleted = (completedInCat === catSkills.length && catSkills.length > 0);
 
@@ -1047,7 +941,7 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
           `;
           col.appendChild(catHex);
 
-          const subCatNames = [...new Set(catSkills.map(s => s.subcategory || s.subCat).filter(sc => sc !== ''))];
+          const subCatNames = [...new Set(catSkills.map(s => s.subCat).filter(sc => sc !== ''))];
 
           if (subCatNames.length === 0) {
             const firstFourSkills = catSkills.filter(s => s.level <= 4);
@@ -1066,7 +960,7 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
             subCatNames.forEach((scName) => {
               if (!allPrevCompleted) return;
 
-              const scSkills = catSkills.filter(s => (s.subcategory || s.subCat) === scName).sort((a,b) => a.level - b.level);
+              const scSkills = catSkills.filter(s => s.subCat === scName).sort((a,b) => a.level - b.level);
               const scCompletedCount = scSkills.filter(s => userProgress[s.id]).length;
               const isScCompleted = (scCompletedCount === scSkills.length && scSkills.length > 0);
 
@@ -1081,7 +975,7 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
                 scHex.className = `hex-container subcat-hex ${isScCompleted ? 'completed' : ''}`;
                 scHex.onclick = () => toggleSubCatFold(subCatKey);
 
-                const scIcon = scSkills[0]?.svg || scSkills[0]?.svg_icon || 'folder';
+                const scIcon = scSkills[0]?.svg || 'folder';
                 const foldLabel = isExpanded ? '▲ Skjul' : '▼ Vis';
 
                 scHex.innerHTML = `
@@ -1096,8 +990,7 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
                   </div>
                   <div class="tooltip">
                     <strong>${scName}</strong><br>
-                    ${scCompletedCount}/${scSkills.length} opnåede kompetencer.<br>
-                    <em>Klik for at ${isExpanded ? 'skjule' : 'vis'} enkeltkompetencer</em>
+                    ${scCompletedCount}/${scSkills.length} opnåede kompetencer.
                   </div>
                 `;
                 col.appendChild(scHex);
@@ -1124,28 +1017,70 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
       lucide.createIcons();
     }
 
-    // ==========================================
-    // 6. TUTORIAL
-    // ==========================================
+    function renderAdmin() {
+      const container = document.getElementById('adminCategoryList');
+      container.innerHTML = '';
+      const allCats = [...new Set(allSkills.map(s => s.cat))];
+
+      if (allCats.length === 0) {
+        container.innerHTML = '<span style="font-size:0.8rem; color:var(--text-muted);">Ingen kategorier fundet. Upload en CSV ovenover.</span>';
+      }
+
+      allCats.forEach(cat => {
+        const isHidden = hiddenCats.includes(cat);
+        const label = document.createElement('label');
+        label.style.color = 'white';
+        label.style.display = 'flex';
+        label.style.gap = '10px';
+        label.style.fontSize = '0.85rem';
+        label.innerHTML = `
+          <input type="checkbox" ${!isHidden ? 'checked' : ''} onchange="toggleCatVisibility('${cat}')">
+          <span>Vis Kategori: <strong>${cat}</strong></span>
+        `;
+        container.appendChild(label);
+      });
+    }
+
+    function toggleCatVisibility(cat) {
+      if (hiddenCats.includes(cat)) {
+        hiddenCats = hiddenCats.filter(c => c !== cat);
+      } else {
+        hiddenCats.push(cat);
+      }
+      localStorage.setItem('ms_hiddenCats', JSON.stringify(hiddenCats));
+    }
+
+    function clearAllData() {
+      if (confirm('Er du sikker på, at du vil nulstille dine lokale kompetencer og afkrydsninger?')) {
+        localStorage.clear();
+        allSkills = [];
+        hiddenCats = [];
+        userProgress = {};
+        renderApp();
+        renderAdmin();
+        closeAdmin();
+      }
+    }
+
     let tutStep = 0;
     const tutSteps = [
       {
         targetId: 'authBtn',
         title: '🔑 1. Login & Profil',
-        text: 'Log ind for at gemme dine opnåede mål på tværs af enheder og computere i værkstedet.',
+        text: 'Opret en bruger eller log ind for at gemme dine opnåede mål i skyen via Supabase.',
         pos: { top: '70px', right: '20px' }
       },
       {
-        targetClass: 'domain-header',
-        title: '🌐 2. De 3 Hoveddomæner',
-        text: 'Kompetencerne er opdelt i Software, Maskiner og Hardware & Hands-on.',
-        pos: { top: '100px', left: '50%', transform: 'translateX(-50%)' }
+        targetId: 'adminBtn',
+        title: '⚙️ 2. Admin Panel',
+        text: 'Herinde kan du uploade en specifik CSV-fil (f.eks. til studieturen) eller slå kategorier til/fra.',
+        pos: { top: '70px', right: '110px' }
       },
       {
-        targetClass: 'cat-hex-container',
-        title: '📊 3. Kategori-sekskant i Bunden',
-        text: 'Hver søjle afsluttes med en kategori-sekskant. Hold musen over for at se det fulde navn.',
-        pos: { bottom: '130px', left: '50%', transform: 'translateX(-50%)' }
+        targetClass: 'domain-header',
+        title: '🌐 3. De 3 Hoveddomæner',
+        text: 'Kompetencerne er opdelt i Software, Maskiner og Hardware & Hands-on.',
+        pos: { top: '100px', left: '50%', transform: 'translateX(-50%)' }
       },
       {
         targetClass: 'hex-container',
@@ -1211,9 +1146,7 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
     window.onload = function() {
       initData();
       const hasSeen = localStorage.getItem('ms_hasSeenTutorial');
-      if (!hasSeen) {
-        setTimeout(startTutorial, 500);
-      }
+      if (!hasSeen) setTimeout(startTutorial, 500);
     };
   </script>
 </body>
