@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Makerspace Skill Tree</title>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <!-- Supabase JS Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --bg-color: #0b1329;
+      --card-bg: #1e293b;
+      --accent-blue: #38bdf8;
+      --active-green: #22c55e;
+      --inactive-border: #475569;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* SCREEN SHAKE ANIMATION */
+    .shake {
+      animation: screenShake 0.3s ease-in-out;
+    }
+    @keyframes screenShake {
+      0%, 100% { transform: translate(0, 0); }
+      20% { transform: translate(-4px, 3px); }
+      40% { transform: translate(4px, -3px); }
+      60% { transform: translate(-3px, -2px); }
+      80% { transform: translate(3px, 2px); }
+    }
+
+    header {
+      background: #0f172a;
+      padding: 15px 25px;
+      border-bottom: 1px solid #1e293b;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 100;
+      position: relative;
+    }
+
+    h1 { margin: 0; font-size: 1.4rem; color: var(--text-main); }
+    .header-btns { display: flex; gap: 10px; align-items: center; }
+
+    .main-container {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .viewport {
+      flex: 1;
+      padding: 20px;
+      overflow: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: radial-gradient(circle at center, #131f3f 0%, #0b1329 100%);
+    }
+
+    .empty-state {
+      margin-top: 100px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      max-width: 400px;
+      line-height: 1.5;
+    }
+
+    .honeycomb-grid {
+      display: flex;
+      gap: 55px;
+      padding: 20px 40px 80px 40px;
+      align-items: flex-end;
+    }
+
+    .domain-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    .domain-header {
+      font-size: 0.82rem;
+      font-weight: bold;
+      color: var(--accent-blue);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+      padding: 6px 16px;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid #334155;
+      border-radius: 20px;
+      white-space: nowrap;
+      z-index: 10;
+    }
+
+    .domain-columns {
+      display: flex;
+      padding-top: 55px;
+    }
+
+    .column {
+      display: flex;
+      flex-direction: column-reverse;
+      gap: 6px;
+      margin-right: -21px;
+      position: relative;
+      z-index: 1;
+      align-items: center;
+      width: 100px;
+      flex-shrink: 0;
+    }
+
+    .column:hover { z-index: 100; }
+    .column:nth-child(even) { transform: translateY(-46px); }
+
+    .hex-container {
+      width: 100px;
+      height: 86.6px;
+      position: relative;
+      cursor: pointer;
+      z-index: 1;
+      transition: transform 0.15s ease, opacity 0.3s ease;
+    }
+
+    .hex-container:hover {
+      z-index: 500 !important;
+      transform: scale(1.04);
+    }
+
+    .hex-svg {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0; left: 0;
+    }
+
+    .hex-outer-frame {
+      fill: #1e293b;
+      stroke: var(--inactive-border);
+      stroke-width: 3;
+      transition: stroke 0.3s, fill 0.3s;
+    }
+
+    .hex-outer-frame.dashed-frame {
+      stroke-dasharray: 6 3;
+      stroke: var(--accent-blue);
+    }
+
+    .hex-inner-frame {
+      fill: #0f172a;
+      stroke: var(--inactive-border);
+      stroke-width: 1.5;
+      transition: stroke 0.3s;
+    }
+
+    .cat-hex-container {
+      order: -1;
+      margin-top: 15px;
+    }
+
+    .hex-container.active .hex-outer-frame,
+    .cat-hex-container.completed .hex-outer-frame,
+    .subcat-hex.completed .hex-outer-frame {
+      stroke: var(--active-green);
+      fill: #022c22;
+      filter: drop-shadow(0 0 6px rgba(34, 197, 94, 0.4));
+    }
+
+    .hex-container.active .hex-inner-frame,
+    .cat-hex-container.completed .hex-inner-frame,
+    .subcat-hex.completed .hex-inner-frame {
+      stroke: var(--active-green);
+    }
+
+    .hex-content {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 6px 11px 6px;
+      box-sizing: border-box;
+      pointer-events: none;
+    }
+
+    .hex-icon { 
+      color: var(--accent-blue); 
+      width: 16px; 
+      height: 16px; 
+      margin-top: 3px;
+    }
+    
+    .hex-container.active .hex-icon { color: var(--active-green); }
+
+    .hex-text {
+      font-size: 0.58rem;
+      font-weight: 700;
+      text-align: center;
+      line-height: 1.05;
+      color: var(--text-main);
+      padding: 0 4px;
+      max-width: 80px;
+      word-wrap: break-word;
+    }
+
+    .hex-level {
+      font-size: 0.65rem;
+      font-weight: bold;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+
+    .cat-hex-content {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    .cat-big-icon {
+      width: 32px;
+      height: 32px;
+      color: var(--accent-blue);
+      transition: color 0.3s;
+    }
+
+    .cat-hex-container.completed .cat-big-icon {
+      color: var(--active-green);
+    }
+
+    /* TOOLTIP */
+    .hex-container .tooltip,
+    .cat-hex-container .cat-tooltip {
+      visibility: hidden;
+      width: 230px;
+      background-color: #0f172a;
+      color: var(--text-main);
+      text-align: center;
+      border-radius: 8px;
+      padding: 12px;
+      position: absolute;
+      z-index: 9999;
+      top: 105%;
+      left: 50%;
+      transform: translateX(-50%);
+      opacity: 0;
+      transition: opacity 0.2s ease, visibility 0.2s ease;
+      border: 1.5px solid var(--accent-blue);
+      box-shadow: 0 12px 28px rgba(0,0,0,0.85);
+      font-size: 0.78rem;
+      pointer-events: none;
+      line-height: 1.35;
+    }
+
+    .cat-hex-container .cat-tooltip {
+      color: var(--accent-blue);
+      font-weight: bold;
+      text-transform: uppercase;
+      width: auto;
+      max-width: 220px;
+      white-space: normal;
+    }
+
+    .hex-container:hover .tooltip,
+    .cat-hex-container:hover .cat-tooltip {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    /* FLYDENDE EMOJIS EFFEKT */
+    .floating-emoji {
+      position: fixed;
+      pointer-events: none;
+      z-index: 15000;
+      font-size: 1.4rem;
+      animation: floatEmoji 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    }
+    @keyframes floatEmoji {
+      0% { transform: translate(0, 0) scale(0.6); opacity: 1; }
+      100% { transform: translate(var(--tx), -70px) scale(1.3); opacity: 0; }
+    }
+
+    /* SHOCKWAVE EFFEKT */
+    .shockwave-effect {
+      position: fixed;
+      pointer-events: none;
+      z-index: 14000;
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      border: 4px solid var(--active-green);
+      box-shadow: 0 0 20px var(--active-green), inset 0 0 20px var(--accent-blue);
+      transform: translate(-50%, -50%) scale(0.5);
+      animation: expandWave 1s cubic-bezier(0.1, 0.7, 0.1, 1) forwards;
+    }
+    @keyframes expandWave {
+      0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(3.5); opacity: 0; }
+    }
+
+    /* SPLASHSCREEN MODAL */
+    .splash-modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(11, 19, 41, 0.85);
+      backdrop-filter: blur(8px);
+      z-index: 20000;
+      justify-content: center;
+      align-items: center;
+    }
+    .splash-card {
+      background: #1e293b;
+      border: 2px solid var(--accent-blue);
+      box-shadow: 0 0 35px rgba(56, 189, 248, 0.4);
+      border-radius: 16px;
+      padding: 35px 40px;
+      text-align: center;
+      max-width: 420px;
+      animation: popScale 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+    @keyframes popScale {
+      from { transform: scale(0.7); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    footer {
+      background: #0f172a;
+      border-top: 1px solid #1e293b;
+      padding: 12px 25px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.9rem;
+      z-index: 10;
+    }
+
+    .footer-info { display: flex; gap: 30px; align-items: center; }
+    .footer-label { color: var(--text-muted); margin-right: 6px; }
+    .footer-val { color: var(--text-main); font-weight: bold; }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.85);
+      z-index: 10000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-box {
+      background: #1e293b;
+      padding: 25px;
+      border-radius: 8px;
+      width: 440px;
+      max-width: 90%;
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+
+    .admin-section {
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid #334155;
+    }
+
+    .admin-section h3 { margin-top: 0; font-size: 1rem; color: var(--accent-blue); }
+    .input-group { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+
+    input[type="text"], input[type="email"], input[type="password"], select, input[type="file"] {
+      background: #0f172a;
+      border: 1px solid #475569;
+      color: white;
+      padding: 9px 12px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .btn {
+      background: var(--accent-blue);
+      color: #0f172a;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .btn:hover { opacity: 0.9; }
+
+    .btn-secondary { background: #475569; color: white; }
+    .btn-danger { background: #ef4444; color: white; }
+
+    .tutorial-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.7);
+      z-index: 11000;
+    }
+
+    .tutorial-box {
+      position: fixed;
+      background: #0f172a;
+      border: 2px solid var(--accent-blue);
+      border-radius: 10px;
+      padding: 20px;
+      width: 320px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.9);
+      z-index: 12000;
+    }
+
+    .tutorial-box h4 { margin: 0 0 8px 0; color: var(--accent-blue); }
+    .tutorial-box p { margin: 0 0 15px 0; font-size: 0.85rem; line-height: 1.4; }
+    .tutorial-nav { display: flex; justify-content: space-between; align-items: center; }
+
+    .highlight-target {
+      position: relative !important;
+      z-index: 11500 !important;
+      box-shadow: 0 0 0 4px var(--accent-blue), 0 0 20px var(--accent-blue) !important;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>MAKERSPACE SKILL TREE</h1>
+    <div class="header-btns">
+      <button class="btn btn-secondary" onclick="startTutorial()">❓ Guide</button>
+      <button class="btn" id="authBtn" onclick="openAuthModal()">🔑 Log ind</button>
+    </div>
+  </header>
+
+  <div class="main-container">
+    <div class="viewport">
+      <div id="emptyState" class="empty-state" style="display:none;">
+        <i data-lucide="loader-2" style="width: 48px; height: 48px; margin-bottom: 15px; color: var(--accent-blue); animation: spin 1s linear infinite;"></i><br>
+        <strong>Henter kompetencer fra Supabase...</strong>
+      </div>
+      <div class="honeycomb-grid" id="honeycombGrid"></div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-info">
+      <div id="targetUser">
+        <span class="footer-label">Bruger:</span>
+        <span class="footer-val" id="footerUserName">Gæst (ikke logget ind)</span>
+      </div>
+      <div>
+        <span class="footer-label">Titel:</span>
+        <span class="footer-val" id="footerUserTitle" style="color: var(--accent-blue);">Limpistol-Lærling</span>
+      </div>
+      <div id="targetScore">
+        <span class="footer-label">Opnåede kompetencer:</span>
+        <span class="footer-val" id="footerScore" style="color: var(--active-green);">0 / 0</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- AUTH MODAL -->
+  <div class="modal" id="authModal">
+    <div class="modal-box">
+      <h2 id="authModalTitle" style="margin-top:0;">Log ind</h2>
+      <div class="input-group">
+        <label style="font-size:0.8rem; color:var(--text-muted);">E-mail:</label>
+        <input type="email" id="authEmail" placeholder="elev@skole.dk">
+        
+        <label style="font-size:0.8rem; color:var(--text-muted);">Kodeord:</label>
+        <input type="password" id="authPassword" placeholder="••••••••">
+      </div>
+      <div style="margin-top:15px; display:flex; gap:10px; justify-content:flex-end;">
+        <button class="btn btn-secondary" onclick="closeAuthModal()">Annuller</button>
+        <button class="btn" id="authSubmitBtn" onclick="handleAuthAction()">Log ind</button>
+      </div>
+      <div style="margin-top:15px; text-align:center;">
+        <a href="javascript:void(0)" id="authToggleLink" onclick="toggleAuthMode()" style="color:var(--accent-blue); font-size:0.8rem;">Har du ikke en bruger? Opret her</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- TITLE SPLASHSCREEN -->
+  <div class="splash-modal" id="titleSplash">
+    <div class="splash-card">
+      <div style="font-size: 3rem; margin-bottom: 10px;">👑</div>
+      <h2 style="color: var(--active-green); margin: 0 0 5px 0;">NY TITEL OPNÅET!</h2>
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">Du er steget i rang og mestring:</p>
+      <div id="splashTitleText" style="font-size: 1.4rem; font-weight: bold; color: var(--accent-blue); margin-bottom: 25px;">-</div>
+      <button class="btn" style="width: 100%; padding: 10px;" onclick="closeTitleSplash()">Fortsæt!</button>
+    </div>
+  </div>
+
+  <!-- TUTORIAL -->
+  <div class="tutorial-overlay" id="tutorialOverlay"></div>
+  <div class="tutorial-box" id="tutorialBox" style="display:none;">
+    <h4 id="tutTitle">Velkommen!</h4>
+    <p id="tutText">Dette er en kort introduktion til Makerspace Skill Tree.</p>
+    <div class="tutorial-nav">
+      <span id="tutStepCount" style="font-size:0.75rem; color:var(--text-muted);">Trin 1 / 5</span>
+      <div>
+        <button class="btn btn-secondary" style="padding:4px 10px; font-size:0.75rem;" onclick="closeTutorial()">Spring over</button>
+        <button class="btn" style="padding:4px 10px; font-size:0.75rem; margin-left:5px;" id="tutNextBtn" onclick="nextTutorialStep()">Næste ➔</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==========================================
+    // 1. SUPABASE INITIALISERING
+    // ==========================================
+    const SUPABASE_URL = 'https://roxcgmhqtyenmhdubzig.supabase.co/rest/v1/';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJveGNnbWhxdHllbm1oZHViemlnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5NjA3MTgsImV4cCI6MjEwMjUzNjcxOH0.ZBs7GtWZX02ZVTig88DDq-CCSWuGGSGqzvJxdwcsY1g';
+    
+    let supabaseClient = null;
+    if (SUPABASE_URL !== 'https://roxcgmhqtyenmhdubzig.supabase.co/rest/v1/') {
+      supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+
+    const DEFAULT_CSV = `Kategori,Underkategori,ID,Niveau,SVG_Ikon,Kort_Beskrivelse,Kompetence
+Filhåndtering,,FIL_FOLDER_MGR,1,folder,Mappe & Navn,"Opret projektmappe & navngiv filer logisk"
+Filhåndtering,,FIL_SEARCH_FILE,2,folder,Fil-søgning,"Brug søgefunktionen til at finde en specifik fil"
+Filhåndtering,,FIL_CLOUD_DRIVE,3,folder,Drev & Sky,"Gem og hent filer fra et eksternt drev eller skyen"
+Filhåndtering,,FIL_VERSION_CTL,4,folder,Versionsstyring,"Brug versionsstyring (v1 v2) til din arbejdsproces"
+Filhåndtering,,FIL_EXT_EXPLAIN,5,folder,Filtyper,"Forklar forskellen på .STL .SVG .3MF .JPG og .PNG"
+Filhåndtering,,FIL_ZIP_ARCHIVE,6,folder,Komprimering,"Saml og komprimér en projektmappe i en .zip-fil til deling og arkivering"
+Filhåndtering,,FIL_CONVERT_FMT,7,folder,CAD/CAM Formater,"Konvertér og eksporter filer mellem udvekslingsformater som .STEP, .DXF og .OBJ"
+Vektorgrafik,Basale Former & Objektstyring,VEK_DOC_SETTINGS,1,Spline-pointer,Dokumentindstillinger,"Ændre dokumentindstillinger og lærredsstørrelse"
+Vektorgrafik,Basale Former & Objektstyring,VEK_DRAW_SHAPES,1,Spline-pointer,Tegne Former,"Tegne grundlæggende objekter såsom cirkel, firkant og polygon"
+Vektorgrafik,Basale Former & Objektstyring,VEK_FILL_STROKE,1,Spline-pointer,Fyld & Streg,"Skifte farve på fyld og streg samt ændre stregtykkelse"
+Vektorgrafik,Basale Former & Objektstyring,VEK_SIZE_COORD,2,Spline-pointer,Størrelse & Koordinater,"Bestemme/ændre størrelsen af grafikken og flytte grafik med præcise koordinater"
+Vektorgrafik,Basale Former & Objektstyring,VEK_MIRROR_ROTATE,2,Spline-pointer,Spejl & Rotér,"Spejle og rotere objekter præcist"
+Vektorgrafik,Objektorganisering & Lag,VEK_ALIGN_DIST,3,Spline-pointer,Justér & Fordél,"Justere og fordele flere objekter i forhold til hinanden"
+Vektorgrafik,Objektorganisering & Lag,VEK_GROUP_COMBINE,3,Spline-pointer,Grupper vs. Kombination,"Gruppere grafik og kende forskel på en gruppe og en kombination"
+Vektorgrafik,Objektorganisering & Lag,VEK_LAYERS_MGR,3,Spline-pointer,Benytte Lag,"Oprette, navngive og styre lag i et vektordokument"
+Vektorgrafik,Objektorganisering & Lag,VEK_TEXT_CTRL,4,Spline-pointer,Tekstkontrol,"Ændre skrifttype og transformere tekstobjekter"
+Vektorgrafik,Stiredigering & Vektormodifikation,VEK_BEZIER_TOOL,4,Spline-pointer,Bezier-værktøj,"Tegne med Bezier-værktøjet og beherske dets forskellige tilstande"
+Vektorgrafik,Stiredigering & Vektormodifikation,VEK_NODE_EDIT,4,Spline-pointer,Node-redigering,"Redigere stier: tilføje/fjerne punkter og ændre opførsel (bue/lige linje, blødt/skarpt hjørne)"
+Vektorgrafik,Stiredigering & Vektormodifikation,VEK_OBJ_TO_PATH,5,Spline-pointer,Objekt til Sti,"Konvertere tekst og objekter/former til stier"
+Vektorgrafik,Stiredigering & Vektormodifikation,VEK_SIMPLIFY_OFFSET,5,Spline-pointer,Simplificér & Offset,"Simplificere en sti samt lave offset og inset på geometri"
+Vektorgrafik,Stiredigering & Vektormodifikation,VEK_BOOLEAN_OP,5,squares-unite,Boolske Operatorer,"Benytte boolske operatorer (Union, Difference, Intersection) til komplekse shapes"
+Vektorgrafik,Avancerede Funktioner Import/Eksport & CAM,VEK_TRACE_BMP,6,Spline-pointer,Spore Billeder,"Spore rasterbilleder (Trace Bitmap) til vektorgrafik"
+Vektorgrafik,Avancerede Funktioner Import/Eksport & CAM,VEK_EXTENSIONS,6,Spline-pointer,Ekstensioner,"Benytte ekstensioner/udvidelser til specialiserede opgaver"
+Vektorgrafik,Avancerede Funktioner Import/Eksport & CAM,VEK_EXPORT_FMT,6,Spline-pointer,Eksport,"Eksportere grafikken til andre relevante filformater"
+Vektorgrafik,Avancerede Funktioner Import/Eksport & CAM,VEK_PRINT_CUT,7,Spline-pointer,Print & Cut,"Forberede en Print and Cut fil med både grafik og skærelinje"
+Rastergrafik,,RAS_PIXEL_UNDERSTAND,1,image,Pixel-forståelse,"Forklar hvad pixels er og hvornår et billede pixelerer"
+Rastergrafik,,RAS_DPI_SETTING,2,image,DPI Opløsning,"Vælg og forklar den rigtige DPI-opløsning til print/raster"
+Rastergrafik,,RAS_BG_REMOVE,3,image,Fjern Baggrund,"Fjern baggrunden fra et rasterbillede"
+Rastergrafik,,RAS_TRACE_BMP,4,image,Trace Bitmap,"Vektorisér et billede eller logo ved brug af Trace Bitmap"
+Rastergrafik,,RAS_COMBINE_VECTOR,5,image,Raster & Vektor,"Kombinér et rasterbillede med en vektor-skærelinje"
+Laserskæring,,LAS_EXHAUST_CHK,1,target,Udsugning & Tjek,"Tjek at udsugningen er tændt og fungerer før start"
+Laserskæring,,LAS_FOCUS_SET,2,target,Laserfokus,"Indstil laserens fokusafstand korrekt til dit materiale"
+Laserskæring,,LAS_SPEED_PWR,3,target,Power & Speed,"Indstil korrekt hastighed og styrke (Power/Speed)"
+Laserskæring,,LAS_MAT_SAFETY,4,target,Lasersikkerhed,"Identificér hvilke materialer der er sikre og usikre at skære i"
+Laserskæring,,LAS_TEST_MATRIX,5,target,Skæreprøve,"Lav en skæreprøve for at finde optimale indstillinger"
+Laserskæring,,LAS_NESTING_OPT,6,target,Nesting,"Optimér dit layout for at mindske spild af restmateriale"
+3D-Printning,,PRI_BED_CLEAN,1,box,Rens Byggeplade,"Rengør byggepladen og tjek for løse rester før printstart"
+3D-Printning,,PRI_FIL_CHANGE,2,box,Skift Filament,"Skift filamentrulle (Load/Unload) korrekt på printeren"
+3D-Printning,,PRI_3MF_PROJECT,3,box,.3MF Projekt,"Gem og åbn et komplet projekt som en .3mf fil"
+3D-Printning,,PRI_SUPP_BRIM,4,box,Support & Brim,"Vurdér om dit print kræver Supports Brim eller ingen af delene"
+3D-Printning,,PRI_FAIL_TROUBLE,5,box,Print-fejl,"Identificér årsagen til et fejlet print og løs problemet"
+3D-Printning,,PRI_AMS_MULTICOLOR,6,box,AMS Flerfarve,"Opsæt og gennemfør et flerfarvet print ved hjælp af AMS"
+3D-Modellering,,DES_NAV_3D,1,axis-3d,3D Navigation,"Navigér frit rundt i 3D-rummet og find de vigtigste værktøjer"
+3D-Modellering,,DES_SKETCH_EXT,2,axis-3d,Skitse & Extrude,"Lav en 2D-skitse og brug Extrude til at give den form"
+3D-Modellering,,DES_PRECISION_MM,3,axis-3d,Præcisionsmål,"Design et objekt efter præcise mål angivet i millimeter"
+3D-Modellering,,DES_CALIPER_RE,4,axis-3d,Skydelære 3D,"Mål en fysisk genstand med skydelære og genskab den i 3D"
+3D-Modellering,,DES_FUNC_DESIGN,5,axis-3d,Funktionelt Emne,"Design et funktionelt emne der løser et konkret problem"
+Folieskæring,,FOL_FEED_SETUP,1,scissors,Isæt Folie,"Isæt skærefolien korrekt i maskinen og tjek fremføringen"
+Folieskæring,,FOL_WEEDING_PRAC,2,scissors,Weeding,"Weeding: Fjern manuelt den overskydende folie fra dit design"
+Folieskæring,,FOL_TRANSFER_TAPE,3,scissors,Transfer Tape,"Transfer: Vælg og brug applikationstape til overførsel"
+Folieskæring,,FOL_HEAT_PRESS,4,scissors,Varmepresse,"Overfør et motiv til tekstil ved brug af sin varmepresse"
+Folieskæring,,FOL_MULTI_LAYER,5,scissors,Flerlags-Folie,"Montér et design bestående af flere lag folie i forskellige farver"
+Elektronik,,ELE_FUME_SAFETY,1,zap,Lodde-udsugning,"Brug altid aktiv udsugning når du lodder for din sikkerhed"
+Elektronik,,ELE_LED_BATTERY,2,zap,Simpel LED,"Få en LED til at lyse ved brug af batteri og modstand"
+Elektronik,,ELE_BREADBOARD,3,zap,Breadboard,"Opbyg et fungerende kredsløb på et breadboard efter tegning"
+Elektronik,,ELE_LED_STRIP,4,zap,LED-bånd Lodning,"Lod ledninger fast på et LED-bånd med en stærk samling"
+Elektronik,,ELE_PSU_VOLT,5,zap,Strømforsyning,"Indstil den korrekte spænding (Volt) på en strømforsyning"
+Elektronik,,ELE_MULTIMETER,6,zap,Multimeter,"Mål spænding og find forbindelser ved brug af multimeter"
+Microcontroller,,MIC_CONNECT_UP,1,cpu,Upload Kode,"Tilslut din micro:bit til computeren og upload første kode"
+Microcontroller,,MIC_BASIC_PROG,2,cpu,Simpelt Program,"Lav et simpelt program (vis navn eller ikon på skærmen)"
+Microcontroller,,MIC_EXT_INPUTS,3,cpu,Eksterne Inputs,"Lav et program der reagerer på eksterne input (knapper/pins)"
+Microcontroller,,MIC_EXT_SENSORS,4,cpu,Sensorer,"Lav et program der benytter eksterne sensorer (lys/temp)"
+Microcontroller,,MIC_DIGITAL_FAB,5,cpu,Digi-Fab Projekt,"Anvend micro:bit som styring i et digitalt fabrikeret projekt"
+Materialekendskab,,MAT_MEASURE_DIM,1,layers,Mål & Tykkelse,"Mål tykkelse og areal af et materiale med skydelære eller lineal"
+Materialekendskab,,MAT_IDENTIFY_BASICS,2,layers,Basis Materialer,"Identificér basis materialer (træ pap kork tekstil metaller printmedier)"
+Materialekendskab,,MAT_MATCH_MACHINE,3,layers,Materiale/Maskine,"Kobl rigtigt materiale til rigtig maskine (f.eks. plasttyper til laser)"
+Materialekendskab,,MAT_FILAMENT_TYPES,4,layers,Filamenttyper,"Forklar egenskaber og begrænsninger for filamenttyper til 3D-print"
+Materialekendskab,,MAT_SELECT_CRITERIA,5,layers,Materialevalg,"Vurdér og vælg det mest velegnede materiale ud fra funktionelle krav"
+Værkstedskultur,,KUL_CLEAN_STATION,1,shield-check,Oprydning,"Ryd op efter dig selv og efterlad maskinen klar til den næste"
+Værkstedskultur,,KUL_SAFETY_RULES,2,shield-check,Sikkerhedsregler,"Overhold alle værkstedets sikkerhedsregler uden at blive mindet om det"
+Værkstedskultur,,KUL_DOCUMENTATION,3,shield-check,Dokumentation,"Dokumentér din proces med billeder af både fejl og succeser"
+Værkstedskultur,,KUL_RESILIENCE_RETRY,4,shield-check,Fejlhåndtering,"Giv ikke op ved fejl find årsagen og prøv igen med en ny løsning"
+Værkstedskultur,,KUL_TEACH_OTHERS,5,shield-check,Lær fra dig,"Lær en anden elev hvordan en maskine eller et program fungerer"
+Digitalt Broderi,,BRO_01,1,spool,Isætning & Ramme,"Isæt stof og stabilisator (vlies) korrekt i broderirammen"
+Digitalt Broderi,,BRO_02,2,spool,Tråd & Trådning,"Tråd maskinen med under- og overtråd og tjek trådspændingen"
+Digitalt Broderi,,BRO_03,3,spool,Standard Mønster,"Hent et færdigt broderidesign (.PES) og placér det præcist på stoffet"
+Digitalt Broderi,,BRO_04,4,spool,Tekst & Skrifttyper,"Opsæt og tilpas tekst med forskellige skrifttyper i Ink/Stitch eller software"
+Digitalt Broderi,,BRO_05,5,spool,Vektorisering til Sting,"Konvertér en vektor-tegning til stingtyper (Satin fill og Tatami)"
+Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et flerfarvet design med automatiske trådklip og skift"`;
+
+    const DOMAIN_MAP = {
+      'Filhåndtering': '💻 Software',
+      'Vektorgrafik': '💻 Software',
+      'Rastergrafik': '💻 Software',
+      '3D-Modellering': '💻 Software',
+      'Laserskæring': '⚙️ Maskiner',
+      '3D-Printning': '⚙️ Maskiner',
+      'Folieskæring': '⚙️ Maskiner',
+      'Digitalt Broderi': '⚙️ Maskiner',
+      'Elektronik': '🛠️ Hardware & Hands-on',
+      'Microcontroller': '🛠️ Hardware & Hands-on',
+      'Materialekendskab': '🛠️ Hardware & Hands-on',
+      'Værkstedskultur': '🛠️ Hardware & Hands-on'
+    };
+
+    const DOMAIN_ORDER = ['💻 Software', '⚙️ Maskiner', '🛠️ Hardware & Hands-on'];
+
+    function getGamificationTitle(count) {
+      if (count >= 56) return 'Makerspace-Orakel';
+      if (count >= 42) return 'Vektor-Viking';
+      if (count >= 30) return 'Prototype-Pionér';
+      if (count >= 20) return 'G-Code-Gøgler';
+      if (count >= 12) return 'Node-Nørd';
+      if (count >= 5) return 'Kalibrerings-Kaptajn';
+      return 'Limpistol-Lærling';
+    }
+
+    let allSkills = [];
+    let userProgress = {}; // { [skillId]: true }
+    let currentUser = null;
+    let manualSubCatExpanded = {};
+    let isSignUpMode = false;
+
+    function sanitizeIcon(iconName) {
+      if (!iconName) return 'folder';
+      const clean = iconName.toLowerCase().trim();
+      if (clean === 'spline-pointer' || clean === 'spline') return 'pen-tool';
+      if (clean === 'squares-unite') return 'shapes';
+      if (clean === 'axis-3d') return 'box';
+      if (clean === 'spool') return 'disc';
+      return clean;
+    }
+
+    function parseCSVLine(line) {
+      const result = [];
+      let current = '';
+      let inQuotes = false;
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        if (char === '"') {
+          inQuotes = !inQuotes;
+        } else if (char === ',' && !inQuotes) {
+          result.push(current.trim());
+          current = '';
+        } else {
+          current += char;
+        }
+      }
+      result.push(current.trim());
+      return result;
+    }
+
+    function parseLocalCSVText(text) {
+      const lines = text.trim().split(/\r?\n/);
+      const skills = [];
+      for (let i = 1; i < lines.length; i++) {
+        if (!lines[i].trim()) continue;
+        const values = parseCSVLine(lines[i]);
+        if (values.length < 7) continue;
+
+        skills.push({
+          id: values[2],
+          category: values[0],
+          subcategory: values[1] || '',
+          domain: DOMAIN_MAP[values[0]] || '💻 Software',
+          level: parseInt(values[3]) || 1,
+          svg_icon: sanitizeIcon(values[4]),
+          short_desc: values[5],
+          full_desc: values[6].replace(/^"|"$/g, '')
+        });
+      }
+      return skills;
+    }
+
+    // ==========================================
+    // 2. DATA HENTNING & SUPABASE SEEDING
+    // ==========================================
+    async function initData() {
+      const emptyState = document.getElementById('emptyState');
+      emptyState.style.display = 'block';
+
+      if (!supabaseClient) {
+        // Fallback til standard CSV hvis Supabase URL mangler
+        allSkills = parseLocalCSVText(DEFAULT_CSV);
+        userProgress = JSON.parse(localStorage.getItem('ms_local_progress')) || {};
+        renderApp();
+        return;
+      }
+
+      try {
+        // 1. Tjek om der er en aktiv session
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (session) {
+          currentUser = session.user;
+          updateAuthUI(true, currentUser.email);
+        } else {
+          updateAuthUI(false);
+        }
+
+        // 2. Hent kompetencer fra skills-tabel
+        const { data: skillsData, error: skillsError } = await supabaseClient
+          .from('skills')
+          .select('*')
+          .order('level', { ascending: true });
+
+        if (skillsError) throw skillsError;
+
+        if (!skillsData || skillsData.length === 0) {
+          // Databasen er tom: Seed den med standard-kompetencer
+          const localParsed = parseLocalCSVText(DEFAULT_CSV);
+          await supabaseClient.from('skills').insert(localParsed);
+          allSkills = localParsed;
+        } else {
+          allSkills = skillsData.map(s => ({
+            ...s,
+            cat: s.category,
+            subCat: s.subcategory,
+            svg: s.svg_icon,
+            shortDesc: s.short_desc,
+            fullDesc: s.full_desc
+          }));
+        }
+
+        // 3. Hvis logget ind: Hent brugerens fremskridt
+        if (currentUser) {
+          await fetchUserProgress();
+        } else {
+          userProgress = JSON.parse(localStorage.getItem('ms_local_progress')) || {};
+        }
+
+        renderApp();
+      } catch (err) {
+        console.error('Fejl under data-initialisering:', err);
+        allSkills = parseLocalCSVText(DEFAULT_CSV);
+        renderApp();
+      }
+    }
+
+    async function fetchUserProgress() {
+      if (!currentUser || !supabaseClient) return;
+      const { data, error } = await supabaseClient
+        .from('user_skills')
+        .select('skill_id')
+        .eq('user_id', currentUser.id);
+
+      if (!error && data) {
+        userProgress = {};
+        data.forEach(row => { userProgress[row.skill_id] = true; });
+      }
+    }
+
+    // ==========================================
+    // 3. AUTH LOGIK (LOGIN / OPRET BRUGER)
+    // ==========================================
+    function updateAuthUI(isLoggedIn, email = '') {
+      const authBtn = document.getElementById('authBtn');
+      const footerUserName = document.getElementById('footerUserName');
+      if (isLoggedIn) {
+        authBtn.innerText = '🚪 Log ud';
+        authBtn.className = 'btn btn-secondary';
+        authBtn.onclick = handleSignOut;
+        footerUserName.innerText = email.split('@')[0];
+      } else {
+        authBtn.innerText = '🔑 Log ind';
+        authBtn.className = 'btn';
+        authBtn.onclick = openAuthModal;
+        footerUserName.innerText = 'Gæst (ikke logget ind)';
+      }
+    }
+
+    function openAuthModal() {
+      document.getElementById('authModal').style.display = 'flex';
+    }
+
+    function closeAuthModal() {
+      document.getElementById('authModal').style.display = 'none';
+    }
+
+    function toggleAuthMode() {
+      isSignUpMode = !isSignUpMode;
+      document.getElementById('authModalTitle').innerText = isSignUpMode ? 'Opret Bruger' : 'Log ind';
+      document.getElementById('authSubmitBtn').innerText = isSignUpMode ? 'Opret Profil' : 'Log ind';
+      document.getElementById('authToggleLink').innerText = isSignUpMode 
+        ? 'Har du allerede en bruger? Log ind her' 
+        : 'Har du ikke en bruger? Opret her';
+    }
+
+    async function handleAuthAction() {
+      if (!supabaseClient) {
+        alert('Supabase er ikke forbundet endnu. Indtast dine API-nøgler i koden.');
+        return;
+      }
+
+      const email = document.getElementById('authEmail').value.trim();
+      const password = document.getElementById('authPassword').value.trim();
+
+      if (!email || !password) {
+        alert('Udfyld venligst både e-mail og kodeord.');
+        return;
+      }
+
+      try {
+        if (isSignUpMode) {
+          const { data, error } = await supabaseClient.auth.signUp({
+            email,
+            password,
+            options: {
+              data: { username: email.split('@')[0] }
+            }
+          });
+          if (error) throw error;
+          alert('Bruger oprettet!');
+          currentUser = data.user;
+        } else {
+          const { data, error } = await supabaseClient.auth.signInWithPassword({
+            email,
+            password
+          });
+          if (error) throw error;
+          currentUser = data.user;
+        }
+
+        closeAuthModal();
+        updateAuthUI(true, currentUser.email);
+        await fetchUserProgress();
+        renderApp();
+      } catch (err) {
+        alert('Auth fejl: ' + err.message);
+      }
+    }
+
+    async function handleSignOut() {
+      if (supabaseClient) {
+        await supabaseClient.auth.signOut();
+      }
+      currentUser = null;
+      userProgress = {};
+      updateAuthUI(false);
+      renderApp();
+    }
+
+    // ==========================================
+    // 4. FREMSKRIDT & EFFEKTER
+    // ==========================================
+    function spawnFloatingEmojis(x, y, category) {
+      const emojiMap = {
+        'Laserskæring': ['🔥', '⚡', '🎯', '💥'],
+        '3D-Printning': ['🧊', '📦', '🏗️', '⚙️'],
+        'Folieskæring': ['✂️', '🎨', '📏', '✨'],
+        'Digitalt Broderi': ['🧵', '🪡', '✨', '🌸'],
+        'Elektronik': ['⚡', '💡', '🔌', '🔋'],
+        'Microcontroller': ['🤖', '💻', '🧠', '⚙️'],
+        'Vektorgrafik': ['✒️', '📐', '🎨', '✨'],
+        'Rastergrafik': ['🖼️', '👾', '🔍', '🎨'],
+        'Filhåndtering': ['📁', '💾', '☁️', '🗂️'],
+        'Materialekendskab': ['🪵', '🔬', '🧱', '📐'],
+        'Værkstedskultur': ['🤝', '🛡️', '🌟', '🛠️'],
+        '3D-Modellering': ['🧊', '📐', '💻', '🌐']
+      };
+      const list = emojiMap[category] || ['⭐', '✨', '🚀', '🎯', '💡'];
+      for (let i = 0; i < 5; i++) {
+        const el = document.createElement('div');
+        el.className = 'floating-emoji';
+        el.innerText = list[Math.floor(Math.random() * list.length)];
+        el.style.left = (x + (Math.random() * 40 - 20)) + 'px';
+        el.style.top = (y + (Math.random() * 20 - 10)) + 'px';
+        el.style.setProperty('--tx', (Math.random() * 60 - 30) + 'px');
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 1000);
+      }
+    }
+
+    function triggerScreenShake() {
+      document.body.classList.add('shake');
+      setTimeout(() => document.body.classList.remove('shake'), 300);
+    }
+
+    function showTitleSplash(title) {
+      document.getElementById('splashTitleText').innerText = title;
+      document.getElementById('titleSplash').style.display = 'flex';
+      triggerScreenShake();
+      if (typeof confetti === 'function') {
+        confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+      }
+    }
+
+    function closeTitleSplash() {
+      document.getElementById('titleSplash').style.display = 'none';
+    }
+
+    async function toggleSkill(skillId, event, category) {
+      const prevActiveCount = allSkills.filter(s => userProgress[s.id]).length;
+      const prevTitle = getGamificationTitle(prevActiveCount);
+
+      const isCompleted = !userProgress[skillId];
+
+      if (isCompleted) {
+        userProgress[skillId] = true;
+        if (event) spawnFloatingEmojis(event.clientX, event.clientY, category);
+      } else {
+        delete userProgress[skillId];
+      }
+
+      // Synkroniser til Supabase eller LocalStorage
+      if (currentUser && supabaseClient) {
+        if (isCompleted) {
+          await supabaseClient.from('user_skills').insert({
+            user_id: currentUser.id,
+            skill_id: skillId
+          });
+        } else {
+          await supabaseClient.from('user_skills').delete().match({
+            user_id: currentUser.id,
+            skill_id: skillId
+          });
+        }
+      } else {
+        localStorage.setItem('ms_local_progress', JSON.stringify(userProgress));
+      }
+
+      const newActiveCount = allSkills.filter(s => userProgress[s.id]).length;
+      const newTitle = getGamificationTitle(newActiveCount);
+
+      if (newActiveCount > prevActiveCount && newTitle !== prevTitle) {
+        showTitleSplash(newTitle);
+      }
+
+      renderApp();
+    }
+
+    function toggleSubCatFold(key) {
+      manualSubCatExpanded[key] = !manualSubCatExpanded[key];
+      renderApp();
+    }
+
+    function createSkillHex(s, isDone) {
+      const hex = document.createElement('div');
+      hex.className = `hex-container ${isDone ? 'active' : ''}`;
+      hex.onclick = (e) => toggleSkill(s.id, e, s.cat || s.category);
+
+      hex.innerHTML = `
+        <svg class="hex-svg" viewBox="0 0 100 86.6">
+          <polygon class="hex-outer-frame" points="25,2 75,2 98,43.3 75,84.6 25,84.6 2,43.3" />
+          <polygon class="hex-inner-frame" points="28,9 72,9 90,43.3 72,77.6 28,77.6 10,43.3" />
+        </svg>
+        <div class="hex-content">
+          <i data-lucide="${s.svg || s.svg_icon}" class="hex-icon"></i>
+          <div class="hex-text">${s.shortDesc || s.short_desc}</div>
+          <div class="hex-level">${s.level}</div>
+        </div>
+        <div class="tooltip">
+          <strong>${s.shortDesc || s.short_desc} (Lvl ${s.level})</strong><br>
+          ${s.fullDesc || s.full_desc}
+        </div>
+      `;
+      return hex;
+    }
+
+    // ==========================================
+    // 5. RENDERING AF BIKUBE-GRID
+    // ==========================================
+    function renderApp() {
+      const honeycombGrid = document.getElementById('honeycombGrid');
+      const emptyState = document.getElementById('emptyState');
+      honeycombGrid.innerHTML = '';
+      emptyState.style.display = 'none';
+
+      const totalSkillsCount = allSkills.length;
+      const activeSkillsCount = allSkills.filter(s => userProgress[s.id]).length;
+
+      document.getElementById('footerUserTitle').innerText = getGamificationTitle(activeSkillsCount);
+      document.getElementById('footerScore').innerText = `${activeSkillsCount} / ${totalSkillsCount}`;
+
+      DOMAIN_ORDER.forEach(domainName => {
+        const domainSkills = allSkills.filter(s => (s.domain || DOMAIN_MAP[s.category || s.cat]) === domainName);
+        if (domainSkills.length === 0) return;
+
+        const domainSection = document.createElement('div');
+        domainSection.className = 'domain-section';
+
+        const domainHeader = document.createElement('div');
+        domainHeader.className = 'domain-header';
+        domainHeader.innerText = domainName;
+        domainSection.appendChild(domainHeader);
+
+        const domainColumns = document.createElement('div');
+        domainColumns.className = 'domain-columns';
+
+        const domainCategories = [...new Set(domainSkills.map(s => s.category || s.cat))];
+
+        domainCategories.forEach(catName => {
+          const catSkills = domainSkills.filter(s => (s.category || s.cat) === catName).sort((a,b) => a.level - b.level);
+          const col = document.createElement('div');
+          col.className = 'column';
+
+          const catIcon = catSkills[0]?.svg || catSkills[0]?.svg_icon || 'folder';
+          const completedInCat = catSkills.filter(s => userProgress[s.id]).length;
+          const isCatFullyCompleted = (completedInCat === catSkills.length && catSkills.length > 0);
+
+          const catHex = document.createElement('div');
+          catHex.className = `hex-container cat-hex-container ${isCatFullyCompleted ? 'completed' : ''}`;
+          catHex.innerHTML = `
+            <svg class="hex-svg" viewBox="0 0 100 86.6">
+              <polygon class="hex-outer-frame" points="25,2 75,2 98,43.3 75,84.6 25,84.6 2,43.3" />
+              <polygon class="hex-inner-frame" points="28,9 72,9 90,43.3 72,77.6 28,77.6 10,43.3" />
+            </svg>
+            <div class="cat-hex-content">
+              <i data-lucide="${catIcon}" class="cat-big-icon"></i>
+            </div>
+            <div class="cat-tooltip">${catName}</div>
+          `;
+          col.appendChild(catHex);
+
+          const subCatNames = [...new Set(catSkills.map(s => s.subcategory || s.subCat).filter(sc => sc !== ''))];
+
+          if (subCatNames.length === 0) {
+            const firstFourSkills = catSkills.filter(s => s.level <= 4);
+            const firstFourCompleted = firstFourSkills.filter(s => userProgress[s.id]).length;
+            const isFirstFourDone = (firstFourCompleted === firstFourSkills.length && firstFourSkills.length > 0);
+
+            const visibleSkills = isFirstFourDone ? catSkills : catSkills.filter(s => s.level <= 4);
+
+            visibleSkills.forEach(s => {
+              const isDone = userProgress[s.id] || false;
+              col.appendChild(createSkillHex(s, isDone));
+            });
+          } else {
+            let allPrevCompleted = true;
+
+            subCatNames.forEach((scName) => {
+              if (!allPrevCompleted) return;
+
+              const scSkills = catSkills.filter(s => (s.subcategory || s.subCat) === scName).sort((a,b) => a.level - b.level);
+              const scCompletedCount = scSkills.filter(s => userProgress[s.id]).length;
+              const isScCompleted = (scCompletedCount === scSkills.length && scSkills.length > 0);
+
+              const subCatKey = `${catName}_${scName}`;
+              let isExpanded = !isScCompleted;
+              if (manualSubCatExpanded[subCatKey] !== undefined) {
+                isExpanded = manualSubCatExpanded[subCatKey];
+              }
+
+              if (isScCompleted || manualSubCatExpanded[subCatKey] !== undefined) {
+                const scHex = document.createElement('div');
+                scHex.className = `hex-container subcat-hex ${isScCompleted ? 'completed' : ''}`;
+                scHex.onclick = () => toggleSubCatFold(subCatKey);
+
+                const scIcon = scSkills[0]?.svg || scSkills[0]?.svg_icon || 'folder';
+                const foldLabel = isExpanded ? '▲ Skjul' : '▼ Vis';
+
+                scHex.innerHTML = `
+                  <svg class="hex-svg" viewBox="0 0 100 86.6">
+                    <polygon class="hex-outer-frame dashed-frame" points="25,2 75,2 98,43.3 75,84.6 25,84.6 2,43.3" />
+                    <polygon class="hex-inner-frame" points="28,9 72,9 90,43.3 72,77.6 28,77.6 10,43.3" />
+                  </svg>
+                  <div class="hex-content">
+                    <i data-lucide="${scIcon}" class="hex-icon"></i>
+                    <div class="hex-text" style="font-size:0.52rem; color:var(--text-main);">${scName}</div>
+                    <div class="hex-level" style="font-size:0.55rem; color:var(--accent-blue);">${foldLabel}</div>
+                  </div>
+                  <div class="tooltip">
+                    <strong>${scName}</strong><br>
+                    ${scCompletedCount}/${scSkills.length} opnåede kompetencer.<br>
+                    <em>Klik for at ${isExpanded ? 'skjule' : 'vis'} enkeltkompetencer</em>
+                  </div>
+                `;
+                col.appendChild(scHex);
+              }
+
+              if (isExpanded) {
+                scSkills.forEach(s => {
+                  const isDone = userProgress[s.id] || false;
+                  col.appendChild(createSkillHex(s, isDone));
+                });
+              }
+
+              allPrevCompleted = isScCompleted;
+            });
+          }
+
+          domainColumns.appendChild(col);
+        });
+
+        domainSection.appendChild(domainColumns);
+        honeycombGrid.appendChild(domainSection);
+      });
+
+      lucide.createIcons();
+    }
+
+    // ==========================================
+    // 6. TUTORIAL
+    // ==========================================
+    let tutStep = 0;
+    const tutSteps = [
+      {
+        targetId: 'authBtn',
+        title: '🔑 1. Login & Profil',
+        text: 'Log ind for at gemme dine opnåede mål på tværs af enheder og computere i værkstedet.',
+        pos: { top: '70px', right: '20px' }
+      },
+      {
+        targetClass: 'domain-header',
+        title: '🌐 2. De 3 Hoveddomæner',
+        text: 'Kompetencerne er opdelt i Software, Maskiner og Hardware & Hands-on.',
+        pos: { top: '100px', left: '50%', transform: 'translateX(-50%)' }
+      },
+      {
+        targetClass: 'cat-hex-container',
+        title: '📊 3. Kategori-sekskant i Bunden',
+        text: 'Hver søjle afsluttes med en kategori-sekskant. Hold musen over for at se det fulde navn.',
+        pos: { bottom: '130px', left: '50%', transform: 'translateX(-50%)' }
+      },
+      {
+        targetClass: 'hex-container',
+        title: '🟢 4. Progression & Titler',
+        text: 'Klik på en sekskant når målet er nået. Du modtager nye titler og effekter undervejs!',
+        pos: { top: '40%', left: '50%', transform: 'translate(-50%, -50%)' }
+      },
+      {
+        targetId: 'targetUser',
+        title: '👤 5. Status & Tæller',
+        text: 'Herunder ses dit brugernavn, din nuværende rang og det samlede antal gennemførte mål.',
+        pos: { bottom: '60px', left: '20px' }
+      }
+    ];
+
+    function startTutorial() {
+      tutStep = 0;
+      document.getElementById('tutorialOverlay').style.display = 'block';
+      document.getElementById('tutorialBox').style.display = 'block';
+      showTutStep();
+    }
+
+    function showTutStep() {
+      document.querySelectorAll('.highlight-target').forEach(el => el.classList.remove('highlight-target'));
+
+      const step = tutSteps[tutStep];
+      document.getElementById('tutTitle').innerText = step.title;
+      document.getElementById('tutText').innerText = step.text;
+      document.getElementById('tutStepCount').innerText = `Trin ${tutStep + 1} / ${tutSteps.length}`;
+
+      const box = document.getElementById('tutorialBox');
+      box.style.top = step.pos.top || 'auto';
+      box.style.bottom = step.pos.bottom || 'auto';
+      box.style.left = step.pos.left || 'auto';
+      box.style.right = step.pos.right || 'auto';
+      box.style.transform = step.pos.transform || 'none';
+
+      let targetEl = null;
+      if (step.targetId) targetEl = document.getElementById(step.targetId);
+      if (step.targetClass) targetEl = document.querySelector('.' + step.targetClass);
+
+      if (targetEl) targetEl.classList.add('highlight-target');
+
+      document.getElementById('tutNextBtn').innerText = (tutStep === tutSteps.length - 1) ? 'Afslut' : 'Næste ➔';
+    }
+
+    function nextTutorialStep() {
+      if (tutStep < tutSteps.length - 1) {
+        tutStep++;
+        showTutStep();
+      } else {
+        closeTutorial();
+      }
+    }
+
+    function closeTutorial() {
+      document.querySelectorAll('.highlight-target').forEach(el => el.classList.remove('highlight-target'));
+      document.getElementById('tutorialOverlay').style.display = 'none';
+      document.getElementById('tutorialBox').style.display = 'none';
+      localStorage.setItem('ms_hasSeenTutorial', 'true');
+    }
+
+    window.onload = function() {
+      initData();
+      const hasSeen = localStorage.getItem('ms_hasSeenTutorial');
+      if (!hasSeen) {
+        setTimeout(startTutorial, 500);
+      }
+    };
+  </script>
+</body>
+</html>
