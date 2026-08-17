@@ -535,11 +535,11 @@
     // ==========================================
     // 1. SUPABASE INITIALISERING
     // ==========================================
-    const SUPABASE_URL = https://roxcgmhqtyenmhdubzig.supabase.co/rest/v1/;
-    const SUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJveGNnbWhxdHllbm1oZHViemlnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5NjA3MTgsImV4cCI6MjEwMjUzNjcxOH0.ZBs7GtWZX02ZVTig88DDq-CCSWuGGSGqzvJxdwcsY1g;
+    const SUPABASE_URL = 'https://roxcgmhqtyenmhdubzig.supabase.co/rest/v1/';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJveGNnbWhxdHllbm1oZHViemlnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5NjA3MTgsImV4cCI6MjEwMjUzNjcxOH0.ZBs7GtWZX02ZVTig88DDq-CCSWuGGSGqzvJxdwcsY1g';
     
     let supabaseClient = null;
-    if (SUPABASE_URL !== https://roxcgmhqtyenmhdubzig.supabase.co/rest/v1/) {
+    if (SUPABASE_URL !== 'https://roxcgmhqtyenmhdubzig.supabase.co/rest/v1/') {
       supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
 
