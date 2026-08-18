@@ -330,7 +330,7 @@
       z-index: 10;
     }
 
-    .footer-info { display: flex; gap: 30px; align-items: center; }
+    .footer-info { display: flex; gap: 25px; align-items: center; }
     .footer-label { color: var(--text-muted); margin-right: 6px; }
     .footer-val { color: var(--text-main); font-weight: bold; }
 
@@ -348,7 +348,7 @@
       background: #1e293b;
       padding: 25px;
       border-radius: 8px;
-      width: 460px;
+      width: 480px;
       max-width: 90%;
       max-height: 85vh;
       overflow-y: auto;
@@ -386,6 +386,17 @@
     .btn-secondary { background: #475569; color: white; }
     .btn-danger { background: #ef4444; color: white; }
 
+    .class-tag {
+      background: #0f172a;
+      border: 1px solid #334155;
+      padding: 8px 12px;
+      border-radius: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
     .tutorial-overlay {
       display: none;
       position: fixed;
@@ -422,7 +433,8 @@
     <h1>MAKERSPACE SKILL TREE</h1>
     <div class="header-btns">
       <button class="btn btn-secondary" onclick="startTutorial()">❓ Guide</button>
-      <button class="btn" id="adminBtn" onclick="openAdmin()">⚙️ Admin Panel</button>
+      <button class="btn" id="teamBtn" onclick="openTeamModal()">👥 Mit Hold</button>
+      <button class="btn" id="adminBtn" onclick="openAdmin()" style="display:none;">⚙️ Superbruger</button>
       <button class="btn" id="authBtn" onclick="openAuthModal()">🔑 Log ind</button>
     </div>
   </header>
@@ -432,7 +444,7 @@
       <div id="emptyState" class="empty-state" style="display:none;">
         <i data-lucide="upload-cloud" style="width: 48px; height: 48px; margin-bottom: 15px; color: var(--accent-blue);"></i><br>
         <strong id="emptyTitle">Indlæser...</strong><br>
-        <span id="emptyDesc">Åbn Admin Panel for at vælge eller uploade en CSV-fil med kompetencer.</span>
+        <span id="emptyDesc">Åbn Superbruger Admin for at uploade en CSV-fil.</span>
       </div>
       <div class="honeycomb-grid" id="honeycombGrid"></div>
     </div>
@@ -441,8 +453,12 @@
   <footer>
     <div class="footer-info">
       <div id="targetUser">
-        <span class="footer-label">Bruger:</span>
-        <span class="footer-val" id="footerUserName">Gæst (ikke logget ind)</span>
+        <span class="footer-label">Navn:</span>
+        <span class="footer-val" id="footerUserName">Gæst</span>
+      </div>
+      <div>
+        <span class="footer-label">Hold:</span>
+        <span class="footer-val" id="footerUserClass" style="color: var(--accent-blue);">Intet hold</span>
       </div>
       <div>
         <span class="footer-label">Titel:</span>
@@ -455,11 +471,15 @@
     </div>
   </footer>
 
-  <!-- AUTH MODAL -->
   <div class="modal" id="authModal">
     <div class="modal-box">
       <h2 id="authModalTitle" style="margin-top:0;">Log ind</h2>
       <div class="input-group">
+        <div id="nameInputWrapper" style="display:none;">
+          <label style="font-size:0.8rem; color:var(--text-muted);">Dit fulde navn:</label>
+          <input type="text" id="authName" placeholder="F.eks. Lærke Jensen">
+        </div>
+
         <label style="font-size:0.8rem; color:var(--text-muted);">E-mail:</label>
         <input type="email" id="authEmail" placeholder="elev@skole.dk">
         
@@ -476,678 +496,39 @@
     </div>
   </div>
 
-  <!-- ADMIN MODAL -->
+  <div class="modal" id="teamModal">
+    <div class="modal-box">
+      <h2 style="margin-top:0;">Mit Hold</h2>
+      <div class="admin-section">
+        <h3>Tilmeld dig et hold</h3>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin:0 0 10px 0;">Indtast den 5-bogstavs holdkode du har fået af din underviser:</p>
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="joinCodeInput" placeholder="F.eks. FABLK" maxlength="5" style="text-transform: uppercase; font-weight:bold; font-size:1.1rem; letter-spacing:2px; text-align:center; width:140px;">
+          <button class="btn" onclick="handleJoinClass()">Tilmeld</button>
+        </div>
+      </div>
+      <div class="admin-section" style="border-bottom:none;">
+        <h3>Dine tilmeldte hold</h3>
+        <div id="userClassList"><span style="font-size:0.8rem; color:var(--text-muted);">Indlæser...</span></div>
+      </div>
+      <div style="text-align: right;">
+        <button class="btn" onclick="closeTeamModal()">Luk</button>
+      </div>
+    </div>
+  </div>
+
   <div class="modal" id="adminModal">
     <div class="modal-box">
-      <h2 style="margin-top:0;">Admin Panel</h2>
+      <h2 style="margin-top:0;">Superbruger Admin</h2>
 
       <div class="admin-section">
-        <h3>1. Importer / Opdater Kompetencer (CSV)</h3>
-        <p style="font-size: 0.8rem; color: var(--text-muted); margin:0 0 10px 0;">Format: Kategori, Underkategori, ID, Niveau, SVG_Ikon, Kort_Beskrivelse, Kompetence</p>
-        <div style="display:flex; gap:10px;">
-          <input type="file" id="csvFileInput" accept=".csv">
-          <button class="btn" onclick="handleFileUpload()">Upload</button>
+        <h3>1. Opret og Administrer Hold</h3>
+        <div style="display:flex; gap:8px; margin-bottom:12px;">
+          <input type="text" id="newClassNameInput" placeholder="Holdnavn (f.eks. Maker 8.A)">
+          <button class="btn" onclick="handleCreateClass()">Opret Hold</button>
         </div>
+        <div id="adminClassList"><span style="font-size:0.8rem; color:var(--text-muted);">Henter hold...</span></div>
       </div>
 
       <div class="admin-section">
-        <h3>2. Synlige Kategorier</h3>
-        <div id="adminCategoryList" style="display:flex; flex-direction:column; gap:8px;"></div>
-      </div>
-
-      <div class="admin-section" style="border-bottom:none;">
-        <h3>3. Data-styring</h3>
-        <button class="btn btn-danger" onclick="clearAllData()">Ryd Alt Data (Nulstil Lokalt)</button>
-      </div>
-
-      <div style="text-align: right;">
-        <button class="btn" onclick="closeAdmin()">Luk</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- TITLE SPLASHSCREEN -->
-  <div class="splash-modal" id="titleSplash">
-    <div class="splash-card">
-      <div style="font-size: 3rem; margin-bottom: 10px;">👑</div>
-      <h2 style="color: var(--active-green); margin: 0 0 5px 0;">NY TITEL OPNÅET!</h2>
-      <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">Du er steget i rang og mestring:</p>
-      <div id="splashTitleText" style="font-size: 1.4rem; font-weight: bold; color: var(--accent-blue); margin-bottom: 25px;">-</div>
-      <button class="btn" style="width: 100%; padding: 10px;" onclick="closeTitleSplash()">Fortsæt!</button>
-    </div>
-  </div>
-
-  <!-- TUTORIAL -->
-  <div class="tutorial-overlay" id="tutorialOverlay"></div>
-  <div class="tutorial-box" id="tutorialBox" style="display:none;">
-    <h4 id="tutTitle">Velkommen!</h4>
-    <p id="tutText">Dette er en kort introduktion til Makerspace Skill Tree.</p>
-    <div class="tutorial-nav">
-      <span id="tutStepCount" style="font-size:0.75rem; color:var(--text-muted);">Trin 1 / 5</span>
-      <div>
-        <button class="btn btn-secondary" style="padding:4px 10px; font-size:0.75rem;" onclick="closeTutorial()">Spring over</button>
-        <button class="btn" style="padding:4px 10px; font-size:0.75rem; margin-left:5px;" id="tutNextBtn" onclick="nextTutorialStep()">Næste ➔</button>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    // =======================================================
-    // INDSÆT DINE SUPABASE NØGLER HER:
-    // =======================================================
-    const SUPABASE_URL = 'https://roxcgmhqtyenmhdubzig.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJveGNnbWhxdHllbm1oZHViemlnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5NjA3MTgsImV4cCI6MjEwMjUzNjcxOH0.ZBs7GtWZX02ZVTig88DDq-CCSWuGGSGqzvJxdwcsY1g';
-    
-    let supabaseClient = null;
-    if (SUPABASE_URL && !SUPABASE_URL.includes('INDSÆT_DIN_SUPABASE')) {
-      supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    }
-
-    const DOMAIN_MAP = {
-      'Filhåndtering': '💻 Software',
-      'Vektorgrafik': '💻 Software',
-      'Rastergrafik': '💻 Software',
-      '3D-Modellering': '💻 Software',
-      'Laserskæring': '⚙️ Maskiner',
-      '3D-Printning': '⚙️ Maskiner',
-      'Folieskæring': '⚙️ Maskiner',
-      'Digitalt Broderi': '⚙️ Maskiner',
-      'Elektronik': '🛠️ Hardware & Hands-on',
-      'Microcontroller': '🛠️ Hardware & Hands-on',
-      'Materialekendskab': '🛠️ Hardware & Hands-on',
-      'Værkstedskultur': '🛠️ Hardware & Hands-on'
-    };
-
-    const DOMAIN_ORDER = ['💻 Software', '⚙️ Maskiner', '🛠️ Hardware & Hands-on'];
-
-    function getGamificationTitle(count) {
-      if (count >= 56) return 'Makerspace-Orakel';
-      if (count >= 42) return 'Vektor-Viking';
-      if (count >= 30) return 'Prototype-Pionér';
-      if (count >= 20) return 'G-Code-Gøgler';
-      if (count >= 12) return 'Node-Nørd';
-      if (count >= 5) return 'Kalibrerings-Kaptajn';
-      return 'Limpistol-Lærling';
-    }
-
-    let allSkills = JSON.parse(localStorage.getItem('ms_allSkills')) || [];
-    let hiddenCats = JSON.parse(localStorage.getItem('ms_hiddenCats')) || [];
-    let userProgress = JSON.parse(localStorage.getItem('ms_local_progress')) || {};
-    let currentUser = null;
-    let manualSubCatExpanded = {};
-    let isSignUpMode = false;
-
-    function sanitizeIcon(iconName) {
-      if (!iconName) return 'folder';
-      const clean = iconName.toLowerCase().trim();
-      if (clean === 'spline-pointer' || clean === 'spline') return 'pen-tool';
-      if (clean === 'squares-unite') return 'shapes';
-      if (clean === 'axis-3d') return 'box';
-      if (clean === 'spool') return 'disc';
-      return clean;
-    }
-
-    function parseCSVLine(line) {
-      const result = [];
-      let current = '';
-      let inQuotes = false;
-      for (let i = 0; i < line.length; i++) {
-        const char = line[i];
-        if (char === '"') {
-          inQuotes = !inQuotes;
-        } else if (char === ',' && !inQuotes) {
-          result.push(current.trim());
-          current = '';
-        } else {
-          current += char;
-        }
-      }
-      result.push(current.trim());
-      return result;
-    }
-
-    function parseCSVText(text, showAlert = true) {
-      const lines = text.trim().split(/\r?\n/);
-      if (lines.length < 2) return;
-
-      let addedCount = 0;
-      for (let i = 1; i < lines.length; i++) {
-        if (!lines[i].trim()) continue;
-        const values = parseCSVLine(lines[i]);
-        if (values.length < 7) continue;
-
-        const skill = {
-          cat: values[0],
-          subCat: values[1] || '',
-          id: values[2],
-          level: parseInt(values[3]) || 1,
-          svg: sanitizeIcon(values[4]),
-          shortDesc: values[5],
-          fullDesc: values[6].replace(/^"|"$/g, '')
-        };
-
-        const existingIdx = allSkills.findIndex(s => s.id === skill.id);
-        if (existingIdx >= 0) {
-          allSkills[existingIdx] = skill;
-        } else {
-          allSkills.push(skill);
-          addedCount++;
-        }
-      }
-
-      localStorage.setItem('ms_allSkills', JSON.stringify(allSkills));
-      renderApp();
-      renderAdmin();
-      if (showAlert) alert(`CSV indlæst! ${addedCount} nye kompetencer blev tilføjet/opdateret.`);
-    }
-
-    function handleFileUpload() {
-      const fileInput = document.getElementById('csvFileInput');
-      const file = fileInput.files[0];
-      if (!file) {
-        alert('Vælg venligst en CSV-fil først.');
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        parseCSVText(e.target.result, true);
-        fileInput.value = '';
-      };
-      reader.readAsText(file);
-    }
-
-    async function initData() {
-      if (!supabaseClient) {
-        renderApp();
-        return;
-      }
-
-      try {
-        const { data: { session } } = await supabaseClient.auth.getSession();
-        if (session) {
-          currentUser = session.user;
-          updateAuthUI(true, currentUser.email);
-          await fetchUserProgress();
-        } else {
-          updateAuthUI(false);
-        }
-
-        const { data: skillsData, error: skillsError } = await supabaseClient
-          .from('skills')
-          .select('*')
-          .order('level', { ascending: true });
-
-        if (!skillsError && skillsData && skillsData.length > 0) {
-          allSkills = skillsData.map(s => ({
-            cat: s.category,
-            subCat: s.subcategory || '',
-            id: s.id,
-            level: s.level,
-            svg: sanitizeIcon(s.svg_icon),
-            shortDesc: s.short_desc,
-            fullDesc: s.full_desc
-          }));
-        }
-
-        renderApp();
-      } catch (err) {
-        console.error('Fejl under initialisering:', err);
-        renderApp();
-      }
-    }
-
-    async function fetchUserProgress() {
-      if (!currentUser || !supabaseClient) return;
-      const { data, error } = await supabaseClient
-        .from('user_skills')
-        .select('skill_id')
-        .eq('user_id', currentUser.id);
-
-      if (!error && data) {
-        userProgress = {};
-        data.forEach(row => { userProgress[row.skill_id] = true; });
-      }
-    }
-
-    function updateAuthUI(isLoggedIn, email = '') {
-      const authBtn = document.getElementById('authBtn');
-      const footerUserName = document.getElementById('footerUserName');
-      if (isLoggedIn) {
-        authBtn.innerText = '🚪 Log ud';
-        authBtn.className = 'btn btn-secondary';
-        authBtn.onclick = handleSignOut;
-        footerUserName.innerText = email.split('@')[0];
-      } else {
-        authBtn.innerText = '🔑 Log ind';
-        authBtn.className = 'btn';
-        authBtn.onclick = openAuthModal;
-        footerUserName.innerText = 'Gæst (ikke logget ind)';
-      }
-    }
-
-    function openAuthModal() { document.getElementById('authModal').style.display = 'flex'; }
-    function closeAuthModal() { document.getElementById('authModal').style.display = 'none'; }
-    function openAdmin() { renderAdmin(); document.getElementById('adminModal').style.display = 'flex'; }
-    function closeAdmin() { document.getElementById('adminModal').style.display = 'none'; renderApp(); }
-
-    function toggleAuthMode() {
-      isSignUpMode = !isSignUpMode;
-      document.getElementById('authModalTitle').innerText = isSignUpMode ? 'Opret Bruger' : 'Log ind';
-      document.getElementById('authSubmitBtn').innerText = isSignUpMode ? 'Opret Profil' : 'Log ind';
-      document.getElementById('authToggleLink').innerText = isSignUpMode 
-        ? 'Har du allerede en bruger? Log ind her' 
-        : 'Har du ikke en bruger? Opret her';
-    }
-
-    async function handleAuthAction() {
-      if (!supabaseClient) {
-        alert('Supabase er ikke forbundet endnu. Indtast dine API-nøgler i koden først.');
-        return;
-      }
-
-      const email = document.getElementById('authEmail').value.trim();
-      const password = document.getElementById('authPassword').value.trim();
-
-      if (!email || !password) {
-        alert('Udfyld venligst både e-mail og kodeord.');
-        return;
-      }
-
-      try {
-        if (isSignUpMode) {
-          const { data, error } = await supabaseClient.auth.signUp({
-            email,
-            password,
-            options: { data: { username: email.split('@')[0] } }
-          });
-          if (error) throw error;
-          alert('Bruger oprettet! Du er nu logget ind.');
-          currentUser = data.user;
-        } else {
-          const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-          if (error) throw error;
-          currentUser = data.user;
-        }
-
-        closeAuthModal();
-        updateAuthUI(true, currentUser.email);
-        await fetchUserProgress();
-        renderApp();
-      } catch (err) {
-        alert('Auth fejl: ' + err.message);
-      }
-    }
-
-    async function handleSignOut() {
-      if (supabaseClient) await supabaseClient.auth.signOut();
-      currentUser = null;
-      userProgress = JSON.parse(localStorage.getItem('ms_local_progress')) || {};
-      updateAuthUI(false);
-      renderApp();
-    }
-
-    function spawnFloatingEmojis(x, y, category) {
-      const list = ['⭐', '✨', '🚀', '🎯', '💡', '🔥', '⚙️'];
-      for (let i = 0; i < 5; i++) {
-        const el = document.createElement('div');
-        el.className = 'floating-emoji';
-        el.innerText = list[Math.floor(Math.random() * list.length)];
-        el.style.left = (x + (Math.random() * 40 - 20)) + 'px';
-        el.style.top = (y + (Math.random() * 20 - 10)) + 'px';
-        el.style.setProperty('--tx', (Math.random() * 60 - 30) + 'px');
-        document.body.appendChild(el);
-        setTimeout(() => el.remove(), 1000);
-      }
-    }
-
-    function triggerScreenShake() {
-      document.body.classList.add('shake');
-      setTimeout(() => document.body.classList.remove('shake'), 300);
-    }
-
-    function showTitleSplash(title) {
-      document.getElementById('splashTitleText').innerText = title;
-      document.getElementById('titleSplash').style.display = 'flex';
-      triggerScreenShake();
-      if (typeof confetti === 'function') {
-        confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
-      }
-    }
-
-    function closeTitleSplash() { document.getElementById('titleSplash').style.display = 'none'; }
-
-    async function toggleSkill(skillId, event, category) {
-      const prevActiveCount = allSkills.filter(s => userProgress[s.id]).length;
-      const prevTitle = getGamificationTitle(prevActiveCount);
-
-      const isCompleted = !userProgress[skillId];
-
-      if (isCompleted) {
-        userProgress[skillId] = true;
-        if (event) spawnFloatingEmojis(event.clientX, event.clientY, category);
-      } else {
-        delete userProgress[skillId];
-      }
-
-      if (currentUser && supabaseClient) {
-        if (isCompleted) {
-          await supabaseClient.from('user_skills').insert({ user_id: currentUser.id, skill_id: skillId });
-        } else {
-          await supabaseClient.from('user_skills').delete().match({ user_id: currentUser.id, skill_id: skillId });
-        }
-      } else {
-        localStorage.setItem('ms_local_progress', JSON.stringify(userProgress));
-      }
-
-      const newActiveCount = allSkills.filter(s => userProgress[s.id]).length;
-      const newTitle = getGamificationTitle(newActiveCount);
-
-      if (newActiveCount > prevActiveCount && newTitle !== prevTitle) {
-        showTitleSplash(newTitle);
-      }
-
-      renderApp();
-    }
-
-    function toggleSubCatFold(key) {
-      manualSubCatExpanded[key] = !manualSubCatExpanded[key];
-      renderApp();
-    }
-
-    function createSkillHex(s, isDone) {
-      const hex = document.createElement('div');
-      hex.className = `hex-container ${isDone ? 'active' : ''}`;
-      hex.onclick = (e) => toggleSkill(s.id, e, s.cat);
-
-      hex.innerHTML = `
-        <svg class="hex-svg" viewBox="0 0 100 86.6">
-          <polygon class="hex-outer-frame" points="25,2 75,2 98,43.3 75,84.6 25,84.6 2,43.3" />
-          <polygon class="hex-inner-frame" points="28,9 72,9 90,43.3 72,77.6 28,77.6 10,43.3" />
-        </svg>
-        <div class="hex-content">
-          <i data-lucide="${s.svg}" class="hex-icon"></i>
-          <div class="hex-text">${s.shortDesc}</div>
-          <div class="hex-level">${s.level}</div>
-        </div>
-        <div class="tooltip">
-          <strong>${s.shortDesc} (Lvl ${s.level})</strong><br>
-          ${s.fullDesc}
-        </div>
-      `;
-      return hex;
-    }
-
-    function renderApp() {
-      const honeycombGrid = document.getElementById('honeycombGrid');
-      const emptyState = document.getElementById('emptyState');
-      honeycombGrid.innerHTML = '';
-
-      if (allSkills.length === 0) {
-        emptyState.style.display = 'block';
-        document.getElementById('footerScore').innerText = '0 / 0';
-        return;
-      }
-      emptyState.style.display = 'none';
-
-      const availableSkills = allSkills.filter(s => !hiddenCats.includes(s.cat));
-      const totalSkillsCount = availableSkills.length;
-      const activeSkillsCount = availableSkills.filter(s => userProgress[s.id]).length;
-
-      document.getElementById('footerUserTitle').innerText = getGamificationTitle(activeSkillsCount);
-      document.getElementById('footerScore').innerText = `${activeSkillsCount} / ${totalSkillsCount}`;
-
-      const activeDomains = [...new Set(availableSkills.map(s => DOMAIN_MAP[s.cat] || '💻 Software'))];
-      const orderedDomains = DOMAIN_ORDER.filter(d => activeDomains.includes(d));
-      if (orderedDomains.length === 0 && activeDomains.length > 0) orderedDomains.push(...activeDomains);
-
-      orderedDomains.forEach(domainName => {
-        const domainSkills = availableSkills.filter(s => (DOMAIN_MAP[s.cat] || '💻 Software') === domainName);
-        if (domainSkills.length === 0) return;
-
-        const domainSection = document.createElement('div');
-        domainSection.className = 'domain-section';
-
-        const domainHeader = document.createElement('div');
-        domainHeader.className = 'domain-header';
-        domainHeader.innerText = domainName;
-        domainSection.appendChild(domainHeader);
-
-        const domainColumns = document.createElement('div');
-        domainColumns.className = 'domain-columns';
-
-        const domainCategories = [...new Set(domainSkills.map(s => s.cat))];
-
-        domainCategories.forEach(catName => {
-          const catSkills = domainSkills.filter(s => s.cat === catName).sort((a,b) => a.level - b.level);
-          const col = document.createElement('div');
-          col.className = 'column';
-
-          const catIcon = catSkills[0]?.svg || 'folder';
-          const completedInCat = catSkills.filter(s => userProgress[s.id]).length;
-          const isCatFullyCompleted = (completedInCat === catSkills.length && catSkills.length > 0);
-
-          const catHex = document.createElement('div');
-          catHex.className = `hex-container cat-hex-container ${isCatFullyCompleted ? 'completed' : ''}`;
-          catHex.innerHTML = `
-            <svg class="hex-svg" viewBox="0 0 100 86.6">
-              <polygon class="hex-outer-frame" points="25,2 75,2 98,43.3 75,84.6 25,84.6 2,43.3" />
-              <polygon class="hex-inner-frame" points="28,9 72,9 90,43.3 72,77.6 28,77.6 10,43.3" />
-            </svg>
-            <div class="cat-hex-content">
-              <i data-lucide="${catIcon}" class="cat-big-icon"></i>
-            </div>
-            <div class="cat-tooltip">${catName}</div>
-          `;
-          col.appendChild(catHex);
-
-          const subCatNames = [...new Set(catSkills.map(s => s.subCat).filter(sc => sc !== ''))];
-
-          if (subCatNames.length === 0) {
-            const firstFourSkills = catSkills.filter(s => s.level <= 4);
-            const firstFourCompleted = firstFourSkills.filter(s => userProgress[s.id]).length;
-            const isFirstFourDone = (firstFourCompleted === firstFourSkills.length && firstFourSkills.length > 0);
-
-            const visibleSkills = isFirstFourDone ? catSkills : catSkills.filter(s => s.level <= 4);
-
-            visibleSkills.forEach(s => {
-              const isDone = userProgress[s.id] || false;
-              col.appendChild(createSkillHex(s, isDone));
-            });
-          } else {
-            let allPrevCompleted = true;
-
-            subCatNames.forEach((scName) => {
-              if (!allPrevCompleted) return;
-
-              const scSkills = catSkills.filter(s => s.subCat === scName).sort((a,b) => a.level - b.level);
-              const scCompletedCount = scSkills.filter(s => userProgress[s.id]).length;
-              const isScCompleted = (scCompletedCount === scSkills.length && scSkills.length > 0);
-
-              const subCatKey = `${catName}_${scName}`;
-              let isExpanded = !isScCompleted;
-              if (manualSubCatExpanded[subCatKey] !== undefined) {
-                isExpanded = manualSubCatExpanded[subCatKey];
-              }
-
-              if (isScCompleted || manualSubCatExpanded[subCatKey] !== undefined) {
-                const scHex = document.createElement('div');
-                scHex.className = `hex-container subcat-hex ${isScCompleted ? 'completed' : ''}`;
-                scHex.onclick = () => toggleSubCatFold(subCatKey);
-
-                const scIcon = scSkills[0]?.svg || 'folder';
-                const foldLabel = isExpanded ? '▲ Skjul' : '▼ Vis';
-
-                scHex.innerHTML = `
-                  <svg class="hex-svg" viewBox="0 0 100 86.6">
-                    <polygon class="hex-outer-frame dashed-frame" points="25,2 75,2 98,43.3 75,84.6 25,84.6 2,43.3" />
-                    <polygon class="hex-inner-frame" points="28,9 72,9 90,43.3 72,77.6 28,77.6 10,43.3" />
-                  </svg>
-                  <div class="hex-content">
-                    <i data-lucide="${scIcon}" class="hex-icon"></i>
-                    <div class="hex-text" style="font-size:0.52rem; color:var(--text-main);">${scName}</div>
-                    <div class="hex-level" style="font-size:0.55rem; color:var(--accent-blue);">${foldLabel}</div>
-                  </div>
-                  <div class="tooltip">
-                    <strong>${scName}</strong><br>
-                    ${scCompletedCount}/${scSkills.length} opnåede kompetencer.
-                  </div>
-                `;
-                col.appendChild(scHex);
-              }
-
-              if (isExpanded) {
-                scSkills.forEach(s => {
-                  const isDone = userProgress[s.id] || false;
-                  col.appendChild(createSkillHex(s, isDone));
-                });
-              }
-
-              allPrevCompleted = isScCompleted;
-            });
-          }
-
-          domainColumns.appendChild(col);
-        });
-
-        domainSection.appendChild(domainColumns);
-        honeycombGrid.appendChild(domainSection);
-      });
-
-      lucide.createIcons();
-    }
-
-    function renderAdmin() {
-      const container = document.getElementById('adminCategoryList');
-      container.innerHTML = '';
-      const allCats = [...new Set(allSkills.map(s => s.cat))];
-
-      if (allCats.length === 0) {
-        container.innerHTML = '<span style="font-size:0.8rem; color:var(--text-muted);">Ingen kategorier fundet. Upload en CSV ovenover.</span>';
-      }
-
-      allCats.forEach(cat => {
-        const isHidden = hiddenCats.includes(cat);
-        const label = document.createElement('label');
-        label.style.color = 'white';
-        label.style.display = 'flex';
-        label.style.gap = '10px';
-        label.style.fontSize = '0.85rem';
-        label.innerHTML = `
-          <input type="checkbox" ${!isHidden ? 'checked' : ''} onchange="toggleCatVisibility('${cat}')">
-          <span>Vis Kategori: <strong>${cat}</strong></span>
-        `;
-        container.appendChild(label);
-      });
-    }
-
-    function toggleCatVisibility(cat) {
-      if (hiddenCats.includes(cat)) {
-        hiddenCats = hiddenCats.filter(c => c !== cat);
-      } else {
-        hiddenCats.push(cat);
-      }
-      localStorage.setItem('ms_hiddenCats', JSON.stringify(hiddenCats));
-    }
-
-    function clearAllData() {
-      if (confirm('Er du sikker på, at du vil nulstille dine lokale kompetencer og afkrydsninger?')) {
-        localStorage.clear();
-        allSkills = [];
-        hiddenCats = [];
-        userProgress = {};
-        renderApp();
-        renderAdmin();
-        closeAdmin();
-      }
-    }
-
-    let tutStep = 0;
-    const tutSteps = [
-      {
-        targetId: 'authBtn',
-        title: '🔑 1. Login & Profil',
-        text: 'Opret en bruger eller log ind for at gemme dine opnåede mål i skyen via Supabase.',
-        pos: { top: '70px', right: '20px' }
-      },
-      {
-        targetId: 'adminBtn',
-        title: '⚙️ 2. Admin Panel',
-        text: 'Herinde kan du uploade en specifik CSV-fil (f.eks. til studieturen) eller slå kategorier til/fra.',
-        pos: { top: '70px', right: '110px' }
-      },
-      {
-        targetClass: 'domain-header',
-        title: '🌐 3. De 3 Hoveddomæner',
-        text: 'Kompetencerne er opdelt i Software, Maskiner og Hardware & Hands-on.',
-        pos: { top: '100px', left: '50%', transform: 'translateX(-50%)' }
-      },
-      {
-        targetClass: 'hex-container',
-        title: '🟢 4. Progression & Titler',
-        text: 'Klik på en sekskant når målet er nået. Du modtager nye titler og effekter undervejs!',
-        pos: { top: '40%', left: '50%', transform: 'translate(-50%, -50%)' }
-      },
-      {
-        targetId: 'targetUser',
-        title: '👤 5. Status & Tæller',
-        text: 'Herunder ses dit brugernavn, din nuværende rang og det samlede antal gennemførte mål.',
-        pos: { bottom: '60px', left: '20px' }
-      }
-    ];
-
-    function startTutorial() {
-      tutStep = 0;
-      document.getElementById('tutorialOverlay').style.display = 'block';
-      document.getElementById('tutorialBox').style.display = 'block';
-      showTutStep();
-    }
-
-    function showTutStep() {
-      document.querySelectorAll('.highlight-target').forEach(el => el.classList.remove('highlight-target'));
-
-      const step = tutSteps[tutStep];
-      document.getElementById('tutTitle').innerText = step.title;
-      document.getElementById('tutText').innerText = step.text;
-      document.getElementById('tutStepCount').innerText = `Trin ${tutStep + 1} / ${tutSteps.length}`;
-
-      const box = document.getElementById('tutorialBox');
-      box.style.top = step.pos.top || 'auto';
-      box.style.bottom = step.pos.bottom || 'auto';
-      box.style.left = step.pos.left || 'auto';
-      box.style.right = step.pos.right || 'auto';
-      box.style.transform = step.pos.transform || 'none';
-
-      let targetEl = null;
-      if (step.targetId) targetEl = document.getElementById(step.targetId);
-      if (step.targetClass) targetEl = document.querySelector('.' + step.targetClass);
-
-      if (targetEl) targetEl.classList.add('highlight-target');
-
-      document.getElementById('tutNextBtn').innerText = (tutStep === tutSteps.length - 1) ? 'Afslut' : 'Næste ➔';
-    }
-
-    function nextTutorialStep() {
-      if (tutStep < tutSteps.length - 1) {
-        tutStep++;
-        showTutStep();
-      } else {
-        closeTutorial();
-      }
-    }
-
-    function closeTutorial() {
-      document.querySelectorAll('.highlight-target').forEach(el => el.classList.remove('highlight-target'));
-      document.getElementById('tutorialOverlay').style.display = 'none';
-      document.getElementById('tutorialBox').style.display = 'none';
-      localStorage.setItem('ms_hasSeenTutorial', 'true');
-    }
-
-    window.onload = function() {
-      initData();
-      const hasSeen = localStorage.getItem('ms_hasSeenTutorial');
-      if (!hasSeen) setTimeout(startTutorial, 500);
-    };
-  </script>
-</body>
-</html>
+        <h3>2. Opdater Kompetencer (CSV)</h3>
