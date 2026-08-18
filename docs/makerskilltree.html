@@ -348,7 +348,7 @@
       background: #1e293b;
       padding: 25px;
       border-radius: 8px;
-      width: 480px;
+      width: 520px;
       max-width: 90%;
       max-height: 85vh;
       overflow-y: auto;
@@ -389,12 +389,21 @@
     .class-tag {
       background: #0f172a;
       border: 1px solid #334155;
-      padding: 8px 12px;
+      padding: 10px 14px;
       border-radius: 6px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
+    }
+
+    .student-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 10px;
+      border-bottom: 1px solid #1e293b;
+      font-size: 0.85rem;
     }
 
     .tutorial-overlay {
@@ -525,16 +534,27 @@
       <h2 style="margin-top:0;">Superbruger Admin</h2>
 
       <div class="admin-section">
-        <h3>1. Opret og Administrer Hold</h3>
+        <h3>1. Opret nyt Hold</h3>
         <div style="display:flex; gap:8px; margin-bottom:12px;">
           <input type="text" id="newClassNameInput" placeholder="Holdnavn (f.eks. Maker 8.A)">
           <button class="btn" onclick="handleCreateClass()">Opret Hold</button>
         </div>
-        <div id="adminClassList"><span style="font-size:0.8rem; color:var(--text-muted);">Henter hold...</span></div>
       </div>
 
       <div class="admin-section">
-        <h3>2. Opdater Kompetencer (CSV)</h3>
+        <h3>2. Administrer Hold & Se Elev-Progression</h3>
+        <div id="adminClassList"><span style="font-size:0.8rem; color:var(--text-muted);">Henter hold...</span></div>
+        <div id="adminStudentProgressView" style="display:none; margin-top:15px; background:#0f172a; padding:12px; border-radius:6px; border:1px solid #334155;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <strong id="progressClassTitle" style="color:var(--accent-blue);">Elever på holdet</strong>
+            <button class="btn btn-secondary" style="padding:2px 8px; font-size:0.75rem;" onclick="closeClassProgressView()">✕ Luk oversigt</button>
+          </div>
+          <div id="studentProgressList"></div>
+        </div>
+      </div>
+
+      <div class="admin-section">
+        <h3>3. Opdater Kompetencer (CSV)</h3>
         <p style="font-size: 0.8rem; color: var(--text-muted); margin:0 0 10px 0;">Format: Kategori, Underkategori, ID, Niveau, SVG_Ikon, Kort_Beskrivelse, Kompetence</p>
         <div style="display:flex; gap:10px;">
           <input type="file" id="csvFileInput" accept=".csv">
@@ -543,12 +563,12 @@
       </div>
 
       <div class="admin-section">
-        <h3>3. Synlige Kategorier</h3>
+        <h3>4. Synlige Kategorier</h3>
         <div id="adminCategoryList" style="display:flex; flex-direction:column; gap:8px;"></div>
       </div>
 
       <div class="admin-section" style="border-bottom:none;">
-        <h3>4. Data-styring</h3>
+        <h3>5. Data-styring</h3>
         <button class="btn btn-danger" onclick="clearAllData()">Ryd Lokal Cache</button>
       </div>
 
@@ -815,7 +835,6 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
     }
 
     async function initData() {
-      // 1. Indlæs altid standard-kompetencer som base
       parseCSVText(DEFAULT_CSV, false);
 
       const localCachedSkills = JSON.parse(localStorage.getItem('ms_allSkills'));
@@ -1141,15 +1160,79 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
             <strong>${c.name}</strong><br>
             <span style="font-size:0.75rem; color:var(--text-muted);">Kode: <strong style="color:var(--accent-blue); font-size:0.85rem; letter-spacing:1px;">${c.invite_code}</strong> | Elever: ${c.class_members[0]?.count || 0}</span>
           </div>
-          <button class="btn btn-danger" style="padding:4px 8px; font-size:0.75rem;" onclick="deleteClass('${c.id}')">Slet</button>
+          <div style="display:flex; gap:6px;">
+            <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="viewClassProgress('${c.id}', '${c.name}')">👥 Vis Elever</button>
+            <button class="btn btn-danger" style="padding:4px 8px; font-size:0.75rem;" onclick="deleteClass('${c.id}')">Slet</button>
+          </div>
         </div>
       `).join('');
+    }
+
+    async function viewClassProgress(classId, className) {
+      const panel = document.getElementById('adminStudentProgressView');
+      const list = document.getElementById('studentProgressList');
+      const title = document.getElementById('progressClassTitle');
+
+      panel.style.display = 'block';
+      title.innerText = `Elever på: ${className}`;
+      list.innerHTML = '<span style="font-size:0.8rem; color:var(--text-muted);">Henter elever og progression...</span>';
+
+      try {
+        const { data: members, error: memError } = await supabaseClient
+          .from('class_members')
+          .select('user_id')
+          .eq('class_id', classId);
+
+        if (memError || !members || members.length === 0) {
+          list.innerHTML = '<span style="font-size:0.8rem; color:var(--text-muted);">Ingen elever tilmeldt dette hold endnu.</span>';
+          return;
+        }
+
+        const userIds = members.map(m => m.user_id);
+
+        const { data: profiles } = await supabaseClient
+          .from('profiles')
+          .select('id, full_name, username')
+          .in('id', userIds);
+
+        const { data: skills } = await supabaseClient
+          .from('user_skills')
+          .select('user_id, skill_id')
+          .in('user_id', userIds);
+
+        list.innerHTML = members.map(m => {
+          const profile = profiles?.find(p => p.id === m.user_id);
+          const studentName = profile?.full_name || profile?.username || 'Ukendt elev';
+          const completedCount = skills?.filter(s => s.user_id === m.user_id).length || 0;
+          const studentTitle = getGamificationTitle(completedCount);
+
+          return `
+            <div class="student-row">
+              <div>
+                <strong>${studentName}</strong><br>
+                <span style="font-size:0.75rem; color:var(--accent-blue);">${studentTitle}</span>
+              </div>
+              <div>
+                <strong style="color:var(--active-green);">${completedCount}</strong>
+                <span style="font-size:0.75rem; color:var(--text-muted);"> / ${allSkills.length} mål</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } catch (err) {
+        list.innerHTML = '<span style="font-size:0.8rem; color:#ef4444;">Fejl ved indlæsning af holddata.</span>';
+      }
+    }
+
+    function closeClassProgressView() {
+      document.getElementById('adminStudentProgressView').style.display = 'none';
     }
 
     async function deleteClass(classId) {
       if (!confirm('Er du sikker på, at du vil slette dette hold?')) return;
       await supabaseClient.from('classes').delete().eq('id', classId);
       renderAdmin();
+      closeClassProgressView();
       await fetchUserClass();
     }
 
