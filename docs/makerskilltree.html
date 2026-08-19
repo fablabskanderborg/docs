@@ -2,7 +2,7 @@
 <html lang="da">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Makerspace Skill Tree</title>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
@@ -16,6 +16,11 @@
       --inactive-border: #475569;
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
     }
 
     body {
@@ -41,17 +46,30 @@
 
     header {
       background: #0f172a;
-      padding: 15px 25px;
+      padding: 12px 20px;
       border-bottom: 1px solid #1e293b;
       display: flex;
       justify-content: space-between;
       align-items: center;
       z-index: 100;
       position: relative;
+      flex-wrap: wrap;
+      gap: 10px;
     }
 
-    h1 { margin: 0; font-size: 1.4rem; color: var(--text-main); }
-    .header-btns { display: flex; gap: 10px; align-items: center; }
+    h1 { 
+      margin: 0; 
+      font-size: 1.25rem; 
+      color: var(--text-main); 
+      letter-spacing: 0.5px;
+    }
+
+    .header-btns { 
+      display: flex; 
+      gap: 8px; 
+      align-items: center; 
+      flex-wrap: wrap;
+    }
 
     .main-container {
       display: flex;
@@ -62,8 +80,10 @@
 
     .viewport {
       flex: 1;
-      padding: 20px;
-      overflow: auto;
+      padding: 15px;
+      overflow-x: auto;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -71,19 +91,21 @@
     }
 
     .empty-state {
-      margin-top: 100px;
+      margin-top: 60px;
       text-align: center;
       color: var(--text-muted);
-      font-size: 1.1rem;
+      font-size: 1rem;
       max-width: 450px;
       line-height: 1.5;
+      padding: 0 15px;
     }
 
     .honeycomb-grid {
       display: flex;
-      gap: 55px;
-      padding: 20px 40px 80px 40px;
+      gap: 40px;
+      padding: 20px 20px 80px 20px;
       align-items: flex-end;
+      min-width: max-content;
     }
 
     .domain-section {
@@ -94,13 +116,13 @@
     }
 
     .domain-header {
-      font-size: 0.82rem;
+      font-size: 0.8rem;
       font-weight: bold;
       color: var(--accent-blue);
       text-transform: uppercase;
       letter-spacing: 1px;
       margin-bottom: 10px;
-      padding: 6px 16px;
+      padding: 6px 14px;
       background: rgba(15, 23, 42, 0.85);
       border: 1px solid #334155;
       border-radius: 20px;
@@ -135,11 +157,11 @@
       cursor: pointer;
       z-index: 1;
       transition: transform 0.15s ease, opacity 0.3s ease;
+      touch-action: manipulation;
     }
 
-    .hex-container:hover {
-      z-index: 500 !important;
-      transform: scale(1.04);
+    .hex-container:active {
+      transform: scale(0.96);
     }
 
     .hex-svg {
@@ -247,12 +269,12 @@
     .hex-container .tooltip,
     .cat-hex-container .cat-tooltip {
       visibility: hidden;
-      width: 230px;
+      width: 220px;
       background-color: #0f172a;
       color: var(--text-main);
       text-align: center;
       border-radius: 8px;
-      padding: 12px;
+      padding: 10px 12px;
       position: absolute;
       z-index: 9999;
       top: 105%;
@@ -272,7 +294,7 @@
       font-weight: bold;
       text-transform: uppercase;
       width: auto;
-      max-width: 220px;
+      max-width: 200px;
       white-space: normal;
     }
 
@@ -303,15 +325,17 @@
       z-index: 20000;
       justify-content: center;
       align-items: center;
+      padding: 15px;
     }
     .splash-card {
       background: #1e293b;
       border: 2px solid var(--accent-blue);
       box-shadow: 0 0 35px rgba(56, 189, 248, 0.4);
       border-radius: 16px;
-      padding: 35px 40px;
+      padding: 30px 25px;
       text-align: center;
-      max-width: 420px;
+      max-width: 400px;
+      width: 100%;
       animation: popScale 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
     }
     @keyframes popScale {
@@ -322,16 +346,23 @@
     footer {
       background: #0f172a;
       border-top: 1px solid #1e293b;
-      padding: 12px 25px;
+      padding: 10px 18px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       z-index: 10;
+      flex-wrap: wrap;
+      gap: 8px;
     }
 
-    .footer-info { display: flex; gap: 25px; align-items: center; }
-    .footer-label { color: var(--text-muted); margin-right: 6px; }
+    .footer-info { 
+      display: flex; 
+      gap: 15px; 
+      align-items: center; 
+      flex-wrap: wrap;
+    }
+    .footer-label { color: var(--text-muted); margin-right: 4px; }
     .footer-val { color: var(--text-main); font-weight: bold; }
 
     .modal {
@@ -342,25 +373,26 @@
       z-index: 10000;
       justify-content: center;
       align-items: center;
+      padding: 12px;
     }
 
     .modal-box {
       background: #1e293b;
-      padding: 25px;
+      padding: 20px;
       border-radius: 8px;
       width: 520px;
-      max-width: 90%;
-      max-height: 85vh;
+      max-width: 100%;
+      max-height: 90vh;
       overflow-y: auto;
     }
 
     .admin-section {
-      margin-bottom: 20px;
-      padding-bottom: 15px;
+      margin-bottom: 18px;
+      padding-bottom: 12px;
       border-bottom: 1px solid #334155;
     }
 
-    .admin-section h3 { margin-top: 0; font-size: 1rem; color: var(--accent-blue); }
+    .admin-section h3 { margin-top: 0; font-size: 0.95rem; color: var(--accent-blue); }
     .input-group { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
 
     input[type="text"], input[type="email"], input[type="password"], select, input[type="file"] {
@@ -371,17 +403,22 @@
       border-radius: 6px;
       font-size: 0.9rem;
       width: 100%;
-      box-sizing: border-box;
     }
 
     .btn {
       background: var(--accent-blue);
       color: #0f172a;
       border: none;
-      padding: 8px 16px;
+      padding: 8px 14px;
       border-radius: 6px;
       font-weight: bold;
+      font-size: 0.85rem;
       cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      touch-action: manipulation;
     }
     .btn-secondary { background: #475569; color: white; }
     .btn-danger { background: #ef4444; color: white; }
@@ -389,12 +426,14 @@
     .class-tag {
       background: #0f172a;
       border: 1px solid #334155;
-      padding: 10px 14px;
+      padding: 10px 12px;
       border-radius: 6px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 8px;
+      flex-wrap: wrap;
+      gap: 8px;
     }
 
     .student-row {
@@ -419,13 +458,14 @@
       background: #0f172a;
       border: 2px solid var(--accent-blue);
       border-radius: 10px;
-      padding: 20px;
-      width: 320px;
+      padding: 18px;
+      width: 300px;
+      max-width: 90vw;
       box-shadow: 0 15px 35px rgba(0,0,0,0.9);
       z-index: 12000;
     }
     .tutorial-box h4 { margin: 0 0 8px 0; color: var(--accent-blue); }
-    .tutorial-box p { margin: 0 0 15px 0; font-size: 0.85rem; line-height: 1.4; }
+    .tutorial-box p { margin: 0 0 15px 0; font-size: 0.82rem; line-height: 1.4; }
     .tutorial-nav { display: flex; justify-content: space-between; align-items: center; }
 
     .highlight-target {
@@ -433,6 +473,39 @@
       z-index: 11500 !important;
       box-shadow: 0 0 0 4px var(--accent-blue), 0 0 20px var(--accent-blue) !important;
       border-radius: 6px;
+    }
+
+    /* RESPONSIVE BREAKPOINTS (SMARTPHONE & TABLET) */
+    @media (max-width: 768px) {
+      header {
+        padding: 10px 15px;
+      }
+      h1 {
+        font-size: 1.1rem;
+        width: 100%;
+        text-align: center;
+      }
+      .header-btns {
+        width: 100%;
+        justify-content: center;
+      }
+      .btn {
+        padding: 6px 10px;
+        font-size: 0.8rem;
+      }
+      footer {
+        padding: 8px 12px;
+        font-size: 0.78rem;
+        justify-content: center;
+      }
+      .footer-info {
+        gap: 10px;
+        justify-content: center;
+      }
+      .honeycomb-grid {
+        gap: 25px;
+        padding-bottom: 90px;
+      }
     }
   </style>
 </head>
@@ -453,7 +526,7 @@
       <div id="emptyState" class="empty-state" style="display:none;">
         <i data-lucide="upload-cloud" style="width: 48px; height: 48px; margin-bottom: 15px; color: var(--accent-blue);"></i><br>
         <strong id="emptyTitle">Indlæser...</strong><br>
-        <span id="emptyDesc">Åbn Superbruger Admin for at uploade en CSV-fil.</span>
+        <span id="emptyDesc">Vælg eller opdater kompetencer under Superbruger Admin.</span>
       </div>
       <div class="honeycomb-grid" id="honeycombGrid"></div>
     </div>
@@ -542,14 +615,27 @@
       </div>
 
       <div class="admin-section">
-        <h3>2. Administrer Hold & Se Elev-Progression</h3>
+        <h3>2. Administrer Hold & Hold-Kategorier</h3>
         <div id="adminClassList"><span style="font-size:0.8rem; color:var(--text-muted);">Henter hold...</span></div>
+        
+        <!-- ELEV PROGRESSION VIEW -->
         <div id="adminStudentProgressView" style="display:none; margin-top:15px; background:#0f172a; padding:12px; border-radius:6px; border:1px solid #334155;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
             <strong id="progressClassTitle" style="color:var(--accent-blue);">Elever på holdet</strong>
             <button class="btn btn-secondary" style="padding:2px 8px; font-size:0.75rem;" onclick="closeClassProgressView()">✕ Luk oversigt</button>
           </div>
           <div id="studentProgressList"></div>
+        </div>
+
+        <!-- HOLD KATEGORI STYRING -->
+        <div id="adminClassCategoriesView" style="display:none; margin-top:15px; background:#0f172a; padding:12px; border-radius:6px; border:1px solid #334155;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <strong id="classCategoriesTitle" style="color:var(--accent-blue);">Vælg aktive kategorier</strong>
+            <button class="btn btn-secondary" style="padding:2px 8px; font-size:0.75rem;" onclick="closeClassCategoriesView()">✕ Luk</button>
+          </div>
+          <p style="font-size:0.75rem; color:var(--text-muted); margin:0 0 10px 0;">Vælg hvilke kategorier dette hold skal arbejde med:</p>
+          <div id="classCategoriesCheckboxes" style="display:flex; flex-direction:column; gap:6px; max-height:180px; overflow-y:auto; margin-bottom:12px;"></div>
+          <button class="btn" style="width:100%;" onclick="saveClassCategories()">💾 Gem Hold-Kategorier</button>
         </div>
       </div>
 
@@ -563,7 +649,7 @@
       </div>
 
       <div class="admin-section">
-        <h3>4. Synlige Kategorier</h3>
+        <h3>4. Generelt Synlige Kategorier (Global)</h3>
         <div id="adminCategoryList" style="display:flex; flex-direction:column; gap:8px;"></div>
       </div>
 
@@ -722,12 +808,14 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
 
     let allSkills = [];
     let hiddenCats = JSON.parse(localStorage.getItem('ms_hiddenCats')) || [];
-    let userProgress = JSON.parse(localStorage.getItem('ms_local_progress')) || {};
+    let userProgress = {};
     let currentUser = null;
     let currentUserName = "Gæst";
     let currentUserClass = "Intet hold";
+    let userClassActiveCategories = null; // null = alle tilladt, array = filtreret
     let manualSubCatExpanded = {};
     let isSignUpMode = false;
+    let editingClassId = null;
 
     function generate5LetterCode() {
       const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -866,6 +954,7 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
       }
 
       if (!supabaseClient) {
+        userProgress = JSON.parse(localStorage.getItem('ms_local_progress')) || {};
         renderApp();
         return;
       }
@@ -889,6 +978,7 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
           await fetchUserProgress();
           await fetchUserClass();
         } else {
+          userProgress = JSON.parse(localStorage.getItem('ms_local_progress')) || {};
           updateAuthUI(false);
         }
 
@@ -921,17 +1011,31 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
       try {
         const { data, error } = await supabaseClient
           .from('class_members')
-          .select('class_id, classes(name, invite_code)')
+          .select('class_id, classes(name, invite_code, active_categories)')
           .eq('user_id', currentUser.id);
 
         if (!error && data && data.length > 0) {
           currentUserClass = data.map(d => d.classes?.name).filter(Boolean).join(', ') || 'Intet hold';
+          
+          // Hvis et hold har specifikke kategorier, fletter vi dem sammen
+          const activeSet = new Set();
+          let hasExplicitCategories = false;
+          data.forEach(d => {
+            if (d.classes?.active_categories && d.classes.active_categories.length > 0) {
+              hasExplicitCategories = true;
+              d.classes.active_categories.forEach(c => activeSet.add(c));
+            }
+          });
+
+          userClassActiveCategories = hasExplicitCategories ? Array.from(activeSet) : null;
         } else {
           currentUserClass = 'Intet hold';
+          userClassActiveCategories = null;
         }
         document.getElementById('footerUserClass').innerText = currentUserClass;
       } catch (e) {
         document.getElementById('footerUserClass').innerText = 'Intet hold';
+        userClassActiveCategories = null;
       }
     }
 
@@ -1046,6 +1150,7 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
       currentUser = null;
       currentUserName = "Gæst";
       currentUserClass = "Intet hold";
+      userClassActiveCategories = null;
       userProgress = JSON.parse(localStorage.getItem('ms_local_progress')) || {};
       updateAuthUI(false);
       renderApp();
@@ -1118,6 +1223,7 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
         codeInput.value = '';
         await fetchUserClass();
         renderTeamModal();
+        renderApp();
       }
     }
 
@@ -1176,7 +1282,7 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
 
       const { data, error } = await supabaseClient
         .from('classes')
-        .select('id, name, invite_code, class_members(count)')
+        .select('id, name, invite_code, active_categories, class_members(count)')
         .eq('created_by', currentUser.id);
 
       if (error || !data || data.length === 0) {
@@ -1190,7 +1296,8 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
             <strong>${c.name}</strong><br>
             <span style="font-size:0.75rem; color:var(--text-muted);">Kode: <strong style="color:var(--accent-blue); font-size:0.85rem; letter-spacing:1px;">${c.invite_code}</strong> | Elever: ${c.class_members[0]?.count || 0}</span>
           </div>
-          <div style="display:flex; gap:6px;">
+          <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="openClassCategoriesView('${c.id}', '${c.name}', ${JSON.stringify(c.active_categories || []).replace(/"/g, '&quot;')})">⚙️ Kategorier</button>
             <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="viewClassProgress('${c.id}', '${c.name}')">👥 Vis Elever</button>
             <button class="btn btn-danger" style="padding:4px 8px; font-size:0.75rem;" onclick="deleteClass('${c.id}')">Slet</button>
           </div>
@@ -1198,7 +1305,62 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
       `).join('');
     }
 
+    function openClassCategoriesView(classId, className, currentCategories) {
+      editingClassId = classId;
+      document.getElementById('adminStudentProgressView').style.display = 'none';
+      const panel = document.getElementById('adminClassCategoriesView');
+      const title = document.getElementById('classCategoriesTitle');
+      const container = document.getElementById('classCategoriesCheckboxes');
+
+      title.innerText = `Kategorier for: ${className}`;
+      panel.style.display = 'block';
+
+      const allCats = [...new Set(allSkills.map(s => s.cat))];
+      const isAllSelected = !currentCategories || currentCategories.length === 0;
+
+      container.innerHTML = allCats.map(cat => {
+        const isChecked = isAllSelected || currentCategories.includes(cat);
+        return `
+          <label style="display:flex; gap:8px; font-size:0.85rem; color:white; align-items:center;">
+            <input type="checkbox" class="class-cat-checkbox" value="${cat}" ${isChecked ? 'checked' : ''}>
+            <span>${cat}</span>
+          </label>
+        `;
+      }).join('');
+    }
+
+    function closeClassCategoriesView() {
+      document.getElementById('adminClassCategoriesView').style.display = 'none';
+      editingClassId = null;
+    }
+
+    async function saveClassCategories() {
+      if (!editingClassId || !supabaseClient) return;
+
+      const checked = Array.from(document.querySelectorAll('.class-cat-checkbox:checked')).map(cb => cb.value);
+      const allCats = [...new Set(allSkills.map(s => s.cat))];
+
+      // Hvis alle er valgt, gemmer vi null (betyder alle aktive)
+      const toSave = (checked.length === allCats.length) ? null : checked;
+
+      const { error } = await supabaseClient
+        .from('classes')
+        .update({ active_categories: toSave })
+        .eq('id', editingClassId);
+
+      if (error) {
+        alert('Kunne ikke gemme kategorier: ' + error.message);
+      } else {
+        alert('Hold-kategorier opdateret!');
+        closeClassCategoriesView();
+        renderAdmin();
+        await fetchUserClass();
+        renderApp();
+      }
+    }
+
     async function viewClassProgress(classId, className) {
+      document.getElementById('adminClassCategoriesView').style.display = 'none';
       const panel = document.getElementById('adminStudentProgressView');
       const list = document.getElementById('studentProgressList');
       const title = document.getElementById('progressClassTitle');
@@ -1263,7 +1425,9 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
       await supabaseClient.from('classes').delete().eq('id', classId);
       renderAdmin();
       closeClassProgressView();
+      closeClassCategoriesView();
       await fetchUserClass();
+      renderApp();
     }
 
     function toggleCatVisibility(cat) {
@@ -1313,7 +1477,11 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
 
       if (isCompleted) {
         userProgress[skillId] = true;
-        if (event) spawnFloatingEmojis(event.clientX, event.clientY, category);
+        if (event) {
+          const clientX = event.clientX || (event.touches && event.touches[0]?.clientX) || window.innerWidth / 2;
+          const clientY = event.clientY || (event.touches && event.touches[0]?.clientY) || window.innerHeight / 2;
+          spawnFloatingEmojis(clientX, clientY, category);
+        }
       } else {
         delete userProgress[skillId];
       }
@@ -1382,7 +1550,12 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
       }
       emptyState.style.display = 'none';
 
-      const availableSkills = allSkills.filter(s => !hiddenCats.includes(s.cat));
+      // 1. Filtrering ud fra globale skjulte kategorier OG holdets specifikke kategorier
+      let availableSkills = allSkills.filter(s => !hiddenCats.includes(s.cat));
+      if (userClassActiveCategories && userClassActiveCategories.length > 0) {
+        availableSkills = availableSkills.filter(s => userClassActiveCategories.includes(s.cat));
+      }
+
       const totalSkillsCount = availableSkills.length;
       const activeSkillsCount = availableSkills.filter(s => userProgress[s.id]).length;
 
@@ -1533,7 +1706,7 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
       {
         targetId: 'adminBtn',
         title: '⚙️ 3. Superbruger Admin',
-        text: 'Opret nye hold, se tilmeldte elever eller upload nye CSV-kompetencer.',
+        text: 'Opret nye hold, tilpas aktive kategorier pr. hold, se tilmeldte elever eller upload nye CSV-kompetencer.',
         pos: { top: '70px', right: '210px' }
       },
       {
