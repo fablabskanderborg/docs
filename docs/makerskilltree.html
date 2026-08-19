@@ -718,14 +718,22 @@
       'Elektronik': '🛠️ Hardware & Hands-on',
       'Microcontroller': '🛠️ Hardware & Hands-on',
       'Materialekendskab': '🛠️ Hardware & Hands-on',
-      'Værkstedskultur': '🛠️ Hardware & Hands-on'
+      'Værkstedskultur': '🛠️ Hardware & Hands-on',
       'Netværk & Fællesskab': '👥 Fællesskab & Netværk',
-  'Pædagogik & Praksis': '🎓 Didaktik & Facilitering',
-  'Entreprenørskab': '💼 Forretning & Værksted',
-  'Kultur & Oplevelse': '✨ Maker Faire & Kultur'
+      'Pædagogik & Praksis': '🎓 Didaktik & Facilitering',
+      'Entreprenørskab': '💼 Forretning & Værksted',
+      'Kultur & Oplevelse': '✨ Maker Faire & Kultur'
     };
 
-    const DOMAIN_ORDER = ['💻 Software', '⚙️ Maskiner', '🛠️ Hardware & Hands-on'];
+    const DOMAIN_ORDER = [
+      '💻 Software', 
+      '⚙️ Maskiner', 
+      '🛠️ Hardware & Hands-on',
+      '👥 Fællesskab & Netværk',
+      '🎓 Didaktik & Facilitering',
+      '💼 Forretning & Værksted',
+      '✨ Maker Faire & Kultur'
+    ];
 
     // RÆKKE-BASERET TITEL-LOGIK
     function getUnlockedCategoryTitles(catName, skillsList, progress) {
