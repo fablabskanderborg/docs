@@ -891,22 +891,25 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
       for (let i = 1; i < lines.length; i++) {
         if (!lines[i].trim()) continue;
         const values = parseCSVLine(lines[i]);
-        if (values.length < 7) continue;
+        if (values.length < 8) continue;
 
         const skillObj = {
+          domain: DOMAIN_MAP[values[0].trim()] || '💻 Software',
           category: values[0].trim(),
-          subcategory: values[1] ? values[1].trim() : '',
-          id: values[2].trim(),
-          level: parseInt(values[3], 10) || 1,
-          svg_icon: sanitizeIcon(values[4]),
-          short_desc: values[5].trim(),
-          full_desc: values[6].replace(/^"|"$/g, '').trim()
+          category_title: values[1].trim(),
+          subcategory: values[2] ? values[2].trim() : '',
+          id: values[3].trim(),
+          level: parseInt(values[4], 10) || 1,
+          svg_icon: sanitizeIcon(values[5]),
+          short_desc: values[6].trim(),
+          full_desc: values[7].replace(/^"|"$/g, '').trim()
         };
 
         rowsToUpsert.push(skillObj);
 
         parsedSkills.push({
           cat: skillObj.category,
+          catTitle: skillObj.category_title,
           subCat: skillObj.subcategory,
           id: skillObj.id,
           level: skillObj.level,
@@ -919,7 +922,6 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
       allSkills = parsedSkills;
       localStorage.setItem('ms_allSkills', JSON.stringify(allSkills));
 
-      // Send direkte til Supabase hvis klienten er aktiv
       if (supabaseClient) {
         try {
           const { error } = await supabaseClient
@@ -927,7 +929,7 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
             .upsert(rowsToUpsert, { onConflict: 'id' });
 
           if (error) throw error;
-          if (showAlert) alert(`Succes: ${rowsToUpsert.length} kompetencer blev synkroniseret direkte til Supabase!`);
+          if (showAlert) alert(`Succes: ${rowsToUpsert.length} kompetencer synkroniseret til Supabase!`);
         } catch (err) {
           console.error('Fejl ved upload til Supabase:', err);
           if (showAlert) alert('Gemt lokalt, men fejl ved Supabase-synkronisering: ' + err.message);
