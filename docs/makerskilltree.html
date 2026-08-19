@@ -78,14 +78,15 @@
       position: relative;
     }
 
-    /* MOBIL-OPTIMERET SCROLL */
+    /* CENTRERET VIEWPORT MED OPTIMERET TOUCH-SCROLL */
     .viewport {
       flex: 1;
       padding: 15px;
       overflow-x: auto;
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
-      display: block;
+      display: flex;
+      flex-direction: column;
       background: radial-gradient(circle at center, #131f3f 0%, #0b1329 100%);
     }
 
@@ -100,11 +101,12 @@
     }
 
     .honeycomb-grid {
-      display: inline-flex;
-      gap: 40px;
-      padding: 20px 40px 90px 25px;
+      display: flex;
+      gap: 35px;
+      padding: 20px 40px 90px 40px;
       align-items: flex-end;
       min-width: max-content;
+      margin: auto; /* Centrerer på store skærme og tillader fuld scroll på mobil */
     }
 
     .domain-section {
@@ -208,43 +210,52 @@
       stroke: var(--active-green);
     }
 
+    /* TEKST & IKONER INDE I SEKSKANTEN */
     .hex-content {
       position: absolute;
       top: 0; left: 0; width: 100%; height: 100%;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: space-between;
-      padding: 12px 6px 11px 6px;
+      justify-content: center;
+      gap: 2px;
+      padding: 10px 12px;
       box-sizing: border-box;
       pointer-events: none;
     }
 
     .hex-icon { 
       color: var(--accent-blue); 
-      width: 16px; 
-      height: 16px; 
-      margin-top: 3px;
+      width: 15px; 
+      height: 15px; 
+      flex-shrink: 0;
     }
     
     .hex-container.active .hex-icon { color: var(--active-green); }
 
     .hex-text {
-      font-size: 0.58rem;
+      font-size: 0.54rem;
       font-weight: 700;
       text-align: center;
-      line-height: 1.05;
+      line-height: 1.1;
       color: var(--text-main);
-      padding: 0 4px;
-      max-width: 80px;
-      word-wrap: break-word;
+      padding: 0 2px;
+      max-width: 74px;
+      overflow-wrap: break-word;
+      word-break: break-word;
+      hyphens: auto;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
 
     .hex-level {
-      font-size: 0.65rem;
+      font-size: 0.60rem;
       font-weight: bold;
       color: var(--text-muted);
-      margin-bottom: 2px;
+      line-height: 1;
+      flex-shrink: 0;
     }
 
     .cat-hex-content {
@@ -255,30 +266,36 @@
       align-items: center;
       justify-content: center;
       pointer-events: none;
+      padding: 8px 10px;
+      box-sizing: border-box;
       gap: 2px;
     }
 
     .cat-big-icon {
-      width: 28px;
-      height: 28px;
+      width: 26px;
+      height: 26px;
       color: var(--accent-blue);
       transition: color 0.3s;
+      flex-shrink: 0;
     }
 
     .cat-hex-container.completed .cat-big-icon { color: var(--active-green); }
 
     .cat-badge-label {
-      font-size: 0.48rem;
-      font-weight: bold;
+      font-size: 0.46rem;
+      font-weight: 800;
       color: var(--active-green);
       text-align: center;
-      line-height: 1;
-      max-width: 75px;
-      display: none;
-    }
-
-    .cat-hex-container.completed .cat-badge-label {
-      display: block;
+      line-height: 1.05;
+      max-width: 74px;
+      overflow-wrap: break-word;
+      word-break: break-word;
+      hyphens: auto;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      margin-top: 1px;
     }
 
     .hex-container .tooltip,
@@ -631,7 +648,7 @@
 
       <div class="admin-section">
         <h3>3. Opdater Kompetencer (CSV)</h3>
-        <p style="font-size: 0.8rem; color: var(--text-muted); margin:0 0 10px 0;">Format: Kategori, Underkategori, ID, Niveau, SVG_Ikon, Kort_Beskrivelse, Kompetence</p>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin:0 0 10px 0;">Format: Kategori, Kategori_Titel, Underkategori, ID, Niveau, SVG_Ikon, Kort_Beskrivelse, Kompetence</p>
         <div style="display:flex; gap:10px;">
           <input type="file" id="csvFileInput" accept=".csv">
           <button class="btn" onclick="handleFileUpload()">Upload</button>
@@ -688,92 +705,12 @@
       supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
 
-    const DEFAULT_CSV = `Kategori,Underkategori,ID,Niveau,SVG_Ikon,Kort_Beskrivelse,Kompetence
-Filhåndtering,,FIL_FOLDER_MGR,1,folder,Mappe & Navn,"Opret projektmappe & navngiv filer logisk"
-Filhåndtering,,FIL_SEARCH_FILE,2,folder,Fil-søgning,"Brug søgefunktionen til at finde en specifik fil"
-Filhåndtering,,FIL_CLOUD_DRIVE,3,folder,Drev & Sky,"Gem og hent filer fra et eksternt drev eller skyen"
-Filhåndtering,,FIL_VERSION_CTL,4,folder,Versionsstyring,"Brug versionsstyring (v1 v2) til din arbejdsproces"
-Filhåndtering,,FIL_EXT_EXPLAIN,5,folder,Filtyper,"Forklar forskellen på .STL .SVG .3MF .JPG og .PNG"
-Filhåndtering,,FIL_ZIP_ARCHIVE,6,folder,Komprimering,"Saml og komprimér en projektmappe i en .zip-fil til deling og arkivering"
-Filhåndtering,,FIL_CONVERT_FMT,7,folder,CAD/CAM Formater,"Konvertér og eksporter filer mellem udvekslingsformater som .STEP, .DXF og .OBJ"
-Vektorgrafik,Basale Former & Objektstyring,VEK_DOC_SETTINGS,1,Spline-pointer,Dokumentindstillinger,"Ændre dokumentindstillinger og lærredsstørrelse"
-Vektorgrafik,Basale Former & Objektstyring,VEK_DRAW_SHAPES,1,Spline-pointer,Tegne Former,"Tegne grundlæggende objekter såsom cirkel, firkant og polygon"
-Vektorgrafik,Basale Former & Objektstyring,VEK_FILL_STROKE,1,Spline-pointer,Fyld & Streg,"Skifte farve på fyld og streg samt ændre stregtykkelse"
-Vektorgrafik,Basale Former & Objektstyring,VEK_SIZE_COORD,2,Spline-pointer,Størrelse & Koordinater,"Bestemme/ændre størrelsen af grafikken og flytte grafik med præcise koordinater"
-Vektorgrafik,Basale Former & Objektstyring,VEK_MIRROR_ROTATE,2,Spline-pointer,Spejl & Rotér,"Spejle og rotere objekter præcist"
-Vektorgrafik,Objektorganisering & Lag,VEK_ALIGN_DIST,3,Spline-pointer,Justér & Fordél,"Justere og fordele flere objekter i forhold til hinanden"
-Vektorgrafik,Objektorganisering & Lag,VEK_GROUP_COMBINE,3,Spline-pointer,Grupper vs. Kombination,"Gruppere grafik og kende forskel på en gruppe og en kombination"
-Vektorgrafik,Objektorganisering & Lag,VEK_LAYERS_MGR,3,Spline-pointer,Benytte Lag,"Oprette, navngive og styre lag i et vektordokument"
-Vektorgrafik,Objektorganisering & Lag,VEK_TEXT_CTRL,4,Spline-pointer,Tekstkontrol,"Ændre skrifttype og transformere tekstobjekter"
-Vektorgrafik,Stiredigering & Vektormodifikation,VEK_BEZIER_TOOL,4,Spline-pointer,Bezier-værktøj,"Tegne med Bezier-værktøjet og beherske dets forskellige tilstande"
-Vektorgrafik,Stiredigering & Vektormodifikation,VEK_NODE_EDIT,4,Spline-pointer,Node-redigering,"Redigere stier: tilføje/fjerne punkter og ændre opførsel (bue/lige linje, blødt/skarpt hjørne)"
-Vektorgrafik,Stiredigering & Vektormodifikation,VEK_OBJ_TO_PATH,5,Spline-pointer,Objekt til Sti,"Konvertere tekst og objekter/former til stier"
-Vektorgrafik,Stiredigering & Vektormodifikation,VEK_SIMPLIFY_OFFSET,5,Spline-pointer,Simplificér & Offset,"Simplificere en sti samt lave offset og inset på geometri"
-Vektorgrafik,Stiredigering & Vektormodifikation,VEK_BOOLEAN_OP,5,squares-unite,Boolske Operatorer,"Benytte boolske operatorer (Union, Difference, Intersection) til komplekse shapes"
-Vektorgrafik,Avancerede Funktioner Import/Eksport & CAM,VEK_TRACE_BMP,6,Spline-pointer,Spore Billeder,"Spore rasterbilleder (Trace Bitmap) til vektorgrafik"
-Vektorgrafik,Avancerede Funktioner Import/Eksport & CAM,VEK_EXTENSIONS,6,Spline-pointer,Ekstensioner,"Benytte ekstensioner/udvidelser til specialiserede opgaver"
-Vektorgrafik,Avancerede Funktioner Import/Eksport & CAM,VEK_EXPORT_FMT,6,Spline-pointer,Eksport,"Eksportere grafikken til andre relevante filformater"
-Vektorgrafik,Avancerede Funktioner Import/Eksport & CAM,VEK_PRINT_CUT,7,Spline-pointer,Print & Cut,"Forberede en Print and Cut fil med både grafik og skærelinje"
-Rastergrafik,,RAS_PIXEL_UNDERSTAND,1,image,Pixel-forståelse,"Forklar hvad pixels er og hvornår et billede pixelerer"
-Rastergrafik,,RAS_DPI_SETTING,2,image,DPI Opløsning,"Vælg og forklar den rigtige DPI-opløsning til print/raster"
-Rastergrafik,,RAS_BG_REMOVE,3,image,Fjern Baggrund,"Fjern baggrunden fra et rasterbillede"
-Rastergrafik,,RAS_TRACE_BMP,4,image,Trace Bitmap,"Vektorisér et billede eller logo ved brug af Trace Bitmap"
-Rastergrafik,,RAS_COMBINE_VECTOR,5,image,Raster & Vektor,"Kombinér et rasterbillede med en vektor-skærelinje"
-Laserskæring,,LAS_EXHAUST_CHK,1,target,Udsugning & Tjek,"Tjek at udsugningen er tændt og fungerer før start"
-Laserskæring,,LAS_FOCUS_SET,2,target,Laserfokus,"Indstil laserens fokusafstand korrekt til dit materiale"
-Laserskæring,,LAS_SPEED_PWR,3,target,Power & Speed,"Indstil korrekt hastighed og styrke (Power/Speed)"
-Laserskæring,,LAS_MAT_SAFETY,4,target,Lasersikkerhed,"Identificér hvilke materialer der er sikre og usikre at skære i"
-Laserskæring,,LAS_TEST_MATRIX,5,target,Skæreprøve,"Lav en skæreprøve for at finde optimale indstillinger"
-Laserskæring,,LAS_NESTING_OPT,6,target,Nesting,"Optimér dit layout for at mindske spild af restmateriale"
-3D-Printning,,PRI_BED_CLEAN,1,box,Rens Byggeplade,"Rengør byggepladen og tjek for løse rester før printstart"
-3D-Printning,,PRI_FIL_CHANGE,2,box,Skift Filament,"Skift filamentrulle (Load/Unload) korrekt på printeren"
-3D-Printning,,PRI_3MF_PROJECT,3,box,.3MF Projekt,"Gem og åbn et komplet projekt som en .3mf fil"
-3D-Printning,,PRI_SUPP_BRIM,4,box,Support & Brim,"Vurdér om dit print kræver Supports Brim eller ingen af delene"
-3D-Printning,,PRI_FAIL_TROUBLE,5,box,Print-fejl,"Identificér årsagen til et fejlet print og løs problemet"
-3D-Printning,,PRI_AMS_MULTICOLOR,6,box,AMS Flerfarve,"Opsæt og gennemfør et flerfarvet print ved hjælp af AMS"
-3D-Modellering,,DES_NAV_3D,1,axis-3d,3D Navigation,"Navigér frit rundt i 3D-rummet og find de vigtigste værktøjer"
-3D-Modellering,,DES_SKETCH_EXT,2,axis-3d,Skitse & Extrude,"Lav en 2D-skitse og brug Extrude til at give den form"
-3D-Modellering,,DES_PRECISION_MM,3,axis-3d,Præcisionsmål,"Design et objekt efter præcise mål angivet i millimeter"
-3D-Modellering,,DES_CALIPER_RE,4,axis-3d,Skydelære 3D,"Mål en fysisk genstand med skydelære og genskab den i 3D"
-3D-Modellering,,DES_FUNC_DESIGN,5,axis-3d,Funktionelt Emne,"Design et funktionelt emne der løser et konkret problem"
-Folieskæring,,FOL_FEED_SETUP,1,scissors,Isæt Folie,"Isæt skærefolien korrekt i maskinen og tjek fremføringen"
-Folieskæring,,FOL_WEEDING_PRAC,2,scissors,Weeding,"Weeding: Fjern manuelt den overskydende folie fra dit design"
-Folieskæring,,FOL_TRANSFER_TAPE,3,scissors,Transfer Tape,"Transfer: Vælg og brug applikationstape til overførsel"
-Folieskæring,,FOL_HEAT_PRESS,4,scissors,Varmepresse,"Overfør et motiv til tekstil ved brug af sin varmepresse"
-Folieskæring,,FOL_MULTI_LAYER,5,scissors,Flerlags-Folie,"Montér et design bestående af flere lag folie i forskellige farver"
-Elektronik,,ELE_FUME_SAFETY,1,zap,Lodde-udsugning,"Brug altid aktiv udsugning når du lodder for din sikkerhed"
-Elektronik,,ELE_LED_BATTERY,2,zap,Simpel LED,"Få en LED til at lyse ved brug af batteri og modstand"
-Elektronik,,ELE_BREADBOARD,3,zap,Breadboard,"Opbyg et fungerende kredsløb på et breadboard efter tegning"
-Elektronik,,ELE_LED_STRIP,4,zap,LED-bånd Lodning,"Lod ledninger fast på et LED-bånd med en stærk samling"
-Elektronik,,ELE_PSU_VOLT,5,zap,Strømforsyning,"Indstil den korrekte spænding (Volt) på en strømforsyning"
-Elektronik,,ELE_MULTIMETER,6,zap,Multimeter,"Mål spænding og find forbindelser ved brug af multimeter"
-Microcontroller,,MIC_CONNECT_UP,1,cpu,Upload Kode,"Tilslut din micro:bit til computeren og upload første kode"
-Microcontroller,,MIC_BASIC_PROG,2,cpu,Simpelt Program,"Lav et simpelt program (vis navn eller ikon på skærmen)"
-Microcontroller,,MIC_EXT_INPUTS,3,cpu,Eksterne Inputs,"Lav et program der reagerer på eksterne input (knapper/pins)"
-Microcontroller,,MIC_EXT_SENSORS,4,cpu,Sensorer,"Lav et program der benytter eksterne sensorer (lys/temp)"
-Microcontroller,,MIC_DIGITAL_FAB,5,cpu,Digi-Fab Projekt,"Anvend micro:bit som styring i et digitalt fabrikeret projekt"
-Materialekendskab,,MAT_MEASURE_DIM,1,layers,Mål & Tykkelse,"Mål tykkelse og areal af et materiale med skydelære eller lineal"
-Materialekendskab,,MAT_IDENTIFY_BASICS,2,layers,Basis Materialer,"Identificér basis materialer (træ pap kork tekstil metaller printmedier)"
-Materialekendskab,,MAT_MATCH_MACHINE,3,layers,Materiale/Maskine,"Kobl rigtigt materiale til rigtig maskine (f.eks. plasttyper til laser)"
-Materialekendskab,,MAT_FILAMENT_TYPES,4,layers,Filamenttyper,"Forklar egenskaber og begrænsninger for filamenttyper til 3D-print"
-Materialekendskab,,MAT_SELECT_CRITERIA,5,layers,Materialevalg,"Vurdér og vælg det mest velegnede materiale ud fra funktionelle krav"
-Værkstedskultur,,KUL_CLEAN_STATION,1,shield-check,Oprydning,"Ryd op efter dig selv og efterlad maskinen klar til den næste"
-Værkstedskultur,,KUL_SAFETY_RULES,2,shield-check,Sikkerhedsregler,"Overhold alle værkstedets sikkerhedsregler uden at blive mindet om det"
-Værkstedskultur,,KUL_DOCUMENTATION,3,shield-check,Dokumentation,"Dokumentér din proces med billeder af både fejl og succeser"
-Værkstedskultur,,KUL_RESILIENCE_RETRY,4,shield-check,Fejlhåndtering,"Giv ikke op ved fejl find årsagen og prøv igen med en ny løsning"
-Værkstedskultur,,KUL_TEACH_OTHERS,5,shield-check,Lær fra dig,"Lær en anden elev hvordan en maskine eller et program fungerer"
-Digitalt Broderi,,BRO_01,1,spool,Isætning & Ramme,"Isæt stof og stabilisator (vlies) korrekt i broderirammen"
-Digitalt Broderi,,BRO_02,2,spool,Tråd & Trådning,"Tråd maskinen med under- og overtråd og tjek trådspændingen"
-Digitalt Broderi,,BRO_03,3,spool,Standard Mønster,"Hent et færdigt broderidesign (.PES) og placér det præcist på stoffet"
-Digitalt Broderi,,BRO_04,4,spool,Tekst & Skrifttyper,"Opsæt og tilpas tekst med forskellige skrifttyper i Ink/Stitch eller software"
-Digitalt Broderi,,BRO_05,5,spool,Vektorisering til Sting,"Konvertér en vektor-tegning til stingtyper (Satin fill og Tatami)"
-Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et flerfarvet design med automatiske trådklip og skift"`;
-
     const DOMAIN_MAP = {
       'Filhåndtering': '💻 Software',
       'Vektorgrafik': '💻 Software',
       'Rastergrafik': '💻 Software',
       '3D-Modellering': '💻 Software',
+      'CO2 Laserskæring': '⚙️ Maskiner',
       'Laserskæring': '⚙️ Maskiner',
       '3D-Printning': '⚙️ Maskiner',
       'Folieskæring': '⚙️ Maskiner',
@@ -786,47 +723,58 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
 
     const DOMAIN_ORDER = ['💻 Software', '⚙️ Maskiner', '🛠️ Hardware & Hands-on'];
 
-    // KATEGORI-SPECIFIKKE BASIS-TITLER
-    const CATEGORY_TITLES = {
-      'Filhåndtering': 'Data-Detektiv',
-      'Vektorgrafik': 'Node-Nørd & Vektor-Viking',
-      'Rastergrafik': 'Pixel-Pusler',
-      '3D-Modellering': 'Dimension-Designer',
-      'Laserskæring': 'Foton-Fører',
-      '3D-Printning': 'Lag-på-Lag-Legende',
-      'Folieskæring': 'Weeding-Wizard',
-      'Digitalt Broderi': 'Satin-Snedker',
-      'Elektronik': 'Kredsløbs-Konge',
-      'Microcontroller': 'Bit-Bøjler & Pin-Pilot',
-      'Materialekendskab': 'Emne-Ekspert',
-      'Værkstedskultur': 'Kultur-Kaptajn'
-    };
+    // RÆKKE-BASERET TITEL-LOGIK
+    function getUnlockedCategoryTitles(catName, skillsList, progress) {
+      const catSkills = skillsList.filter(s => s.cat === catName).sort((a, b) => a.level - b.level);
+      const unlocked = [];
 
-    function isCategoryBaseCompleted(catName, skills, progress) {
-      const baseSkills = skills.filter(s => s.cat === catName && s.level <= 4);
-      if (baseSkills.length === 0) return false;
-      return baseSkills.every(s => progress[s.id]);
+      for (let i = 0; i < catSkills.length; i++) {
+        const s = catSkills[i];
+        const title = (s.catTitle || '').trim();
+        if (title && title !== '#' && title !== '-' && title.toLowerCase() !== 'null') {
+          // Tjekker at denne specifikke kompetence samt alle forudgående i kategorien er gennemført
+          const allPriorDone = catSkills.slice(0, i + 1).every(prevSkill => progress[prevSkill.id]);
+          if (allPriorDone) {
+            unlocked.push({ title: title, skillId: s.id, level: s.level });
+          }
+        }
+      }
+      return unlocked;
+    }
+
+    function getLatestCategoryTitle(catName, skillsList, progress) {
+      const titles = getUnlockedCategoryTitles(catName, skillsList, progress);
+      if (titles.length === 0) return null;
+      return titles[titles.length - 1].title;
     }
 
     function calculateGlobalTitle(allSkillsList, progress) {
       if (allSkillsList.length === 0) return 'Deltager';
 
       const totalCompleted = allSkillsList.filter(s => progress[s.id]).length;
-      if (totalCompleted === allSkillsList.length && totalSkillsList.length > 0) {
-        return 'Maker-Guru';
+      const currentYear = new Date().getFullYear();
+
+      // Guru: 100% af samtlige kompetencer gennemført
+      if (totalCompleted === allSkillsList.length && allSkillsList.length > 0) {
+        return `Maker-Guru ${currentYear}`;
       }
 
       const allCats = [...new Set(allSkillsList.map(s => s.cat))];
-      const allBaseDone = allCats.every(c => isCategoryBaseCompleted(c, allSkillsList, progress));
+      const allCatsHaveTitle = allCats.length > 0 && allCats.every(c => getUnlockedCategoryTitles(c, allSkillsList, progress).length > 0);
       const advancedCompleted = allSkillsList.filter(s => s.level >= 5 && progress[s.id]).length;
 
-      if (allBaseDone && advancedCompleted >= 8) {
-        return 'Værksteds-Troldmand';
+      // Troldmand: Mindst 1 titel i alle kategorier + 8 avancerede mål
+      if (allCatsHaveTitle && advancedCompleted >= 8) {
+        return `Værksteds-Troldmand ${currentYear}`;
       }
 
-      const completedBadges = allCats.filter(c => isCategoryBaseCompleted(c, allSkillsList, progress));
-      if (completedBadges.length > 0) {
-        return `${completedBadges.length} / ${allCats.length} Certificeringer`;
+      let totalBadges = 0;
+      allCats.forEach(c => {
+        totalBadges += getUnlockedCategoryTitles(c, allSkillsList, progress).length;
+      });
+
+      if (totalBadges > 0) {
+        return `${totalBadges} opnåede titler`;
       }
 
       return 'Deltager';
@@ -904,19 +852,22 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
         if (values.length < 5) continue;
 
         const category = (catIdx >= 0 ? values[catIdx] : values[0]) || '';
-        const id = (idIdx >= 0 ? values[idIdx] : values[2]) || '';
+        const id = (idIdx >= 0 ? values[idIdx] : values[3]) || '';
         if (!id) continue;
+
+        const rawCatTitle = catTitleIdx >= 0 ? values[catTitleIdx] : '';
+        const catTitle = (rawCatTitle && rawCatTitle !== '#') ? rawCatTitle.trim() : '#';
 
         const skillObj = {
           domain: DOMAIN_MAP[category.trim()] || '💻 Software',
           category: category.trim(),
-          category_title: (catTitleIdx >= 0 ? values[catTitleIdx] : (CATEGORY_TITLES[category.trim()] || category.trim())),
-          subcategory: (subCatIdx >= 0 ? values[subCatIdx] : values[1]) || '',
+          category_title: catTitle,
+          subcategory: (subCatIdx >= 0 ? values[subCatIdx] : values[2]) || '',
           id: id.trim(),
-          level: parseInt((lvlIdx >= 0 ? values[lvlIdx] : values[3]), 10) || 1,
-          svg_icon: sanitizeIcon(iconIdx >= 0 ? values[iconIdx] : values[4]),
-          short_desc: ((shortDescIdx >= 0 ? values[shortDescIdx] : values[5]) || '').trim(),
-          full_desc: ((descIdx >= 0 ? values[descIdx] : values[6]) || '').replace(/^"|"$/g, '').trim()
+          level: parseInt((lvlIdx >= 0 ? values[lvlIdx] : values[4]), 10) || 1,
+          svg_icon: sanitizeIcon(iconIdx >= 0 ? values[iconIdx] : values[5]),
+          short_desc: ((shortDescIdx >= 0 ? values[shortDescIdx] : values[6]) || '').trim(),
+          full_desc: ((descIdx >= 0 ? values[descIdx] : values[7]) || '').replace(/^"|"$/g, '').trim()
         };
 
         rowsToUpsert.push(skillObj);
@@ -971,7 +922,7 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
       };
       reader.readAsText(file);
     }
-    
+
     async function checkUserRole(userId) {
       if (!supabaseClient || !userId) return false;
       try {
@@ -1012,8 +963,6 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
     }
 
     async function initData() {
-      parseCSVText(DEFAULT_CSV, false);
-
       const localCachedSkills = JSON.parse(localStorage.getItem('ms_allSkills'));
       if (localCachedSkills && localCachedSkills.length > 0) {
         allSkills = localCachedSkills;
@@ -1046,6 +995,25 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
         } else {
           userProgress = JSON.parse(localStorage.getItem('ms_local_progress')) || {};
           updateAuthUI(false);
+        }
+
+        // Hent live færdigheder fra Supabase
+        const { data: skillsData, error: skillsError } = await supabaseClient
+          .from('skills')
+          .select('*')
+          .order('level', { ascending: true });
+
+        if (!skillsError && skillsData && skillsData.length > 0) {
+          allSkills = skillsData.map(s => ({
+            cat: s.category,
+            catTitle: s.category_title || '#',
+            subCat: s.subcategory || '',
+            id: s.id,
+            level: s.level,
+            svg: sanitizeIcon(s.svg_icon),
+            shortDesc: s.short_desc,
+            fullDesc: s.full_desc
+          }));
         }
 
         renderApp();
@@ -1542,7 +1510,7 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
 
     async function toggleSkill(skillId, event, category) {
       const prevTitle = calculateGlobalTitle(allSkills, userProgress);
-      const wasBaseDone = isCategoryBaseCompleted(category, allSkills, userProgress);
+      const prevCatTitles = getUnlockedCategoryTitles(category, allSkills, userProgress).map(t => t.title);
 
       const isCompleted = !userProgress[skillId];
 
@@ -1571,17 +1539,19 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
         localStorage.setItem('ms_local_progress', JSON.stringify(userProgress));
       }
 
-      // 1. Tjek for opnåelse af Kategori-titel
-      const isBaseDoneNow = isCategoryBaseCompleted(category, allSkills, userProgress);
-      if (isCompleted && !wasBaseDone && isBaseDoneNow) {
-        const catBadge = CATEGORY_TITLES[category] || `${category}-Mester`;
-        showSpecialSplash('🎖️', 'CERTIFICERING OPNÅET!', `Du har mestret basis i ${category}:`, catBadge);
+      // 1. Tjek om en ny kategorititel blev låst op
+      if (isCompleted) {
+        const newCatTitles = getUnlockedCategoryTitles(category, allSkills, userProgress).map(t => t.title);
+        const freshlyUnlocked = newCatTitles.filter(t => !prevCatTitles.includes(t));
+        if (freshlyUnlocked.length > 0) {
+          showSpecialSplash('🎖️', 'TITEL OPNÅET!', `Du har opnået en ny titel i ${category}:`, freshlyUnlocked[0]);
+        }
       }
 
-      // 2. Tjek for eksklusive overordnede titler
+      // 2. Tjek for overordnede mestertitler
       const newTitle = calculateGlobalTitle(allSkills, userProgress);
-      if (isCompleted && newTitle !== prevTitle && (newTitle === 'Værksteds-Troldmand' || newTitle === 'Maker-Guru')) {
-        showSpecialSplash('🧙‍♂️', 'EKSLUSIV MESTERRANG!', 'Du har opnået en sjælden titel:', newTitle);
+      if (isCompleted && newTitle !== prevTitle && (newTitle.startsWith('Værksteds-Troldmand') || newTitle.startsWith('Maker-Guru'))) {
+        showSpecialSplash('🧙‍♂️', 'EKSLUSIV MESTERRANG!', 'Du har opnået en sjælden overordnet titel:', newTitle);
       }
 
       renderApp();
@@ -1597,6 +1567,11 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
       hex.className = `hex-container ${isDone ? 'active' : ''}`;
       hex.onclick = (e) => toggleSkill(s.id, e, s.cat);
 
+      const hasTitleReward = (s.catTitle && s.catTitle !== '#' && s.catTitle !== '-');
+      const titleBonus = hasTitleReward 
+        ? `<br><span style="color:var(--active-green); font-weight:bold;">🎖️ Låser op for: ${s.catTitle}</span>` 
+        : '';
+
       hex.innerHTML = `
         <svg class="hex-svg" viewBox="0 0 100 86.6">
           <polygon class="hex-outer-frame" points="25,2 75,2 98,43.3 75,84.6 25,84.6 2,43.3" />
@@ -1609,7 +1584,7 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
         </div>
         <div class="tooltip">
           <strong>${s.shortDesc} (Lvl ${s.level})</strong><br>
-          ${s.fullDesc}
+          ${s.fullDesc}${titleBonus}
         </div>
       `;
       return hex;
@@ -1666,12 +1641,11 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
 
           const catIcon = catSkills[0]?.svg || 'folder';
           const completedInCat = catSkills.filter(s => userProgress[s.id]).length;
-          const isCatFullyCompleted = (completedInCat === catSkills.length && catSkills.length > 0);
-          const isBaseDone = isCategoryBaseCompleted(catName, allSkills, userProgress);
-          const catBadgeTitle = CATEGORY_TITLES[catName] || `${catName}-Mester`;
+          const activeBadgeTitle = getLatestCategoryTitle(catName, allSkills, userProgress);
+          const hasBadge = !!activeBadgeTitle;
 
           const catHex = document.createElement('div');
-          catHex.className = `hex-container cat-hex-container ${isBaseDone ? 'completed' : ''}`;
+          catHex.className = `hex-container cat-hex-container ${hasBadge ? 'completed' : ''}`;
           catHex.innerHTML = `
             <svg class="hex-svg" viewBox="0 0 100 86.6">
               <polygon class="hex-outer-frame" points="25,2 75,2 98,43.3 75,84.6 25,84.6 2,43.3" />
@@ -1679,9 +1653,9 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
             </svg>
             <div class="cat-hex-content">
               <i data-lucide="${catIcon}" class="cat-big-icon"></i>
-              <div class="cat-badge-label">${catBadgeTitle}</div>
+              ${hasBadge ? `<div class="cat-badge-label">${activeBadgeTitle}</div>` : ''}
             </div>
-            <div class="cat-tooltip">${catName}${isBaseDone ? '<br><span style="color:#22c55e;">🎖️ ' + catBadgeTitle + '</span>' : ''}</div>
+            <div class="cat-tooltip">${catName}${hasBadge ? '<br><span style="color:#22c55e;">🎖️ ' + activeBadgeTitle + '</span>' : ''}</div>
           `;
           col.appendChild(catHex);
 
@@ -1729,7 +1703,7 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
                   </svg>
                   <div class="hex-content">
                     <i data-lucide="${scIcon}" class="hex-icon"></i>
-                    <div class="hex-text" style="font-size:0.52rem; color:var(--text-main);">${scName}</div>
+                    <div class="hex-text" style="font-size:0.50rem; color:var(--text-main);">${scName}</div>
                     <div class="hex-level" style="font-size:0.55rem; color:var(--accent-blue);">${foldLabel}</div>
                   </div>
                   <div class="tooltip">
@@ -1791,7 +1765,7 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
       {
         targetClass: 'hex-container',
         title: '🟢 4. Certificeringer & Titler',
-        text: 'Fuldfør basismålene i en kategori for at opnå dens badge-titel (f.eks. Foton-Fører eller Vektor-Viking)!',
+        text: 'Lås op for titler ved at nå milepæle i hver kategori (f.eks. Foton-Fører eller Vektor-Viking)!',
         pos: { top: '40%', left: '50%', transform: 'translate(-50%, -50%)' }
       },
       {
