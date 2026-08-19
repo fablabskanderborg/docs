@@ -856,7 +856,6 @@
       const descIdx = header.indexOf('kompetence');
 
       const rowsToUpsert = [];
-      const parsedSkills = [];
 
       for (let i = 1; i < lines.length; i++) {
         if (!lines[i].trim()) continue;
@@ -883,21 +882,7 @@
         };
 
         rowsToUpsert.push(skillObj);
-
-        parsedSkills.push({
-          cat: skillObj.category,
-          catTitle: skillObj.category_title,
-          subCat: skillObj.subcategory,
-          id: skillObj.id,
-          level: skillObj.level,
-          svg: skillObj.svg_icon,
-          shortDesc: skillObj.short_desc,
-          fullDesc: skillObj.full_desc
-        });
       }
-
-      allSkills = parsedSkills;
-      localStorage.setItem('ms_allSkills', JSON.stringify(allSkills));
 
       if (supabaseClient) {
         try {
@@ -906,19 +891,55 @@
             .upsert(rowsToUpsert, { onConflict: 'id' });
 
           if (error) throw error;
-          if (showAlert) alert(`Succes: Alle ${rowsToUpsert.length} kompetencer synkroniseret direkte til Supabase!`);
+
+          // Hent den komplette liste fra Supabase så intet forsvinder
+          const { data: allData, error: fetchErr } = await supabaseClient
+            .from('skills')
+            .select('*')
+            .order('level', { ascending: true });
+
+          if (!fetchErr && allData) {
+            allSkills = allData.map(s => ({
+              cat: s.category,
+              catTitle: s.category_title || '#',
+              subCat: s.subcategory || '',
+              id: s.id,
+              level: s.level,
+              svg: sanitizeIcon(s.svg_icon),
+              shortDesc: s.short_desc,
+              fullDesc: s.full_desc
+            }));
+            localStorage.setItem('ms_allSkills', JSON.stringify(allSkills));
+          }
+
+          if (showAlert) alert(`Succes: ${rowsToUpsert.length} kompetencer blev synkroniseret til Supabase!`);
         } catch (err) {
           console.error('Fejl ved upload til Supabase:', err);
-          if (showAlert) alert('Gemt lokalt, men fejl ved Supabase-synkronisering: ' + err.message);
+          if (showAlert) alert('Fejl ved Supabase-synkronisering: ' + err.message);
         }
       } else {
-        if (showAlert) alert(`CSV indlæst lokalt (${parsedSkills.length} mål).`);
+        // Hvis der køres ren offline/lokal cache (flet med eksisterende)
+        const existingMap = new Map(allSkills.map(s => [s.id, s]));
+        rowsToUpsert.forEach(r => {
+          existingMap.set(r.id, {
+            cat: r.category,
+            catTitle: r.category_title,
+            subCat: r.subcategory,
+            id: r.id,
+            level: r.level,
+            svg: r.svg_icon,
+            shortDesc: r.short_desc,
+            fullDesc: r.full_desc
+          });
+        });
+        allSkills = Array.from(existingMap.values());
+        localStorage.setItem('ms_allSkills', JSON.stringify(allSkills));
+        if (showAlert) alert(`CSV indlæst lokalt (${rowsToUpsert.length} mål tilføjet/opdateret).`);
       }
 
       renderApp();
       renderAdmin();
     }
-
     function handleFileUpload() {
       const fileInput = document.getElementById('csvFileInput');
       const file = fileInput.files[0];
