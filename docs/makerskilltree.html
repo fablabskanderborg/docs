@@ -825,12 +825,35 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
           .from('profiles')
           .select('role')
           .eq('id', userId)
-          .single();
+          .maybeSingle();
 
         if (error || !data) return false;
         return data.role === 'admin' || data.role === 'teacher';
       } catch (e) {
         return false;
+      }
+    }
+
+    async function ensureUserProfile(user) {
+      if (!supabaseClient || !user) return;
+      try {
+        const { data } = await supabaseClient
+          .from('profiles')
+          .select('id, full_name, role')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        if (!data) {
+          const fallbackName = user.user_metadata?.full_name || user.email.split('@')[0];
+          await supabaseClient.from('profiles').insert({
+            id: user.id,
+            username: user.email.split('@')[0],
+            full_name: fallbackName,
+            role: 'student'
+          });
+        }
+      } catch (e) {
+        console.error('Kunne ikke sikre profil:', e);
       }
     }
 
@@ -851,30 +874,22 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
         const { data: { session } } = await supabaseClient.auth.getSession();
         if (session) {
           currentUser = session.user;
-          currentUserName = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
-          const isAdmin = await checkUserRole(currentUser.id);
+          await ensureUserProfile(currentUser);
+          
+          const { data: prof } = await supabaseClient
+            .from('profiles')
+            .select('full_name, role')
+            .eq('id', currentUser.id)
+            .maybeSingle();
+
+          currentUserName = prof?.full_name || currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
+          const isAdmin = prof?.role === 'admin' || prof?.role === 'teacher';
+          
           updateAuthUI(true, currentUserName, isAdmin);
           await fetchUserProgress();
           await fetchUserClass();
         } else {
           updateAuthUI(false);
-        }
-
-        const { data: skillsData, error: skillsError } = await supabaseClient
-          .from('skills')
-          .select('*')
-          .order('level', { ascending: true });
-
-        if (!skillsError && skillsData && skillsData.length > 0) {
-          allSkills = skillsData.map(s => ({
-            cat: s.category,
-            subCat: s.subcategory || '',
-            id: s.id,
-            level: s.level,
-            svg: sanitizeIcon(s.svg_icon),
-            shortDesc: s.short_desc,
-            fullDesc: s.full_desc
-          }));
         }
 
         renderApp();
@@ -886,30 +901,38 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
 
     async function fetchUserProgress() {
       if (!currentUser || !supabaseClient) return;
-      const { data, error } = await supabaseClient
-        .from('user_skills')
-        .select('skill_id')
-        .eq('user_id', currentUser.id);
+      try {
+        const { data, error } = await supabaseClient
+          .from('user_skills')
+          .select('skill_id')
+          .eq('user_id', currentUser.id);
 
-      if (!error && data) {
-        userProgress = {};
-        data.forEach(row => { userProgress[row.skill_id] = true; });
+        if (!error && data) {
+          userProgress = {};
+          data.forEach(row => { userProgress[row.skill_id] = true; });
+        }
+      } catch (e) {
+        console.error('Fejl ved hentning af fremskridt:', e);
       }
     }
 
     async function fetchUserClass() {
       if (!currentUser || !supabaseClient) return;
-      const { data, error } = await supabaseClient
-        .from('class_members')
-        .select('class_id, classes(name, invite_code)')
-        .eq('user_id', currentUser.id);
+      try {
+        const { data, error } = await supabaseClient
+          .from('class_members')
+          .select('class_id, classes(name, invite_code)')
+          .eq('user_id', currentUser.id);
 
-      if (!error && data && data.length > 0) {
-        currentUserClass = data.map(d => d.classes?.name).join(', ');
-      } else {
-        currentUserClass = 'Intet hold';
+        if (!error && data && data.length > 0) {
+          currentUserClass = data.map(d => d.classes?.name).filter(Boolean).join(', ') || 'Intet hold';
+        } else {
+          currentUserClass = 'Intet hold';
+        }
+        document.getElementById('footerUserClass').innerText = currentUserClass;
+      } catch (e) {
+        document.getElementById('footerUserClass').innerText = 'Intet hold';
       }
-      document.getElementById('footerUserClass').innerText = currentUserClass;
     }
 
     function updateAuthUI(isLoggedIn, displayName = '', isAdmin = false) {
@@ -996,7 +1019,15 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
           const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
           if (error) throw error;
           currentUser = data.user;
-          currentUserName = currentUser.user_metadata?.full_name || email.split('@')[0];
+          await ensureUserProfile(currentUser);
+
+          const { data: prof } = await supabaseClient
+            .from('profiles')
+            .select('full_name')
+            .eq('id', currentUser.id)
+            .maybeSingle();
+
+          currentUserName = prof?.full_name || currentUser.user_metadata?.full_name || email.split('@')[0];
         }
 
         closeAuthModal();
@@ -1032,14 +1063,13 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
 
       const code = generate5LetterCode();
 
-      const { data, error } = await supabaseClient
+      const { error } = await supabaseClient
         .from('classes')
         .insert({
           name: className,
           invite_code: code,
           created_by: currentUser.id
-        })
-        .select();
+        });
 
       if (error) {
         alert('Kunne ikke oprette hold: ' + error.message);
@@ -1067,7 +1097,7 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
         .from('classes')
         .select('id, name')
         .ilike('invite_code', code)
-        .single();
+        .maybeSingle();
 
       if (findError || !classData) {
         alert('Fandt intet hold med koden: ' + code);
@@ -1110,7 +1140,7 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
 
       container.innerHTML = data.map(d => `
         <div class="class-tag">
-          <span><strong>${d.classes?.name}</strong> (Kode: <code style="color:var(--accent-blue); font-weight:bold;">${d.classes?.invite_code}</code>)</span>
+          <span><strong>${d.classes?.name || 'Hold'}</strong> (Kode: <code style="color:var(--accent-blue); font-weight:bold;">${d.classes?.invite_code || '-'}</code>)</span>
         </div>
       `).join('');
     }
@@ -1289,10 +1319,14 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
       }
 
       if (currentUser && supabaseClient) {
-        if (isCompleted) {
-          await supabaseClient.from('user_skills').insert({ user_id: currentUser.id, skill_id: skillId });
-        } else {
-          await supabaseClient.from('user_skills').delete().match({ user_id: currentUser.id, skill_id: skillId });
+        try {
+          if (isCompleted) {
+            await supabaseClient.from('user_skills').upsert({ user_id: currentUser.id, skill_id: skillId });
+          } else {
+            await supabaseClient.from('user_skills').delete().match({ user_id: currentUser.id, skill_id: skillId });
+          }
+        } catch (e) {
+          console.error('Fejl ved gemning i Supabase:', e);
         }
       } else {
         localStorage.setItem('ms_local_progress', JSON.stringify(userProgress));
