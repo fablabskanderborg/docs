@@ -881,39 +881,63 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
       return result;
     }
 
-    function parseCSVText(text, showAlert = true) {
+    async function parseCSVText(text, showAlert = true) {
       const lines = text.trim().split(/\r?\n/);
       if (lines.length < 2) return;
 
-      let addedCount = 0;
+      const rowsToUpsert = [];
+      const parsedSkills = [];
+
       for (let i = 1; i < lines.length; i++) {
         if (!lines[i].trim()) continue;
         const values = parseCSVLine(lines[i]);
         if (values.length < 7) continue;
 
-        const skill = {
-          cat: values[0],
-          subCat: values[1] || '',
-          id: values[2],
-          level: parseInt(values[3]) || 1,
-          svg: sanitizeIcon(values[4]),
-          shortDesc: values[5],
-          fullDesc: values[6].replace(/^"|"$/g, '')
+        const skillObj = {
+          category: values[0].trim(),
+          subcategory: values[1] ? values[1].trim() : '',
+          id: values[2].trim(),
+          level: parseInt(values[3], 10) || 1,
+          svg_icon: sanitizeIcon(values[4]),
+          short_desc: values[5].trim(),
+          full_desc: values[6].replace(/^"|"$/g, '').trim()
         };
 
-        const existingIdx = allSkills.findIndex(s => s.id === skill.id);
-        if (existingIdx >= 0) {
-          allSkills[existingIdx] = skill;
-        } else {
-          allSkills.push(skill);
-          addedCount++;
-        }
+        rowsToUpsert.push(skillObj);
+
+        parsedSkills.push({
+          cat: skillObj.category,
+          subCat: skillObj.subcategory,
+          id: skillObj.id,
+          level: skillObj.level,
+          svg: skillObj.svg_icon,
+          shortDesc: skillObj.short_desc,
+          fullDesc: skillObj.full_desc
+        });
       }
 
+      allSkills = parsedSkills;
       localStorage.setItem('ms_allSkills', JSON.stringify(allSkills));
+
+      // Send direkte til Supabase hvis klienten er aktiv
+      if (supabaseClient) {
+        try {
+          const { error } = await supabaseClient
+            .from('skills')
+            .upsert(rowsToUpsert, { onConflict: 'id' });
+
+          if (error) throw error;
+          if (showAlert) alert(`Succes: ${rowsToUpsert.length} kompetencer blev synkroniseret direkte til Supabase!`);
+        } catch (err) {
+          console.error('Fejl ved upload til Supabase:', err);
+          if (showAlert) alert('Gemt lokalt, men fejl ved Supabase-synkronisering: ' + err.message);
+        }
+      } else {
+        if (showAlert) alert(`CSV indlæst lokalt (${parsedSkills.length} mål).`);
+      }
+
       renderApp();
       renderAdmin();
-      if (showAlert) alert(`CSV indlæst! ${addedCount} nye kompetencer blev tilføjet/opdateret.`);
     }
 
     function handleFileUpload() {
@@ -925,13 +949,13 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
       }
 
       const reader = new FileReader();
-      reader.onload = function(e) {
-        parseCSVText(e.target.result, true);
+      reader.onload = async function(e) {
+        await parseCSVText(e.target.result, true);
         fileInput.value = '';
       };
       reader.readAsText(file);
     }
-
+    
     async function checkUserRole(userId) {
       if (!supabaseClient || !userId) return false;
       try {
