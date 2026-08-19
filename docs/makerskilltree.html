@@ -885,24 +885,38 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
       const lines = text.trim().split(/\r?\n/);
       if (lines.length < 2) return;
 
+      const header = parseCSVLine(lines[0]).map(h => h.toLowerCase().trim());
+      const catIdx = header.indexOf('kategori');
+      const catTitleIdx = header.indexOf('kategori_titel');
+      const subCatIdx = header.indexOf('underkategori');
+      const idIdx = header.indexOf('id');
+      const lvlIdx = header.indexOf('niveau');
+      const iconIdx = header.indexOf('svg_ikon');
+      const shortDescIdx = header.indexOf('kort_beskrivelse');
+      const descIdx = header.indexOf('kompetence');
+
       const rowsToUpsert = [];
       const parsedSkills = [];
 
       for (let i = 1; i < lines.length; i++) {
         if (!lines[i].trim()) continue;
         const values = parseCSVLine(lines[i]);
-        if (values.length < 8) continue;
+        if (values.length < 5) continue;
+
+        const category = (catIdx >= 0 ? values[catIdx] : values[0]) || '';
+        const id = (idIdx >= 0 ? values[idIdx] : values[2]) || '';
+        if (!id) continue;
 
         const skillObj = {
-          domain: DOMAIN_MAP[values[0].trim()] || '💻 Software',
-          category: values[0].trim(),
-          category_title: values[1].trim(),
-          subcategory: values[2] ? values[2].trim() : '',
-          id: values[3].trim(),
-          level: parseInt(values[4], 10) || 1,
-          svg_icon: sanitizeIcon(values[5]),
-          short_desc: values[6].trim(),
-          full_desc: values[7].replace(/^"|"$/g, '').trim()
+          domain: DOMAIN_MAP[category.trim()] || '💻 Software',
+          category: category.trim(),
+          category_title: (catTitleIdx >= 0 ? values[catTitleIdx] : (CATEGORY_TITLES[category.trim()] || category.trim())),
+          subcategory: (subCatIdx >= 0 ? values[subCatIdx] : values[1]) || '',
+          id: id.trim(),
+          level: parseInt((lvlIdx >= 0 ? values[lvlIdx] : values[3]), 10) || 1,
+          svg_icon: sanitizeIcon(iconIdx >= 0 ? values[iconIdx] : values[4]),
+          short_desc: ((shortDescIdx >= 0 ? values[shortDescIdx] : values[5]) || '').trim(),
+          full_desc: ((descIdx >= 0 ? values[descIdx] : values[6]) || '').replace(/^"|"$/g, '').trim()
         };
 
         rowsToUpsert.push(skillObj);
@@ -929,7 +943,7 @@ Digitalt Broderi,,BRO_06,6,spool,Flerfarvet Broderi,"Opsæt og gennemfør et fle
             .upsert(rowsToUpsert, { onConflict: 'id' });
 
           if (error) throw error;
-          if (showAlert) alert(`Succes: ${rowsToUpsert.length} kompetencer synkroniseret til Supabase!`);
+          if (showAlert) alert(`Succes: Alle ${rowsToUpsert.length} kompetencer synkroniseret direkte til Supabase!`);
         } catch (err) {
           console.error('Fejl ved upload til Supabase:', err);
           if (showAlert) alert('Gemt lokalt, men fejl ved Supabase-synkronisering: ' + err.message);
