@@ -18,10 +18,7 @@
       --text-muted: #94a3b8;
     }
 
-    * {
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
     body {
       background-color: var(--bg-color);
@@ -46,7 +43,7 @@
 
     header {
       background: #0f172a;
-      padding: 12px 20px;
+      padding: 10px 20px;
       border-bottom: 1px solid #1e293b;
       display: flex;
       justify-content: space-between;
@@ -57,28 +54,24 @@
       gap: 10px;
     }
 
-    h1 { 
-      margin: 0; 
-      font-size: 1.25rem; 
-      color: var(--text-main); 
-      letter-spacing: 0.5px;
+    h1 { margin: 0; font-size: 1.25rem; color: var(--text-main); letter-spacing: 0.5px; }
+
+    .header-btns { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+    .view-filter-select {
+      background: #1e293b;
+      border: 1px solid var(--accent-blue);
+      color: var(--accent-blue);
+      font-weight: bold;
+      font-size: 0.82rem;
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      width: auto;
     }
 
-    .header-btns { 
-      display: flex; 
-      gap: 8px; 
-      align-items: center; 
-      flex-wrap: wrap;
-    }
+    .main-container { display: flex; flex: 1; overflow: hidden; position: relative; }
 
-    .main-container {
-      display: flex;
-      flex: 1;
-      overflow: hidden;
-      position: relative;
-    }
-
-    /* CENTRERET VIEWPORT MED OPTIMERET TOUCH-SCROLL */
     .viewport {
       flex: 1;
       padding: 15px;
@@ -106,15 +99,10 @@
       padding: 20px 40px 90px 40px;
       align-items: flex-end;
       min-width: max-content;
-      margin: auto; /* Centrerer på store skærme og tillader fuld scroll på mobil */
+      margin: auto;
     }
 
-    .domain-section {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      position: relative;
-    }
+    .domain-section { display: flex; flex-direction: column; align-items: center; position: relative; }
 
     .domain-header {
       font-size: 0.8rem;
@@ -131,10 +119,7 @@
       z-index: 10;
     }
 
-    .domain-columns {
-      display: flex;
-      padding-top: 55px;
-    }
+    .domain-columns { display: flex; padding-top: 55px; }
 
     .column {
       display: flex;
@@ -161,16 +146,9 @@
       touch-action: manipulation;
     }
 
-    .hex-container:active {
-      transform: scale(0.96);
-    }
+    .hex-container:active { transform: scale(0.96); }
 
-    .hex-svg {
-      width: 100%;
-      height: 100%;
-      position: absolute;
-      top: 0; left: 0;
-    }
+    .hex-svg { width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
 
     .hex-outer-frame {
       fill: #1e293b;
@@ -191,10 +169,7 @@
       transition: stroke 0.3s;
     }
 
-    .cat-hex-container {
-      order: -1;
-      margin-top: 15px;
-    }
+    .cat-hex-container { order: -1; margin-top: 15px; }
 
     .hex-container.active .hex-outer-frame,
     .cat-hex-container.completed .hex-outer-frame,
@@ -210,7 +185,6 @@
       stroke: var(--active-green);
     }
 
-    /* TEKST & IKONER INDE I SEKSKANTEN */
     .hex-content {
       position: absolute;
       top: 0; left: 0; width: 100%; height: 100%;
@@ -224,13 +198,7 @@
       pointer-events: none;
     }
 
-    .hex-icon { 
-      color: var(--accent-blue); 
-      width: 15px; 
-      height: 15px; 
-      flex-shrink: 0;
-    }
-    
+    .hex-icon { color: var(--accent-blue); width: 15px; height: 15px; flex-shrink: 0; }
     .hex-container.active .hex-icon { color: var(--active-green); }
 
     .hex-text {
@@ -250,13 +218,7 @@
       overflow: hidden;
     }
 
-    .hex-level {
-      font-size: 0.60rem;
-      font-weight: bold;
-      color: var(--text-muted);
-      line-height: 1;
-      flex-shrink: 0;
-    }
+    .hex-level { font-size: 0.60rem; font-weight: bold; color: var(--text-muted); line-height: 1; flex-shrink: 0; }
 
     .cat-hex-content {
       position: absolute;
@@ -271,14 +233,7 @@
       gap: 2px;
     }
 
-    .cat-big-icon {
-      width: 26px;
-      height: 26px;
-      color: var(--accent-blue);
-      transition: color 0.3s;
-      flex-shrink: 0;
-    }
-
+    .cat-big-icon { width: 26px; height: 26px; color: var(--accent-blue); transition: color 0.3s; flex-shrink: 0; }
     .cat-hex-container.completed .cat-big-icon { color: var(--active-green); }
 
     .cat-badge-label {
@@ -321,20 +276,10 @@
       line-height: 1.35;
     }
 
-    .cat-hex-container .cat-tooltip {
-      color: var(--accent-blue);
-      font-weight: bold;
-      text-transform: uppercase;
-      width: auto;
-      max-width: 200px;
-      white-space: normal;
-    }
+    .cat-hex-container .cat-tooltip { color: var(--accent-blue); font-weight: bold; text-transform: uppercase; width: auto; max-width: 200px; white-space: normal; }
 
     .hex-container:hover .tooltip,
-    .cat-hex-container:hover .cat-tooltip {
-      visibility: visible;
-      opacity: 1;
-    }
+    .cat-hex-container:hover .cat-tooltip { visibility: visible; opacity: 1; }
 
     .floating-emoji {
       position: fixed;
@@ -388,12 +333,7 @@
       gap: 8px;
     }
 
-    .footer-info { 
-      display: flex; 
-      gap: 15px; 
-      align-items: center; 
-      flex-wrap: wrap;
-    }
+    .footer-info { display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
     .footer-label { color: var(--text-muted); margin-right: 4px; }
     .footer-val { color: var(--text-main); font-weight: bold; }
 
@@ -412,18 +352,13 @@
       background: #1e293b;
       padding: 20px;
       border-radius: 8px;
-      width: 520px;
+      width: 540px;
       max-width: 100%;
       max-height: 90vh;
       overflow-y: auto;
     }
 
-    .admin-section {
-      margin-bottom: 18px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid #334155;
-    }
-
+    .admin-section { margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid #334155; }
     .admin-section h3 { margin-top: 0; font-size: 0.95rem; color: var(--accent-blue); }
     .input-group { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
 
@@ -455,6 +390,39 @@
     .btn-secondary { background: #475569; color: white; }
     .btn-danger { background: #ef4444; color: white; }
 
+    .toolbar-btns {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .domain-group-box {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      padding: 8px 12px;
+    }
+
+    .domain-group-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: bold;
+      color: var(--accent-blue);
+      font-size: 0.85rem;
+      margin-bottom: 6px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid #1e293b;
+    }
+
+    .domain-group-items {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      padding-left: 4px;
+    }
+
     .class-tag {
       background: #0f172a;
       border: 1px solid #334155;
@@ -477,14 +445,7 @@
       font-size: 0.85rem;
     }
 
-    .tutorial-overlay {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.7);
-      z-index: 11000;
-    }
-
+    .tutorial-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 11000; }
     .tutorial-box {
       position: fixed;
       background: #0f172a;
@@ -523,6 +484,9 @@
   <header>
     <h1>MAKERSPACE SKILL TREE</h1>
     <div class="header-btns">
+      <select id="userViewFilterSelect" class="view-filter-select" onchange="handleViewFilterChange(this.value)">
+        <option value="ALL">🌐 Visning: Alt (Standard)</option>
+      </select>
       <button class="btn btn-secondary" onclick="startTutorial()">❓ Guide</button>
       <button class="btn" id="teamBtn" onclick="openTeamModal()">👥 Mit Hold</button>
       <button class="btn" id="adminBtn" onclick="openAdmin()" style="display:none;">⚙️ Superbruger</button>
@@ -593,15 +557,15 @@
     <div class="modal-box">
       <h2 style="margin-top:0;">Mit Hold</h2>
       <div class="admin-section">
-        <h3>Tilmeld dig et hold</h3>
-        <p style="font-size: 0.8rem; color: var(--text-muted); margin:0 0 10px 0;">Indtast den 5-bogstavs holdkode du har fået af din underviser:</p>
+        <h3>Tilmeld dig et nyt hold</h3>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin:0 0 10px 0;">Indtast den 5-bogstavs holdkode du har fået:</p>
         <div style="display:flex; gap:8px;">
           <input type="text" id="joinCodeInput" placeholder="F.eks. FABLK" maxlength="5" style="text-transform: uppercase; font-weight:bold; font-size:1.1rem; letter-spacing:2px; text-align:center; width:140px;">
           <button class="btn" onclick="handleJoinClass()">Tilmeld</button>
         </div>
       </div>
       <div class="admin-section" style="border-bottom:none;">
-        <h3>Dine tilmeldte hold</h3>
+        <h3>Dine tilmeldte hold & visningsfilter</h3>
         <div id="userClassList"><span style="font-size:0.8rem; color:var(--text-muted);">Indlæser...</span></div>
       </div>
       <div style="text-align: right;">
@@ -618,7 +582,7 @@
       <div class="admin-section">
         <h3>1. Opret nyt Hold</h3>
         <div style="display:flex; gap:8px; margin-bottom:12px;">
-          <input type="text" id="newClassNameInput" placeholder="Holdnavn (f.eks. Maker 8.A)">
+          <input type="text" id="newClassNameInput" placeholder="Holdnavn (f.eks. Eindhoven 2026)">
           <button class="btn" onclick="handleCreateClass()">Opret Hold</button>
         </div>
       </div>
@@ -641,7 +605,13 @@
             <button class="btn btn-secondary" style="padding:2px 8px; font-size:0.75rem;" onclick="closeClassCategoriesView()">✕ Luk</button>
           </div>
           <p style="font-size:0.75rem; color:var(--text-muted); margin:0 0 10px 0;">Vælg hvilke kategorier dette hold skal arbejde med:</p>
-          <div id="classCategoriesCheckboxes" style="display:flex; flex-direction:column; gap:6px; max-height:180px; overflow-y:auto; margin-bottom:12px;"></div>
+          
+          <div class="toolbar-btns">
+            <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="setAllClassCategories(true)">✓ Vælg alle</button>
+            <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="setAllClassCategories(false)">✕ Fjern alle</button>
+          </div>
+
+          <div id="classCategoriesCheckboxes" style="max-height:240px; overflow-y:auto; margin-bottom:12px;"></div>
           <button class="btn" style="width:100%;" onclick="saveClassCategories()">💾 Gem Hold-Kategorier</button>
         </div>
       </div>
@@ -657,7 +627,11 @@
 
       <div class="admin-section">
         <h3>4. Generelt Synlige Kategorier (Global)</h3>
-        <div id="adminCategoryList" style="display:flex; flex-direction:column; gap:8px;"></div>
+        <div class="toolbar-btns">
+          <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="setAllGlobalCategories(true)">✓ Vis alle</button>
+          <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="setAllGlobalCategories(false)">✕ Skjul alle</button>
+        </div>
+        <div id="adminCategoryList" style="max-height:240px; overflow-y:auto;"></div>
       </div>
 
       <div class="admin-section" style="border-bottom:none;">
@@ -735,7 +709,6 @@
       '✨ Maker Faire & Kultur'
     ];
 
-    // RÆKKE-BASERET TITEL-LOGIK
     function getUnlockedCategoryTitles(catName, skillsList, progress) {
       const catSkills = skillsList.filter(s => s.cat === catName).sort((a, b) => a.level - b.level);
       const unlocked = [];
@@ -744,7 +717,6 @@
         const s = catSkills[i];
         const title = (s.catTitle || '').trim();
         if (title && title !== '#' && title !== '-' && title.toLowerCase() !== 'null') {
-          // Tjekker at denne specifikke kompetence samt alle forudgående i kategorien er gennemført
           const allPriorDone = catSkills.slice(0, i + 1).every(prevSkill => progress[prevSkill.id]);
           if (allPriorDone) {
             unlocked.push({ title: title, skillId: s.id, level: s.level });
@@ -766,7 +738,6 @@
       const totalCompleted = allSkillsList.filter(s => progress[s.id]).length;
       const currentYear = new Date().getFullYear();
 
-      // Guru: 100% af samtlige kompetencer gennemført
       if (totalCompleted === allSkillsList.length && allSkillsList.length > 0) {
         return `Maker-Guru ${currentYear}`;
       }
@@ -775,7 +746,6 @@
       const allCatsHaveTitle = allCats.length > 0 && allCats.every(c => getUnlockedCategoryTitles(c, allSkillsList, progress).length > 0);
       const advancedCompleted = allSkillsList.filter(s => s.level >= 5 && progress[s.id]).length;
 
-      // Troldmand: Mindst 1 titel i alle kategorier + 8 avancerede mål
       if (allCatsHaveTitle && advancedCompleted >= 8) {
         return `Værksteds-Troldmand ${currentYear}`;
       }
@@ -798,7 +768,8 @@
     let currentUser = null;
     let currentUserName = "Gæst";
     let currentUserClass = "Intet hold";
-    let userClassActiveCategories = null;
+    let userEnrolledClasses = [];
+    let selectedViewFilter = localStorage.getItem('ms_selectedViewFilter') || 'ALL';
     let manualSubCatExpanded = {};
     let isSignUpMode = false;
     let editingClassId = null;
@@ -892,7 +863,6 @@
 
           if (error) throw error;
 
-          // Hent den komplette liste fra Supabase så intet forsvinder
           const { data: allData, error: fetchErr } = await supabaseClient
             .from('skills')
             .select('*')
@@ -918,7 +888,6 @@
           if (showAlert) alert('Fejl ved Supabase-synkronisering: ' + err.message);
         }
       } else {
-        // Hvis der køres ren offline/lokal cache (flet med eksisterende)
         const existingMap = new Map(allSkills.map(s => [s.id, s]));
         rowsToUpsert.forEach(r => {
           existingMap.set(r.id, {
@@ -937,9 +906,11 @@
         if (showAlert) alert(`CSV indlæst lokalt (${rowsToUpsert.length} mål tilføjet/opdateret).`);
       }
 
+      updateViewFilterOptions();
       renderApp();
       renderAdmin();
     }
+
     function handleFileUpload() {
       const fileInput = document.getElementById('csvFileInput');
       const file = fileInput.files[0];
@@ -1003,6 +974,7 @@
 
       if (!supabaseClient) {
         userProgress = JSON.parse(localStorage.getItem('ms_local_progress')) || {};
+        updateViewFilterOptions();
         renderApp();
         return;
       }
@@ -1030,7 +1002,6 @@
           updateAuthUI(false);
         }
 
-        // Hent live færdigheder fra Supabase
         const { data: skillsData, error: skillsError } = await supabaseClient
           .from('skills')
           .select('*')
@@ -1047,11 +1018,14 @@
             shortDesc: s.short_desc,
             fullDesc: s.full_desc
           }));
+          localStorage.setItem('ms_allSkills', JSON.stringify(allSkills));
         }
 
+        updateViewFilterOptions();
         renderApp();
       } catch (err) {
         console.error('Fejl under initialisering:', err);
+        updateViewFilterOptions();
         renderApp();
       }
     }
@@ -1078,31 +1052,73 @@
       try {
         const { data, error } = await supabaseClient
           .from('class_members')
-          .select('class_id, classes(name, invite_code, active_categories)')
+          .select('class_id, classes(id, name, invite_code, active_categories)')
           .eq('user_id', currentUser.id);
 
         if (!error && data && data.length > 0) {
-          currentUserClass = data.map(d => d.classes?.name).filter(Boolean).join(', ') || 'Intet hold';
-          
-          const activeSet = new Set();
-          let hasExplicitCategories = false;
-          data.forEach(d => {
-            if (d.classes?.active_categories && d.classes.active_categories.length > 0) {
-              hasExplicitCategories = true;
-              d.classes.active_categories.forEach(c => activeSet.add(c));
-            }
-          });
+          userEnrolledClasses = data.map(d => ({
+            id: d.classes?.id,
+            name: d.classes?.name,
+            code: d.classes?.invite_code,
+            categories: d.classes?.active_categories || null
+          })).filter(c => c.id);
 
-          userClassActiveCategories = hasExplicitCategories ? Array.from(activeSet) : null;
+          currentUserClass = userEnrolledClasses.map(c => c.name).join(', ');
         } else {
+          userEnrolledClasses = [];
           currentUserClass = 'Intet hold';
-          userClassActiveCategories = null;
         }
         document.getElementById('footerUserClass').innerText = currentUserClass;
+        updateViewFilterOptions();
       } catch (e) {
+        userEnrolledClasses = [];
+        currentUserClass = 'Intet hold';
         document.getElementById('footerUserClass').innerText = 'Intet hold';
-        userClassActiveCategories = null;
+        updateViewFilterOptions();
       }
+    }
+
+    function updateViewFilterOptions() {
+      const select = document.getElementById('userViewFilterSelect');
+      if (!select) return;
+
+      select.innerHTML = '<option value="ALL">🌐 Visning: Alt (Standard)</option>';
+
+      if (userEnrolledClasses.length > 0) {
+        userEnrolledClasses.forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c.id;
+          opt.innerText = `👥 Hold: ${c.name}`;
+          select.appendChild(opt);
+        });
+      }
+
+      // Tilføj grupper/domæner som hurtigfilter
+      const activeDomains = [...new Set(allSkills.map(s => DOMAIN_MAP[s.cat] || '💻 Software'))];
+      if (activeDomains.length > 1) {
+        const grp = document.createElement('optgroup');
+        grp.label = '— Temaer / Domæner —';
+        activeDomains.forEach(d => {
+          const opt = document.createElement('option');
+          opt.value = `DOMAIN:${d}`;
+          opt.innerText = `📂 ${d}`;
+          grp.appendChild(opt);
+        });
+        select.appendChild(grp);
+      }
+
+      if (Array.from(select.options).some(o => o.value === selectedViewFilter)) {
+        select.value = selectedViewFilter;
+      } else {
+        selectedViewFilter = 'ALL';
+        select.value = 'ALL';
+      }
+    }
+
+    function handleViewFilterChange(val) {
+      selectedViewFilter = val;
+      localStorage.setItem('ms_selectedViewFilter', val);
+      renderApp();
     }
 
     function updateAuthUI(isLoggedIn, displayName = '', isAdmin = false) {
@@ -1216,9 +1232,11 @@
       currentUser = null;
       currentUserName = "Gæst";
       currentUserClass = "Intet hold";
-      userClassActiveCategories = null;
+      userEnrolledClasses = [];
+      selectedViewFilter = 'ALL';
       userProgress = JSON.parse(localStorage.getItem('ms_local_progress')) || {};
       updateAuthUI(false);
+      updateViewFilterOptions();
       renderApp();
     }
 
@@ -1300,46 +1318,116 @@
         return;
       }
 
-      const { data, error } = await supabaseClient
-        .from('class_members')
-        .select('id, classes(name, invite_code)')
-        .eq('user_id', currentUser.id);
-
-      if (error || !data || data.length === 0) {
+      if (userEnrolledClasses.length === 0) {
         container.innerHTML = '<span style="font-size:0.8rem; color:var(--text-muted);">Du er ikke tilmeldt nogen hold endnu.</span>';
         return;
       }
 
-      container.innerHTML = data.map(d => `
-        <div class="class-tag">
-          <span><strong>${d.classes?.name || 'Hold'}</strong> (Kode: <code style="color:var(--accent-blue); font-weight:bold;">${d.classes?.invite_code || '-'}</code>)</span>
+      container.innerHTML = `
+        <div style="margin-bottom:12px;">
+          <label style="font-size:0.8rem; color:var(--text-muted);">Vælg aktiv visning:</label>
+          <select style="margin-top:4px;" onchange="handleViewFilterChange(this.value)">
+            <option value="ALL" ${selectedViewFilter === 'ALL' ? 'selected' : ''}>🌐 Vis alt (Alle kategorier)</option>
+            ${userEnrolledClasses.map(c => `
+              <option value="${c.id}" ${selectedViewFilter === c.id ? 'selected' : ''}>👥 Hold: ${c.name}</option>
+            `).join('')}
+          </select>
         </div>
-      `).join('');
+        ${userEnrolledClasses.map(d => `
+          <div class="class-tag">
+            <span><strong>${d.name}</strong> (Kode: <code style="color:var(--accent-blue); font-weight:bold;">${d.code || '-'}</code>)</span>
+          </div>
+        `).join('')}
+      `;
+    }
+
+    function buildGroupedCategoryHTML(containerId, checkboxClass, isCheckedFn) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = '';
+
+      const allCats = [...new Set(allSkills.map(s => s.cat))];
+      if (allCats.length === 0) {
+        container.innerHTML = '<span style="font-size:0.8rem; color:var(--text-muted);">Ingen kategorier fundet.</span>';
+        return;
+      }
+
+      // Gruppér kategorierne efter domæne/samling
+      const domainGroups = {};
+      allCats.forEach(cat => {
+        const dom = DOMAIN_MAP[cat] || '💻 Software';
+        if (!domainGroups[dom]) domainGroups[dom] = [];
+        domainGroups[dom].push(cat);
+      });
+
+      Object.keys(domainGroups).forEach((domain, gIdx) => {
+        const catsInGroup = domainGroups[domain];
+        const groupEl = document.createElement('div');
+        groupEl.className = 'domain-group-box';
+
+        groupEl.innerHTML = `
+          <div class="domain-group-header">
+            <span>${domain}</span>
+            <button type="button" class="btn btn-secondary" style="padding:2px 6px; font-size:0.7rem;" onclick="toggleDomainGroupCheckboxes('${containerId}', '${domain}', true)">+ Vælg mappe</button>
+          </div>
+          <div class="domain-group-items" data-domain="${domain}">
+            ${catsInGroup.map(cat => `
+              <label style="display:flex; gap:8px; font-size:0.85rem; color:white; align-items:center;">
+                <input type="checkbox" class="${checkboxClass}" data-domain="${domain}" value="${cat}" ${isCheckedFn(cat) ? 'checked' : ''}>
+                <span>${cat}</span>
+              </label>
+            `).join('')}
+          </div>
+        `;
+        container.appendChild(groupEl);
+      });
+    }
+
+    function toggleDomainGroupCheckboxes(containerId, domain, selectAll) {
+      const container = document.getElementById(containerId);
+      const boxes = container.querySelectorAll(`input[data-domain="${domain}"]`);
+      const allChecked = Array.from(boxes).every(b => b.checked);
+      const targetState = !allChecked;
+      boxes.forEach(b => {
+        b.checked = targetState;
+        b.dispatchEvent(new Event('change'));
+      });
+    }
+
+    function setAllClassCategories(state) {
+      const boxes = document.querySelectorAll('.class-cat-checkbox');
+      boxes.forEach(b => b.checked = state);
+    }
+
+    function setAllGlobalCategories(state) {
+      const allCats = [...new Set(allSkills.map(s => s.cat))];
+      if (state) {
+        hiddenCats = [];
+      } else {
+        hiddenCats = [...allCats];
+      }
+      localStorage.setItem('ms_hiddenCats', JSON.stringify(hiddenCats));
+      renderAdmin();
+      renderApp();
     }
 
     async function renderAdmin() {
-      const catContainer = document.getElementById('adminCategoryList');
-      catContainer.innerHTML = '';
-      const allCats = [...new Set(allSkills.map(s => s.cat))];
+      // 1. Global synlighed grupperet
+      buildGroupedCategoryHTML('adminCategoryList', 'global-cat-checkbox', (cat) => !hiddenCats.includes(cat));
 
-      if (allCats.length === 0) {
-        catContainer.innerHTML = '<span style="font-size:0.8rem; color:var(--text-muted);">Ingen kategorier fundet. Upload en CSV.</span>';
-      }
-
-      allCats.forEach(cat => {
-        const isHidden = hiddenCats.includes(cat);
-        const label = document.createElement('label');
-        label.style.color = 'white';
-        label.style.display = 'flex';
-        label.style.gap = '10px';
-        label.style.fontSize = '0.85rem';
-        label.innerHTML = `
-          <input type="checkbox" ${!isHidden ? 'checked' : ''} onchange="toggleCatVisibility('${cat}')">
-          <span>Vis Kategori: <strong>${cat}</strong></span>
-        `;
-        catContainer.appendChild(label);
+      document.querySelectorAll('.global-cat-checkbox').forEach(cb => {
+        cb.onchange = (e) => {
+          const cat = e.target.value;
+          if (e.target.checked) {
+            hiddenCats = hiddenCats.filter(c => c !== cat);
+          } else if (!hiddenCats.includes(cat)) {
+            hiddenCats.push(cat);
+          }
+          localStorage.setItem('ms_hiddenCats', JSON.stringify(hiddenCats));
+          renderApp();
+        };
       });
 
+      // 2. Hold liste
       const classContainer = document.getElementById('adminClassList');
       if (!currentUser || !supabaseClient) {
         classContainer.innerHTML = '<span style="font-size:0.8rem; color:var(--text-muted);">Log ind for at oprette og administrere hold.</span>';
@@ -1376,23 +1464,17 @@
       document.getElementById('adminStudentProgressView').style.display = 'none';
       const panel = document.getElementById('adminClassCategoriesView');
       const title = document.getElementById('classCategoriesTitle');
-      const container = document.getElementById('classCategoriesCheckboxes');
 
       title.innerText = `Kategorier for: ${className}`;
       panel.style.display = 'block';
 
-      const allCats = [...new Set(allSkills.map(s => s.cat))];
       const isAllSelected = !currentCategories || currentCategories.length === 0;
 
-      container.innerHTML = allCats.map(cat => {
-        const isChecked = isAllSelected || currentCategories.includes(cat);
-        return `
-          <label style="display:flex; gap:8px; font-size:0.85rem; color:white; align-items:center;">
-            <input type="checkbox" class="class-cat-checkbox" value="${cat}" ${isChecked ? 'checked' : ''}>
-            <span>${cat}</span>
-          </label>
-        `;
-      }).join('');
+      buildGroupedCategoryHTML(
+        'classCategoriesCheckboxes', 
+        'class-cat-checkbox', 
+        (cat) => isAllSelected || currentCategories.includes(cat)
+      );
     }
 
     function closeClassCategoriesView() {
@@ -1499,15 +1581,6 @@
       renderApp();
     }
 
-    function toggleCatVisibility(cat) {
-      if (hiddenCats.includes(cat)) {
-        hiddenCats = hiddenCats.filter(c => c !== cat);
-      } else {
-        hiddenCats.push(cat);
-      }
-      localStorage.setItem('ms_hiddenCats', JSON.stringify(hiddenCats));
-    }
-
     function spawnFloatingEmojis(x, y, category) {
       const list = ['⭐', '✨', '🚀', '🎯', '💡', '🔥', '⚙️'];
       for (let i = 0; i < 5; i++) {
@@ -1572,7 +1645,6 @@
         localStorage.setItem('ms_local_progress', JSON.stringify(userProgress));
       }
 
-      // 1. Tjek om en ny kategorititel blev låst op
       if (isCompleted) {
         const newCatTitles = getUnlockedCategoryTitles(category, allSkills, userProgress).map(t => t.title);
         const freshlyUnlocked = newCatTitles.filter(t => !prevCatTitles.includes(t));
@@ -1581,7 +1653,6 @@
         }
       }
 
-      // 2. Tjek for overordnede mestertitler
       const newTitle = calculateGlobalTitle(allSkills, userProgress);
       if (isCompleted && newTitle !== prevTitle && (newTitle.startsWith('Værksteds-Troldmand') || newTitle.startsWith('Maker-Guru'))) {
         showSpecialSplash('🧙‍♂️', 'EKSLUSIV MESTERRANG!', 'Du har opnået en sjælden overordnet titel:', newTitle);
@@ -1636,8 +1707,16 @@
       emptyState.style.display = 'none';
 
       let availableSkills = allSkills.filter(s => !hiddenCats.includes(s.cat));
-      if (userClassActiveCategories && userClassActiveCategories.length > 0) {
-        availableSkills = availableSkills.filter(s => userClassActiveCategories.includes(s.cat));
+
+      // Filtrering baseret på brugerens valgte filter i headeren
+      if (selectedViewFilter.startsWith('DOMAIN:')) {
+        const domTarget = selectedViewFilter.replace('DOMAIN:', '');
+        availableSkills = availableSkills.filter(s => (DOMAIN_MAP[s.cat] || '💻 Software') === domTarget);
+      } else if (selectedViewFilter !== 'ALL') {
+        const selectedClass = userEnrolledClasses.find(c => c.id === selectedViewFilter);
+        if (selectedClass && selectedClass.categories && selectedClass.categories.length > 0) {
+          availableSkills = availableSkills.filter(s => selectedClass.categories.includes(s.cat));
+        }
       }
 
       const totalSkillsCount = availableSkills.length;
@@ -1785,26 +1864,26 @@
       },
       {
         targetId: 'teamBtn',
-        title: '👥 2. Tilmeld Hold',
-        text: 'Her kan du indtaste den 5-bogstavs holdkode, du har fået af din underviser.',
+        title: '👥 2. Tilmeld Hold & Vælg Visning',
+        text: 'Tilmeld dig et hold med en 5-bogstavs kode, eller skift mellem dine tilmeldte hold i menuen.',
         pos: { top: '70px', right: '110px' }
       },
       {
         targetId: 'adminBtn',
         title: '⚙️ 3. Superbruger Admin',
-        text: 'Opret nye hold, tilpas aktive kategorier pr. hold, se tilmeldte elever eller upload nye CSV-kompetencer.',
+        text: 'Opret hold, tildel kategorier pr. samling/mappe eller upload nye CSV-kompetencer.',
         pos: { top: '70px', right: '210px' }
       },
       {
         targetClass: 'hex-container',
         title: '🟢 4. Certificeringer & Titler',
-        text: 'Lås op for titler ved at nå milepæle i hver kategori (f.eks. Foton-Fører eller Vektor-Viking)!',
+        text: 'Lås op for titler ved at nå milepæle i hver kategori!',
         pos: { top: '40%', left: '50%', transform: 'translate(-50%, -50%)' }
       },
       {
         targetId: 'targetUser',
         title: '👤 5. Status & Tæller',
-        text: 'Nederst på siden kan du se dit navn, dit tilmeldte hold, din titel og tælleren.',
+        text: 'Nederst kan du se dit navn, aktivt hold, opnåede titler og tælleren.',
         pos: { bottom: '60px', left: '20px' }
       }
     ];
