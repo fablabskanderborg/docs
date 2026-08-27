@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Makerspace Skill Tree</title>
+  <title>Maker Skill Tree</title>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -390,11 +390,7 @@
     .btn-secondary { background: #475569; color: white; }
     .btn-danger { background: #ef4444; color: white; }
 
-    .toolbar-btns {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 10px;
-    }
+    .toolbar-btns { display: flex; gap: 8px; margin-bottom: 10px; }
 
     .domain-group-box {
       background: #0f172a;
@@ -482,10 +478,11 @@
 <body>
 
   <header>
-    <h1>MAKERSPACE SKILL TREE</h1>
+    <h1>MAKER SKILL TREE</h1>
     <div class="header-btns">
       <select id="userViewFilterSelect" class="view-filter-select" onchange="handleViewFilterChange(this.value)">
-        <option value="ALL">🌐 Visning: Alt (Standard)</option>
+        <option value="MAKER_DEFAULT">🛠️ Maker Skills (Standard)</option>
+        <option value="ALL">🌐 Vis Alt (Alle moduler)</option>
       </select>
       <button class="btn btn-secondary" onclick="startTutorial()">❓ Guide</button>
       <button class="btn" id="teamBtn" onclick="openTeamModal()">👥 Mit Hold</button>
@@ -526,6 +523,26 @@
     </div>
   </footer>
 
+  <!-- PROMPT: TILMELD HOLD (POPUP FOR BRUGERE UDEN HOLD) -->
+  <div class="modal" id="joinPromptModal">
+    <div class="modal-box" style="border: 2px solid var(--accent-blue);">
+      <h2 style="margin-top:0; color:var(--accent-blue);">Velkommen til Maker Skill Tree!</h2>
+      <p style="font-size:0.85rem; color:var(--text-main); line-height:1.4;">
+        Er du tilknyttet et hold eller en workshop? Indtast den 5-bogstavs holdkode, du har fået udleveret af din underviser:
+      </p>
+      <div style="display:flex; gap:8px; margin: 15px 0;">
+        <input type="text" id="promptJoinCodeInput" placeholder="F.eks. EINDH" maxlength="5" style="text-transform: uppercase; font-weight:bold; font-size:1.1rem; letter-spacing:2px; text-align:center; width:140px;">
+        <button class="btn" onclick="handlePromptJoinClass()">Tilmeld Hold</button>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px; border-top:1px solid #334155; padding-top:12px;">
+        <label style="font-size:0.75rem; color:var(--text-muted); display:flex; align-items:center; gap:6px; cursor:pointer;">
+          <input type="checkbox" id="dontShowJoinPromptAgain"> Vis ikke dette vindue igen
+        </label>
+        <button class="btn btn-secondary" onclick="closeJoinPromptModal()">Fortsæt som gæst</button>
+      </div>
+    </div>
+  </div>
+
   <!-- AUTH MODAL -->
   <div class="modal" id="authModal">
     <div class="modal-box">
@@ -557,10 +574,10 @@
     <div class="modal-box">
       <h2 style="margin-top:0;">Mit Hold</h2>
       <div class="admin-section">
-        <h3>Tilmeld dig et nyt hold</h3>
+        <h3>Tilmeld dig et hold</h3>
         <p style="font-size: 0.8rem; color: var(--text-muted); margin:0 0 10px 0;">Indtast den 5-bogstavs holdkode du har fået:</p>
         <div style="display:flex; gap:8px;">
-          <input type="text" id="joinCodeInput" placeholder="F.eks. FABLK" maxlength="5" style="text-transform: uppercase; font-weight:bold; font-size:1.1rem; letter-spacing:2px; text-align:center; width:140px;">
+          <input type="text" id="joinCodeInput" placeholder="F.eks. EINDH" maxlength="5" style="text-transform: uppercase; font-weight:bold; font-size:1.1rem; letter-spacing:2px; text-align:center; width:140px;">
           <button class="btn" onclick="handleJoinClass()">Tilmeld</button>
         </div>
       </div>
@@ -660,7 +677,7 @@
   <div class="tutorial-overlay" id="tutorialOverlay"></div>
   <div class="tutorial-box" id="tutorialBox" style="display:none;">
     <h4 id="tutTitle">Velkommen!</h4>
-    <p id="tutText">Dette er en kort introduktion til Makerspace Skill Tree.</p>
+    <p id="tutText">Dette er en kort introduktion til Maker Skill Tree.</p>
     <div class="tutorial-nav">
       <span id="tutStepCount" style="font-size:0.75rem; color:var(--text-muted);">Trin 1 / 5</span>
       <div>
@@ -679,20 +696,25 @@
       supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
 
+    // OPDATEREDE DOMÆNER & KATEGORIER
     const DOMAIN_MAP = {
       'Filhåndtering': '💻 Software',
       'Vektorgrafik': '💻 Software',
       'Rastergrafik': '💻 Software',
       '3D-Modellering': '💻 Software',
+
       'CO2 Laserskæring': '⚙️ Maskiner',
       'Laserskæring': '⚙️ Maskiner',
       '3D-Printning': '⚙️ Maskiner',
       'Folieskæring': '⚙️ Maskiner',
       'Digitalt Broderi': '⚙️ Maskiner',
-      'Elektronik': '🛠️ Hardware & Hands-on',
-      'Microcontroller': '🛠️ Hardware & Hands-on',
-      'Materialekendskab': '🛠️ Hardware & Hands-on',
-      'Værkstedskultur': '🛠️ Hardware & Hands-on',
+      'Materialekendskab': '⚙️ Maskiner',
+
+      'Elektronik': '🔌 Hardware og Elektronik',
+      'Microcontroller': '🔌 Hardware og Elektronik',
+
+      'Værkstedskultur': '🤝 Værkstedskultur',
+
       'Netværk & Fællesskab': '👥 Fællesskab & Netværk',
       'Pædagogik & Praksis': '🎓 Didaktik & Facilitering',
       'Entreprenørskab': '💼 Forretning & Værksted',
@@ -702,11 +724,19 @@
     const DOMAIN_ORDER = [
       '💻 Software', 
       '⚙️ Maskiner', 
-      '🛠️ Hardware & Hands-on',
+      '🔌 Hardware og Elektronik',
+      '🤝 Værkstedskultur',
       '👥 Fællesskab & Netværk',
       '🎓 Didaktik & Facilitering',
       '💼 Forretning & Værksted',
       '✨ Maker Faire & Kultur'
+    ];
+
+    const MAKER_DEFAULT_DOMAINS = [
+      '💻 Software', 
+      '⚙️ Maskiner', 
+      '🔌 Hardware og Elektronik', 
+      '🤝 Værkstedskultur'
     ];
 
     function getUnlockedCategoryTitles(catName, skillsList, progress) {
@@ -769,7 +799,7 @@
     let currentUserName = "Gæst";
     let currentUserClass = "Intet hold";
     let userEnrolledClasses = [];
-    let selectedViewFilter = localStorage.getItem('ms_selectedViewFilter') || 'ALL';
+    let selectedViewFilter = localStorage.getItem('ms_selectedViewFilter') || 'MAKER_DEFAULT';
     let manualSubCatExpanded = {};
     let isSignUpMode = false;
     let editingClassId = null;
@@ -997,6 +1027,8 @@
           updateAuthUI(true, currentUserName, isAdmin);
           await fetchUserProgress();
           await fetchUserClass();
+
+          checkShowJoinPrompt();
         } else {
           userProgress = JSON.parse(localStorage.getItem('ms_local_progress')) || {};
           updateAuthUI(false);
@@ -1027,6 +1059,59 @@
         console.error('Fejl under initialisering:', err);
         updateViewFilterOptions();
         renderApp();
+      }
+    }
+
+    function checkShowJoinPrompt() {
+      const hidePrompt = localStorage.getItem('ms_hide_join_prompt');
+      if (currentUser && userEnrolledClasses.length === 0 && !hidePrompt) {
+        setTimeout(() => {
+          document.getElementById('joinPromptModal').style.display = 'flex';
+        }, 800);
+      }
+    }
+
+    function closeJoinPromptModal() {
+      if (document.getElementById('dontShowJoinPromptAgain').checked) {
+        localStorage.setItem('ms_hide_join_prompt', 'true');
+      }
+      document.getElementById('joinPromptModal').style.display = 'none';
+    }
+
+    async function handlePromptJoinClass() {
+      const codeInput = document.getElementById('promptJoinCodeInput');
+      const code = codeInput.value.trim().toUpperCase();
+
+      if (code.length !== 5) {
+        alert('Holdkoden skal være på 5 bogstaver.');
+        return;
+      }
+
+      const { data: classData, error: findError } = await supabaseClient
+        .from('classes')
+        .select('id, name')
+        .ilike('invite_code', code)
+        .maybeSingle();
+
+      if (findError || !classData) {
+        alert('Fandt intet hold med koden: ' + code);
+        return;
+      }
+
+      const { error: joinError } = await supabaseClient
+        .from('class_members')
+        .insert({
+          class_id: classData.id,
+          user_id: currentUser.id
+        });
+
+      if (joinError) {
+        alert('Du er allerede tilmeldt dette hold eller der opstod en fejl.');
+      } else {
+        alert(`Du er nu tilmeldt holdet: ${classData.name}!`);
+        closeJoinPromptModal();
+        await fetchUserClass();
+        handleViewFilterChange(classData.id);
       }
     }
 
@@ -1082,18 +1167,23 @@
       const select = document.getElementById('userViewFilterSelect');
       if (!select) return;
 
-      select.innerHTML = '<option value="ALL">🌐 Visning: Alt (Standard)</option>';
+      select.innerHTML = `
+        <option value="MAKER_DEFAULT">🛠️ Maker Skills (Standard)</option>
+        <option value="ALL">🌐 Vis Alt (Alle moduler)</option>
+      `;
 
       if (userEnrolledClasses.length > 0) {
+        const grp = document.createElement('optgroup');
+        grp.label = '— Dine Tilmeldte Hold —';
         userEnrolledClasses.forEach(c => {
           const opt = document.createElement('option');
           opt.value = c.id;
           opt.innerText = `👥 Hold: ${c.name}`;
-          select.appendChild(opt);
+          grp.appendChild(opt);
         });
+        select.appendChild(grp);
       }
 
-      // Tilføj grupper/domæner som hurtigfilter
       const activeDomains = [...new Set(allSkills.map(s => DOMAIN_MAP[s.cat] || '💻 Software'))];
       if (activeDomains.length > 1) {
         const grp = document.createElement('optgroup');
@@ -1110,8 +1200,8 @@
       if (Array.from(select.options).some(o => o.value === selectedViewFilter)) {
         select.value = selectedViewFilter;
       } else {
-        selectedViewFilter = 'ALL';
-        select.value = 'ALL';
+        selectedViewFilter = 'MAKER_DEFAULT';
+        select.value = 'MAKER_DEFAULT';
       }
     }
 
@@ -1221,6 +1311,7 @@
         updateAuthUI(true, currentUserName, isAdmin);
         await fetchUserProgress();
         await fetchUserClass();
+        checkShowJoinPrompt();
         renderApp();
       } catch (err) {
         alert('Auth fejl: ' + err.message);
@@ -1233,7 +1324,7 @@
       currentUserName = "Gæst";
       currentUserClass = "Intet hold";
       userEnrolledClasses = [];
-      selectedViewFilter = 'ALL';
+      selectedViewFilter = 'MAKER_DEFAULT';
       userProgress = JSON.parse(localStorage.getItem('ms_local_progress')) || {};
       updateAuthUI(false);
       updateViewFilterOptions();
@@ -1307,7 +1398,7 @@
         codeInput.value = '';
         await fetchUserClass();
         renderTeamModal();
-        renderApp();
+        handleViewFilterChange(classData.id);
       }
     }
 
@@ -1327,7 +1418,8 @@
         <div style="margin-bottom:12px;">
           <label style="font-size:0.8rem; color:var(--text-muted);">Vælg aktiv visning:</label>
           <select style="margin-top:4px;" onchange="handleViewFilterChange(this.value)">
-            <option value="ALL" ${selectedViewFilter === 'ALL' ? 'selected' : ''}>🌐 Vis alt (Alle kategorier)</option>
+            <option value="MAKER_DEFAULT" ${selectedViewFilter === 'MAKER_DEFAULT' ? 'selected' : ''}>🛠️ Maker Skills (Standard)</option>
+            <option value="ALL" ${selectedViewFilter === 'ALL' ? 'selected' : ''}>🌐 Vis alt (Alle moduler)</option>
             ${userEnrolledClasses.map(c => `
               <option value="${c.id}" ${selectedViewFilter === c.id ? 'selected' : ''}>👥 Hold: ${c.name}</option>
             `).join('')}
@@ -1341,6 +1433,7 @@
       `;
     }
 
+    // DYNAMISK MAPPE-GRUPPERING MED SKJUL/VIS ALLE KNAP
     function buildGroupedCategoryHTML(containerId, checkboxClass, isCheckedFn) {
       const container = document.getElementById(containerId);
       container.innerHTML = '';
@@ -1351,7 +1444,6 @@
         return;
       }
 
-      // Gruppér kategorierne efter domæne/samling
       const domainGroups = {};
       allCats.forEach(cat => {
         const dom = DOMAIN_MAP[cat] || '💻 Software';
@@ -1361,18 +1453,21 @@
 
       Object.keys(domainGroups).forEach((domain, gIdx) => {
         const catsInGroup = domainGroups[domain];
+        const allChecked = catsInGroup.every(cat => isCheckedFn(cat));
+        const btnLabel = allChecked ? 'Skjul alle' : 'Vis alle';
+
         const groupEl = document.createElement('div');
         groupEl.className = 'domain-group-box';
 
         groupEl.innerHTML = `
           <div class="domain-group-header">
             <span>${domain}</span>
-            <button type="button" class="btn btn-secondary" style="padding:2px 6px; font-size:0.7rem;" onclick="toggleDomainGroupCheckboxes('${containerId}', '${domain}', true)">+ Vælg mappe</button>
+            <button type="button" id="btn_grp_${containerId}_${gIdx}" class="btn btn-secondary" style="padding:2px 8px; font-size:0.7rem;" onclick="toggleDomainGroupCheckboxes('${containerId}', '${domain}', ${gIdx})">${btnLabel}</button>
           </div>
           <div class="domain-group-items" data-domain="${domain}">
             ${catsInGroup.map(cat => `
               <label style="display:flex; gap:8px; font-size:0.85rem; color:white; align-items:center;">
-                <input type="checkbox" class="${checkboxClass}" data-domain="${domain}" value="${cat}" ${isCheckedFn(cat) ? 'checked' : ''}>
+                <input type="checkbox" class="${checkboxClass}" data-domain="${domain}" data-group-index="${gIdx}" value="${cat}" ${isCheckedFn(cat) ? 'checked' : ''} onchange="updateDomainHeaderBtn('${containerId}', '${domain}', ${gIdx})">
                 <span>${cat}</span>
               </label>
             `).join('')}
@@ -1382,7 +1477,17 @@
       });
     }
 
-    function toggleDomainGroupCheckboxes(containerId, domain, selectAll) {
+    function updateDomainHeaderBtn(containerId, domain, gIdx) {
+      const container = document.getElementById(containerId);
+      const boxes = container.querySelectorAll(`input[data-domain="${domain}"]`);
+      const allChecked = Array.from(boxes).every(b => b.checked);
+      const btn = document.getElementById(`btn_grp_${containerId}_${gIdx}`);
+      if (btn) {
+        btn.innerText = allChecked ? 'Skjul alle' : 'Vis alle';
+      }
+    }
+
+    function toggleDomainGroupCheckboxes(containerId, domain, gIdx) {
       const container = document.getElementById(containerId);
       const boxes = container.querySelectorAll(`input[data-domain="${domain}"]`);
       const allChecked = Array.from(boxes).every(b => b.checked);
@@ -1391,11 +1496,15 @@
         b.checked = targetState;
         b.dispatchEvent(new Event('change'));
       });
+      updateDomainHeaderBtn(containerId, domain, gIdx);
     }
 
     function setAllClassCategories(state) {
       const boxes = document.querySelectorAll('.class-cat-checkbox');
-      boxes.forEach(b => b.checked = state);
+      boxes.forEach(b => {
+        b.checked = state;
+        b.dispatchEvent(new Event('change'));
+      });
     }
 
     function setAllGlobalCategories(state) {
@@ -1411,11 +1520,10 @@
     }
 
     async function renderAdmin() {
-      // 1. Global synlighed grupperet
       buildGroupedCategoryHTML('adminCategoryList', 'global-cat-checkbox', (cat) => !hiddenCats.includes(cat));
 
       document.querySelectorAll('.global-cat-checkbox').forEach(cb => {
-        cb.onchange = (e) => {
+        cb.addEventListener('change', (e) => {
           const cat = e.target.value;
           if (e.target.checked) {
             hiddenCats = hiddenCats.filter(c => c !== cat);
@@ -1424,10 +1532,9 @@
           }
           localStorage.setItem('ms_hiddenCats', JSON.stringify(hiddenCats));
           renderApp();
-        };
+        });
       });
 
-      // 2. Hold liste
       const classContainer = document.getElementById('adminClassList');
       if (!currentUser || !supabaseClient) {
         classContainer.innerHTML = '<span style="font-size:0.8rem; color:var(--text-muted);">Log ind for at oprette og administrere hold.</span>';
@@ -1708,8 +1815,10 @@
 
       let availableSkills = allSkills.filter(s => !hiddenCats.includes(s.cat));
 
-      // Filtrering baseret på brugerens valgte filter i headeren
-      if (selectedViewFilter.startsWith('DOMAIN:')) {
+      // VISNINGSFILTER
+      if (selectedViewFilter === 'MAKER_DEFAULT') {
+        availableSkills = availableSkills.filter(s => MAKER_DEFAULT_DOMAINS.includes(DOMAIN_MAP[s.cat] || '💻 Software'));
+      } else if (selectedViewFilter.startsWith('DOMAIN:')) {
         const domTarget = selectedViewFilter.replace('DOMAIN:', '');
         availableSkills = availableSkills.filter(s => (DOMAIN_MAP[s.cat] || '💻 Software') === domTarget);
       } else if (selectedViewFilter !== 'ALL') {
