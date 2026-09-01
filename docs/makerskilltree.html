@@ -253,15 +253,15 @@
       margin-top: 1px;
     }
 
-    .hex-container .tooltip,
     .cat-hex-container .cat-tooltip {
       visibility: hidden;
-      width: 220px;
+      width: auto;
+      max-width: 200px;
       background-color: #0f172a;
-      color: var(--text-main);
+      color: var(--accent-blue);
       text-align: center;
       border-radius: 8px;
-      padding: 10px 12px;
+      padding: 8px 12px;
       position: absolute;
       z-index: 9999;
       top: 105%;
@@ -273,19 +273,149 @@
       box-shadow: 0 12px 28px rgba(0,0,0,0.85);
       font-size: 0.78rem;
       pointer-events: none;
-      line-height: 1.35;
+      font-weight: bold;
+      text-transform: uppercase;
     }
 
-    .cat-hex-container .cat-tooltip { color: var(--accent-blue); font-weight: bold; text-transform: uppercase; width: auto; max-width: 200px; white-space: normal; }
-
-    .hex-container:hover .tooltip,
     .cat-hex-container:hover .cat-tooltip { visibility: visible; opacity: 1; }
+
+    /* 3X FORSTØRRET SEKSKANT MODAL */
+    .zoom-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(11, 19, 41, 0.75);
+      backdrop-filter: blur(5px);
+      z-index: 15000;
+      justify-content: center;
+      align-items: center;
+      padding: 15px;
+    }
+
+    .zoom-hex-wrapper {
+      width: 320px;
+      height: 277px;
+      position: relative;
+      animation: hexZoomIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    @keyframes hexZoomIn {
+      from { transform: scale(0.4); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .zoom-hex-wrapper.completed .hex-outer-frame {
+      stroke: var(--active-green);
+      fill: #022c22;
+      filter: drop-shadow(0 0 16px rgba(34, 197, 94, 0.5));
+    }
+
+    .zoom-hex-wrapper.completed .hex-inner-frame {
+      stroke: var(--active-green);
+    }
+
+    .zoom-hex-content {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 24px 30px;
+      box-sizing: border-box;
+      text-align: center;
+    }
+
+    .zoom-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--accent-blue);
+      font-size: 0.8rem;
+      font-weight: bold;
+    }
+
+    .zoom-title {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: var(--text-main);
+      margin: 2px 0;
+      line-height: 1.2;
+    }
+
+    .zoom-desc {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      line-height: 1.35;
+      max-height: 80px;
+      overflow-y: auto;
+      padding: 0 4px;
+    }
+
+    .zoom-reward {
+      font-size: 0.72rem;
+      font-weight: bold;
+      color: var(--active-green);
+    }
+
+    .zoom-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 4px;
+    }
+
+    .btn-checkbox {
+      background: #0f172a;
+      border: 2px solid var(--accent-blue);
+      color: var(--text-main);
+      padding: 7px 14px;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-checkbox:hover {
+      background: var(--card-bg);
+      transform: scale(1.04);
+    }
+
+    .btn-checkbox.is-completed {
+      background: var(--active-green);
+      border-color: var(--active-green);
+      color: #022c22;
+    }
+
+    .btn-guide-icon {
+      background: #1e293b;
+      border: 1px solid #475569;
+      color: var(--accent-blue);
+      padding: 7px 10px;
+      border-radius: 20px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.8rem;
+      opacity: 0.85;
+      transition: all 0.2s ease;
+    }
+
+    .btn-guide-icon:hover {
+      opacity: 1;
+      border-color: var(--accent-blue);
+    }
 
     .floating-emoji {
       position: fixed;
       pointer-events: none;
-      z-index: 15000;
-      font-size: 1.4rem;
+      z-index: 25000;
+      font-size: 1.6rem;
       animation: floatEmoji 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
     }
     @keyframes floatEmoji {
@@ -472,6 +602,8 @@
       footer { padding: 8px 12px; font-size: 0.78rem; justify-content: center; }
       .footer-info { gap: 10px; justify-content: center; }
       .honeycomb-grid { gap: 25px; padding-bottom: 90px; }
+      .zoom-hex-wrapper { width: 290px; height: 251px; }
+      .zoom-hex-content { padding: 20px 22px; }
     }
   </style>
 </head>
@@ -523,12 +655,42 @@
     </div>
   </footer>
 
-  <!-- PROMPT: TILMELD HOLD (POPUP FOR BRUGERE UDEN HOLD) -->
+  <!-- FORSTØRRET 3X SEKSKANT POP-UP (ZOOM OVERLAY) -->
+  <div class="zoom-overlay" id="zoomOverlay" onclick="handleZoomOverlayClick(event)">
+    <div class="zoom-hex-wrapper" id="zoomHexWrapper" onclick="event.stopPropagation()">
+      <svg class="hex-svg" viewBox="0 0 100 86.6">
+        <polygon class="hex-outer-frame" points="25,2 75,2 98,43.3 75,84.6 25,84.6 2,43.3" />
+        <polygon class="hex-inner-frame" points="28,9 72,9 90,43.3 72,77.6 28,77.6 10,43.3" />
+      </svg>
+      <div class="zoom-hex-content">
+        <div class="zoom-header">
+          <i id="zoomHeaderIcon" data-lucide="folder" style="width:16px; height:16px;"></i>
+          <span id="zoomHeaderLevel">Niveau 1</span>
+        </div>
+        <div>
+          <div class="zoom-title" id="zoomTitleText">Titel</div>
+          <div class="zoom-desc" id="zoomDescText">Beskrivelse</div>
+          <div class="zoom-reward" id="zoomRewardText"></div>
+        </div>
+        <div class="zoom-actions">
+          <button class="btn-guide-icon" onclick="handleGuideClick()">
+            <i data-lucide="book-open" style="width:14px; height:14px;"></i> Vejledning
+          </button>
+          <button class="btn-checkbox" id="zoomCheckBtn" onclick="handleZoomToggle(event)">
+            <i id="zoomCheckIcon" data-lucide="square" style="width:16px; height:16px;"></i>
+            <span id="zoomCheckLabel">Marker opnået</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROMPT: TILMELD HOLD -->
   <div class="modal" id="joinPromptModal">
     <div class="modal-box" style="border: 2px solid var(--accent-blue);">
       <h2 style="margin-top:0; color:var(--accent-blue);">Velkommen til Maker Skill Tree!</h2>
       <p style="font-size:0.85rem; color:var(--text-main); line-height:1.4;">
-        Er du tilknyttet et hold eller en workshop? Indtast den 5-bogstavs holdkode, du har fået udleveret af din underviser:
+        Er du tilknyttet et hold eller en workshop? Indtast den 5-bogstavs holdkode, du har fået udleveret:
       </p>
       <div style="display:flex; gap:8px; margin: 15px 0;">
         <input type="text" id="promptJoinCodeInput" placeholder="F.eks. EINDH" maxlength="5" style="text-transform: uppercase; font-weight:bold; font-size:1.1rem; letter-spacing:2px; text-align:center; width:140px;">
@@ -696,7 +858,6 @@
       supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
 
-    // OPDATEREDE DOMÆNER & KATEGORIER
     const DOMAIN_MAP = {
       'Filhåndtering': '💻 Software',
       'Vektorgrafik': '💻 Software',
@@ -724,7 +885,7 @@
     const DOMAIN_ORDER = [
       '💻 Software', 
       '⚙️ Maskiner', 
-      '🔌 Hardware og Elektronik',
+      '🔌 Hardware og Elektronik', 
       '🤝 Værkstedskultur',
       '👥 Fællesskab & Netværk',
       '🎓 Didaktik & Facilitering',
@@ -803,6 +964,7 @@
     let manualSubCatExpanded = {};
     let isSignUpMode = false;
     let editingClassId = null;
+    let activeZoomSkill = null; // Den kompetence der aktuelt er forstørret 3x
 
     function generate5LetterCode() {
       const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -1433,7 +1595,6 @@
       `;
     }
 
-    // DYNAMISK MAPPE-GRUPPERING MED SKJUL/VIS ALLE KNAP
     function buildGroupedCategoryHTML(containerId, checkboxClass, isCheckedFn) {
       const container = document.getElementById(containerId);
       container.innerHTML = '';
@@ -1690,13 +1851,13 @@
 
     function spawnFloatingEmojis(x, y, category) {
       const list = ['⭐', '✨', '🚀', '🎯', '💡', '🔥', '⚙️'];
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < 6; i++) {
         const el = document.createElement('div');
         el.className = 'floating-emoji';
         el.innerText = list[Math.floor(Math.random() * list.length)];
-        el.style.left = (x + (Math.random() * 40 - 20)) + 'px';
-        el.style.top = (y + (Math.random() * 20 - 10)) + 'px';
-        el.style.setProperty('--tx', (Math.random() * 60 - 30) + 'px');
+        el.style.left = (x + (Math.random() * 50 - 25)) + 'px';
+        el.style.top = (y + (Math.random() * 30 - 15)) + 'px';
+        el.style.setProperty('--tx', (Math.random() * 80 - 40) + 'px');
         document.body.appendChild(el);
         setTimeout(() => el.remove(), 1000);
       }
@@ -1721,6 +1882,70 @@
 
     function closeTitleSplash() { document.getElementById('titleSplash').style.display = 'none'; }
 
+    // ÅBN 3X FORSTØRRET SEKSKANT VED KLIK
+    function openZoomHex(s) {
+      activeZoomSkill = s;
+      const isDone = !!userProgress[s.id];
+
+      const overlay = document.getElementById('zoomOverlay');
+      const wrapper = document.getElementById('zoomHexWrapper');
+      const headerIcon = document.getElementById('zoomHeaderIcon');
+      const headerLevel = document.getElementById('zoomHeaderLevel');
+      const titleText = document.getElementById('zoomTitleText');
+      const descText = document.getElementById('zoomDescText');
+      const rewardText = document.getElementById('zoomRewardText');
+      const checkBtn = document.getElementById('zoomCheckBtn');
+      const checkIcon = document.getElementById('zoomCheckIcon');
+      const checkLabel = document.getElementById('zoomCheckLabel');
+
+      headerIcon.setAttribute('data-lucide', s.svg || 'folder');
+      headerLevel.innerText = `${s.cat} • Niveau ${s.level}`;
+      titleText.innerText = s.shortDesc;
+      descText.innerText = s.fullDesc;
+
+      const hasTitle = (s.catTitle && s.catTitle !== '#' && s.catTitle !== '-');
+      rewardText.innerText = hasTitle ? `🎖️ Låser op for: ${s.catTitle}` : '';
+
+      if (isDone) {
+        wrapper.classList.add('completed');
+        checkBtn.classList.add('is-completed');
+        checkIcon.setAttribute('data-lucide', 'check-square');
+        checkLabel.innerText = 'Opnået ✓';
+      } else {
+        wrapper.classList.remove('completed');
+        checkBtn.classList.remove('is-completed');
+        checkIcon.setAttribute('data-lucide', 'square');
+        checkLabel.innerText = 'Marker opnået';
+      }
+
+      overlay.style.display = 'flex';
+      lucide.createIcons();
+    }
+
+    function closeZoomHex() {
+      const overlay = document.getElementById('zoomOverlay');
+      overlay.style.display = 'none';
+      activeZoomSkill = null;
+    }
+
+    function handleZoomOverlayClick(e) {
+      closeZoomHex();
+    }
+
+    function handleGuideClick() {
+      alert('Vejledning til denne kompetence er under udarbejdelse!');
+    }
+
+    async function handleZoomToggle(event) {
+      if (!activeZoomSkill) return;
+      const s = activeZoomSkill;
+      const clientX = event.clientX || window.innerWidth / 2;
+      const clientY = event.clientY || window.innerHeight / 2;
+
+      await toggleSkill(s.id, { clientX, clientY }, s.cat);
+      closeZoomHex();
+    }
+
     async function toggleSkill(skillId, event, category) {
       const prevTitle = calculateGlobalTitle(allSkills, userProgress);
       const prevCatTitles = getUnlockedCategoryTitles(category, allSkills, userProgress).map(t => t.title);
@@ -1730,8 +1955,8 @@
       if (isCompleted) {
         userProgress[skillId] = true;
         if (event) {
-          const clientX = event.clientX || (event.touches && event.touches[0]?.clientX) || window.innerWidth / 2;
-          const clientY = event.clientY || (event.touches && event.touches[0]?.clientY) || window.innerHeight / 2;
+          const clientX = event.clientX || window.innerWidth / 2;
+          const clientY = event.clientY || window.innerHeight / 2;
           spawnFloatingEmojis(clientX, clientY, category);
         }
       } else {
@@ -1776,12 +2001,8 @@
     function createSkillHex(s, isDone) {
       const hex = document.createElement('div');
       hex.className = `hex-container ${isDone ? 'active' : ''}`;
-      hex.onclick = (e) => toggleSkill(s.id, e, s.cat);
-
-      const hasTitleReward = (s.catTitle && s.catTitle !== '#' && s.catTitle !== '-');
-      const titleBonus = hasTitleReward 
-        ? `<br><span style="color:var(--active-green); font-weight:bold;">🎖️ Låser op for: ${s.catTitle}</span>` 
-        : '';
+      // KLIK PÅ SEKSKANTEN FORSTØRRER DEN 3X
+      hex.onclick = () => openZoomHex(s);
 
       hex.innerHTML = `
         <svg class="hex-svg" viewBox="0 0 100 86.6">
@@ -1792,10 +2013,6 @@
           <i data-lucide="${s.svg}" class="hex-icon"></i>
           <div class="hex-text">${s.shortDesc}</div>
           <div class="hex-level">${s.level}</div>
-        </div>
-        <div class="tooltip">
-          <strong>${s.shortDesc} (Lvl ${s.level})</strong><br>
-          ${s.fullDesc}${titleBonus}
         </div>
       `;
       return hex;
@@ -1815,7 +2032,6 @@
 
       let availableSkills = allSkills.filter(s => !hiddenCats.includes(s.cat));
 
-      // VISNINGSFILTER
       if (selectedViewFilter === 'MAKER_DEFAULT') {
         availableSkills = availableSkills.filter(s => MAKER_DEFAULT_DOMAINS.includes(DOMAIN_MAP[s.cat] || '💻 Software'));
       } else if (selectedViewFilter.startsWith('DOMAIN:')) {
@@ -1927,10 +2143,6 @@
                     <div class="hex-text" style="font-size:0.50rem; color:var(--text-main);">${scName}</div>
                     <div class="hex-level" style="font-size:0.55rem; color:var(--accent-blue);">${foldLabel}</div>
                   </div>
-                  <div class="tooltip">
-                    <strong>${scName}</strong><br>
-                    ${scCompletedCount}/${scSkills.length} opnåede kompetencer.
-                  </div>
                 `;
                 col.appendChild(scHex);
               }
@@ -1985,8 +2197,8 @@
       },
       {
         targetClass: 'hex-container',
-        title: '🟢 4. Certificeringer & Titler',
-        text: 'Lås op for titler ved at nå milepæle i hver kategori!',
+        title: '🟢 4. Forstør & Marker Færdigheder',
+        text: 'Klik på en sekskant for at forstørre den 3x, læse beskrivelsen og markere den som opnået i bunden!',
         pos: { top: '40%', left: '50%', transform: 'translate(-50%, -50%)' }
       },
       {
