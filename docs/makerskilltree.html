@@ -253,174 +253,174 @@
       margin-top: 1px;
     }
 
-    .cat-hex-container .cat-tooltip {
-      visibility: hidden;
-      width: auto;
-      max-width: 200px;
-      background-color: #0f172a;
-      color: var(--accent-blue);
-      text-align: center;
-      border-radius: 8px;
-      padding: 8px 12px;
-      position: absolute;
-      z-index: 9999;
-      top: 105%;
-      left: 50%;
-      transform: translateX(-50%);
-      opacity: 0;
-      transition: opacity 0.2s ease, visibility 0.2s ease;
-      border: 1.5px solid var(--accent-blue);
-      box-shadow: 0 12px 28px rgba(0,0,0,0.85);
-      font-size: 0.78rem;
+    .floating-emoji {
+      position: fixed;
       pointer-events: none;
-      font-weight: bold;
-      text-transform: uppercase;
+      z-index: 15000;
+      font-size: 1.4rem;
+      animation: floatEmoji 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    }
+    @keyframes floatEmoji {
+      0% { transform: translate(0, 0) scale(0.6); opacity: 1; }
+      100% { transform: translate(var(--tx), -70px) scale(1.3); opacity: 0; }
     }
 
-    .cat-hex-container:hover .cat-tooltip { visibility: visible; opacity: 1; }
-
-    /* 3X FORSTØRRET SEKSKANT MODAL */
-    .zoom-overlay {
+    /* FORSTØRRET SEKSKANT POPUP */
+    .enlarged-hex-modal {
       display: none;
       position: fixed;
       top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(11, 19, 41, 0.75);
-      backdrop-filter: blur(5px);
+      background: rgba(11, 19, 41, 0.82);
+      backdrop-filter: blur(6px);
       z-index: 15000;
       justify-content: center;
       align-items: center;
       padding: 15px;
     }
 
-    .zoom-hex-wrapper {
-      width: 320px;
-      height: 277px;
-      position: relative;
-      animation: hexZoomIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    .enlarged-popup-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      max-width: 90vw;
+      animation: zoomInHex 0.22s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
     }
 
-    @keyframes hexZoomIn {
+    /* OVERSKRIFT PLACERET OVENOVER SEKSKANTEN */
+    .enlarged-outer-header {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: var(--accent-blue);
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      text-align: center;
+      margin-bottom: 14px;
+      background: rgba(15, 23, 42, 0.9);
+      padding: 6px 18px;
+      border-radius: 20px;
+      border: 1px solid #334155;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    }
+
+    .enlarged-hex-card {
+      background: #1e293b;
+      border: 2px solid var(--accent-blue);
+      border-radius: 20px;
+      padding: 22px 20px 20px 20px;
+      width: 320px;
+      max-width: 100%;
+      text-align: center;
+      position: relative;
+      box-shadow: 0 15px 40px rgba(0,0,0,0.85);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .enlarged-hex-card.completed-card {
+      border-color: var(--active-green);
+      box-shadow: 0 0 30px rgba(34, 197, 94, 0.35);
+    }
+
+    @keyframes zoomInHex {
       from { transform: scale(0.4); opacity: 0; }
       to { transform: scale(1); opacity: 1; }
     }
 
-    .zoom-hex-wrapper.completed .hex-outer-frame {
-      stroke: var(--active-green);
-      fill: #022c22;
-      filter: drop-shadow(0 0 16px rgba(34, 197, 94, 0.5));
-    }
-
-    .zoom-hex-wrapper.completed .hex-inner-frame {
-      stroke: var(--active-green);
-    }
-
-    .zoom-hex-content {
-      position: absolute;
-      top: 0; left: 0; width: 100%; height: 100%;
+    .enlarged-icon-wrap {
+      width: 52px;
+      height: 52px;
+      background: #0f172a;
+      border-radius: 50%;
       display: flex;
-      flex-direction: column;
+      justify-content: center;
       align-items: center;
-      justify-content: space-between;
-      padding: 24px 30px;
-      box-sizing: border-box;
-      text-align: center;
-    }
-
-    .zoom-header {
-      display: flex;
-      align-items: center;
-      gap: 6px;
+      margin-bottom: 10px;
+      border: 1.5px solid var(--accent-blue);
       color: var(--accent-blue);
-      font-size: 0.8rem;
-      font-weight: bold;
     }
 
-    .zoom-title {
-      font-size: 0.95rem;
-      font-weight: 800;
-      color: var(--text-main);
-      margin: 2px 0;
-      line-height: 1.2;
-    }
-
-    .zoom-desc {
-      font-size: 0.78rem;
-      color: var(--text-muted);
-      line-height: 1.35;
-      max-height: 80px;
-      overflow-y: auto;
-      padding: 0 4px;
-    }
-
-    .zoom-reward {
-      font-size: 0.72rem;
-      font-weight: bold;
+    .enlarged-hex-card.completed-card .enlarged-icon-wrap {
+      border-color: var(--active-green);
       color: var(--active-green);
     }
 
-    .zoom-actions {
+    .enlarged-title {
+      font-size: 1.15rem;
+      font-weight: bold;
+      color: var(--text-main);
+      margin-bottom: 12px;
+    }
+
+    .enlarged-desc {
+      font-size: 0.90rem;
+      color: #cbd5e1;
+      line-height: 1.45;
+      background: #0f172a;
+      padding: 12px 14px;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      width: 100%;
+      margin-bottom: 14px;
+      text-align: left;
+    }
+
+    .enlarged-reward {
+      font-size: 0.80rem;
+      color: var(--active-green);
+      font-weight: bold;
+      margin-bottom: 14px;
       display: flex;
       align-items: center;
-      gap: 12px;
-      margin-top: 4px;
+      gap: 5px;
     }
 
-    .btn-checkbox {
-      background: #0f172a;
-      border: 2px solid var(--accent-blue);
-      color: var(--text-main);
-      padding: 7px 14px;
-      border-radius: 20px;
-      font-weight: bold;
-      font-size: 0.85rem;
-      cursor: pointer;
-      display: inline-flex;
+    .enlarged-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 100%;
+    }
+
+    .btn-guide-disabled {
+      background: #334155;
+      color: #94a3b8;
+      border: 1px dashed #64748b;
+      cursor: default;
+      opacity: 0.8;
+      width: 100%;
+      padding: 8px;
+      font-size: 0.82rem;
+      border-radius: 6px;
+      display: flex;
       align-items: center;
+      justify-content: center;
       gap: 6px;
-      transition: all 0.2s ease;
     }
 
-    .btn-checkbox:hover {
-      background: var(--card-bg);
-      transform: scale(1.04);
-    }
-
-    .btn-checkbox.is-completed {
-      background: var(--active-green);
-      border-color: var(--active-green);
-      color: #022c22;
-    }
-
-    .btn-guide-icon {
-      background: #1e293b;
-      border: 1px solid #475569;
-      color: var(--accent-blue);
-      padding: 7px 10px;
-      border-radius: 20px;
+    .btn-toggle-completion {
+      width: 100%;
+      padding: 12px;
+      font-size: 0.95rem;
+      border-radius: 8px;
       cursor: pointer;
-      display: inline-flex;
+      display: flex;
       align-items: center;
-      gap: 4px;
-      font-size: 0.8rem;
-      opacity: 0.85;
-      transition: all 0.2s ease;
+      justify-content: center;
+      gap: 8px;
+      font-weight: bold;
+      border: none;
+      transition: all 0.2s;
     }
 
-    .btn-guide-icon:hover {
-      opacity: 1;
-      border-color: var(--accent-blue);
+    .btn-toggle-completion.not-done {
+      background: var(--active-green);
+      color: #064e3b;
     }
 
-    .floating-emoji {
-      position: fixed;
-      pointer-events: none;
-      z-index: 25000;
-      font-size: 1.6rem;
-      animation: floatEmoji 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-    }
-    @keyframes floatEmoji {
-      0% { transform: translate(0, 0) scale(0.6); opacity: 1; }
-      100% { transform: translate(var(--tx), -70px) scale(1.3); opacity: 0; }
+    .btn-toggle-completion.done {
+      background: #475569;
+      color: #f1f5f9;
     }
 
     .splash-modal {
@@ -602,8 +602,6 @@
       footer { padding: 8px 12px; font-size: 0.78rem; justify-content: center; }
       .footer-info { gap: 10px; justify-content: center; }
       .honeycomb-grid { gap: 25px; padding-bottom: 90px; }
-      .zoom-hex-wrapper { width: 290px; height: 251px; }
-      .zoom-hex-content { padding: 20px 22px; }
     }
   </style>
 </head>
@@ -655,33 +653,34 @@
     </div>
   </footer>
 
-  <!-- FORSTØRRET 3X SEKSKANT POP-UP (ZOOM OVERLAY) -->
-  <div class="zoom-overlay" id="zoomOverlay" onclick="handleZoomOverlayClick(event)">
-    <div class="zoom-hex-wrapper" id="zoomHexWrapper" onclick="event.stopPropagation()">
-      <svg class="hex-svg" viewBox="0 0 100 86.6">
-        <polygon class="hex-outer-frame" points="25,2 75,2 98,43.3 75,84.6 25,84.6 2,43.3" />
-        <polygon class="hex-inner-frame" points="28,9 72,9 90,43.3 72,77.6 28,77.6 10,43.3" />
-      </svg>
-      <div class="zoom-hex-content">
-        <div class="zoom-header">
-          <i id="zoomHeaderIcon" data-lucide="folder" style="width:16px; height:16px;"></i>
-          <span id="zoomHeaderLevel">Niveau 1</span>
+  <!-- FORSTØRRET SEKSKANT POPUP MED CENTRERET OVERSKRIFT OVENOVER -->
+  <div class="enlarged-hex-modal" id="enlargedHexModal" onclick="handleHexModalBackdrop(event)">
+    <div class="enlarged-popup-wrapper">
+      
+      <div class="enlarged-outer-header" id="enlargedMeta">Folieskæring • Niveau 1</div>
+      
+      <div class="enlarged-hex-card" id="enlargedHexCard">
+        <div class="enlarged-icon-wrap" id="enlargedIconWrap">
+          <i data-lucide="box" id="enlargedIcon" style="width: 28px; height: 28px;"></i>
         </div>
-        <div>
-          <div class="zoom-title" id="zoomTitleText">Titel</div>
-          <div class="zoom-desc" id="zoomDescText">Beskrivelse</div>
-          <div class="zoom-reward" id="zoomRewardText"></div>
+        <div class="enlarged-title" id="enlargedTitle">Kompetence Titel</div>
+        <div class="enlarged-desc" id="enlargedDesc">Beskrivelse af kompetencen...</div>
+        
+        <div class="enlarged-reward" id="enlargedReward" style="display:none;">
+          <span>🎖️</span> <span id="enlargedRewardText">Låser op for titel</span>
         </div>
-        <div class="zoom-actions">
-          <button class="btn-guide-icon" onclick="handleGuideClick()">
-            <i data-lucide="book-open" style="width:14px; height:14px;"></i> Vejledning
-          </button>
-          <button class="btn-checkbox" id="zoomCheckBtn" onclick="handleZoomToggle(event)">
-            <i id="zoomCheckIcon" data-lucide="square" style="width:16px; height:16px;"></i>
-            <span id="zoomCheckLabel">Marker opnået</span>
+
+        <div class="enlarged-actions">
+          <div class="btn-guide-disabled" onclick="event.stopPropagation();">
+            <i data-lucide="file-text" style="width: 16px; height: 16px;"></i> Vejledning (Kommer snart)
+          </div>
+          <button class="btn-toggle-completion" id="enlargedCheckBtn" onclick="confirmSkillCompletion(event)">
+            <i data-lucide="check-circle" style="width: 20px; height: 20px;"></i>
+            <span id="enlargedCheckBtnText">Markér som opnået</span>
           </button>
         </div>
       </div>
+
     </div>
   </div>
 
@@ -690,7 +689,7 @@
     <div class="modal-box" style="border: 2px solid var(--accent-blue);">
       <h2 style="margin-top:0; color:var(--accent-blue);">Velkommen til Maker Skill Tree!</h2>
       <p style="font-size:0.85rem; color:var(--text-main); line-height:1.4;">
-        Er du tilknyttet et hold eller en workshop? Indtast den 5-bogstavs holdkode, du har fået udleveret:
+        Er du tilknyttet et hold eller en workshop? Indtast den 5-bogstavs holdkode, du har fået udleveret af din underviser:
       </p>
       <div style="display:flex; gap:8px; margin: 15px 0;">
         <input type="text" id="promptJoinCodeInput" placeholder="F.eks. EINDH" maxlength="5" style="text-transform: uppercase; font-weight:bold; font-size:1.1rem; letter-spacing:2px; text-align:center; width:140px;">
@@ -964,7 +963,7 @@
     let manualSubCatExpanded = {};
     let isSignUpMode = false;
     let editingClassId = null;
-    let activeZoomSkill = null; // Den kompetence der aktuelt er forstørret 3x
+    let activeEnlargedSkill = null;
 
     function generate5LetterCode() {
       const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -1851,13 +1850,13 @@
 
     function spawnFloatingEmojis(x, y, category) {
       const list = ['⭐', '✨', '🚀', '🎯', '💡', '🔥', '⚙️'];
-      for (let i = 0; i < 6; i++) {
+      for (let i = 0; i < 5; i++) {
         const el = document.createElement('div');
         el.className = 'floating-emoji';
         el.innerText = list[Math.floor(Math.random() * list.length)];
-        el.style.left = (x + (Math.random() * 50 - 25)) + 'px';
-        el.style.top = (y + (Math.random() * 30 - 15)) + 'px';
-        el.style.setProperty('--tx', (Math.random() * 80 - 40) + 'px');
+        el.style.left = (x + (Math.random() * 40 - 20)) + 'px';
+        el.style.top = (y + (Math.random() * 20 - 10)) + 'px';
+        el.style.setProperty('--tx', (Math.random() * 60 - 30) + 'px');
         document.body.appendChild(el);
         setTimeout(() => el.remove(), 1000);
       }
@@ -1882,68 +1881,66 @@
 
     function closeTitleSplash() { document.getElementById('titleSplash').style.display = 'none'; }
 
-    // ÅBN 3X FORSTØRRET SEKSKANT VED KLIK
-    function openZoomHex(s) {
-      activeZoomSkill = s;
-      const isDone = !!userProgress[s.id];
+    // ÅBN FORSTØRRET SEKSKANT POPUP
+    function openSkillEnlargedModal(skill, event) {
+      activeEnlargedSkill = skill;
+      const isDone = !!userProgress[skill.id];
 
-      const overlay = document.getElementById('zoomOverlay');
-      const wrapper = document.getElementById('zoomHexWrapper');
-      const headerIcon = document.getElementById('zoomHeaderIcon');
-      const headerLevel = document.getElementById('zoomHeaderLevel');
-      const titleText = document.getElementById('zoomTitleText');
-      const descText = document.getElementById('zoomDescText');
-      const rewardText = document.getElementById('zoomRewardText');
-      const checkBtn = document.getElementById('zoomCheckBtn');
-      const checkIcon = document.getElementById('zoomCheckIcon');
-      const checkLabel = document.getElementById('zoomCheckLabel');
+      const modal = document.getElementById('enlargedHexModal');
+      const card = document.getElementById('enlargedHexCard');
+      const icon = document.getElementById('enlargedIcon');
+      const title = document.getElementById('enlargedTitle');
+      const meta = document.getElementById('enlargedMeta');
+      const desc = document.getElementById('enlargedDesc');
+      const rewardWrap = document.getElementById('enlargedReward');
+      const rewardText = document.getElementById('enlargedRewardText');
+      const checkBtn = document.getElementById('enlargedCheckBtn');
+      const checkBtnText = document.getElementById('enlargedCheckBtnText');
 
-      headerIcon.setAttribute('data-lucide', s.svg || 'folder');
-      headerLevel.innerText = `${s.cat} • Niveau ${s.level}`;
-      titleText.innerText = s.shortDesc;
-      descText.innerText = s.fullDesc;
+      title.innerText = skill.shortDesc;
+      meta.innerText = `${skill.cat} • Niveau ${skill.level}`;
+      desc.innerText = skill.fullDesc;
 
-      const hasTitle = (s.catTitle && s.catTitle !== '#' && s.catTitle !== '-');
-      rewardText.innerText = hasTitle ? `🎖️ Låser op for: ${s.catTitle}` : '';
+      icon.setAttribute('data-lucide', skill.svg);
 
-      if (isDone) {
-        wrapper.classList.add('completed');
-        checkBtn.classList.add('is-completed');
-        checkIcon.setAttribute('data-lucide', 'check-square');
-        checkLabel.innerText = 'Opnået ✓';
+      if (skill.catTitle && skill.catTitle !== '#' && skill.catTitle !== '-') {
+        rewardWrap.style.display = 'flex';
+        rewardText.innerText = `Låser op for titlen: ${skill.catTitle}`;
       } else {
-        wrapper.classList.remove('completed');
-        checkBtn.classList.remove('is-completed');
-        checkIcon.setAttribute('data-lucide', 'square');
-        checkLabel.innerText = 'Marker opnået';
+        rewardWrap.style.display = 'none';
       }
 
-      overlay.style.display = 'flex';
+      if (isDone) {
+        card.classList.add('completed-card');
+        checkBtn.className = 'btn-toggle-completion done';
+        checkBtnText.innerText = '✓ Opnået (Klik for at fjerne)';
+      } else {
+        card.classList.remove('completed-card');
+        checkBtn.className = 'btn-toggle-completion not-done';
+        checkBtnText.innerText = 'Markér som opnået';
+      }
+
+      modal.style.display = 'flex';
       lucide.createIcons();
     }
 
-    function closeZoomHex() {
-      const overlay = document.getElementById('zoomOverlay');
-      overlay.style.display = 'none';
-      activeZoomSkill = null;
+    function handleHexModalBackdrop(event) {
+      if (event.target.id === 'enlargedHexModal' || event.target.className === 'enlarged-popup-wrapper') {
+        closeEnlargedHexModal();
+      }
     }
 
-    function handleZoomOverlayClick(e) {
-      closeZoomHex();
+    function closeEnlargedHexModal() {
+      document.getElementById('enlargedHexModal').style.display = 'none';
+      activeEnlargedSkill = null;
     }
 
-    function handleGuideClick() {
-      alert('Vejledning til denne kompetence er under udarbejdelse!');
-    }
-
-    async function handleZoomToggle(event) {
-      if (!activeZoomSkill) return;
-      const s = activeZoomSkill;
-      const clientX = event.clientX || window.innerWidth / 2;
-      const clientY = event.clientY || window.innerHeight / 2;
-
-      await toggleSkill(s.id, { clientX, clientY }, s.cat);
-      closeZoomHex();
+    // BEKRÆFT OG TOGGLE AFKRYDSNING
+    async function confirmSkillCompletion(event) {
+      if (!activeEnlargedSkill) return;
+      const s = activeEnlargedSkill;
+      closeEnlargedHexModal();
+      await toggleSkill(s.id, event, s.cat);
     }
 
     async function toggleSkill(skillId, event, category) {
@@ -1954,11 +1951,9 @@
 
       if (isCompleted) {
         userProgress[skillId] = true;
-        if (event) {
-          const clientX = event.clientX || window.innerWidth / 2;
-          const clientY = event.clientY || window.innerHeight / 2;
-          spawnFloatingEmojis(clientX, clientY, category);
-        }
+        const clientX = event?.clientX || (event?.touches && event.touches[0]?.clientX) || window.innerWidth / 2;
+        const clientY = event?.clientY || (event?.touches && event.touches[0]?.clientY) || window.innerHeight / 2;
+        spawnFloatingEmojis(clientX, clientY, category);
       } else {
         delete userProgress[skillId];
       }
@@ -2001,8 +1996,7 @@
     function createSkillHex(s, isDone) {
       const hex = document.createElement('div');
       hex.className = `hex-container ${isDone ? 'active' : ''}`;
-      // KLIK PÅ SEKSKANTEN FORSTØRRER DEN 3X
-      hex.onclick = () => openZoomHex(s);
+      hex.onclick = (e) => openSkillEnlargedModal(s, e);
 
       hex.innerHTML = `
         <svg class="hex-svg" viewBox="0 0 100 86.6">
@@ -2092,7 +2086,6 @@
               <i data-lucide="${catIcon}" class="cat-big-icon"></i>
               ${hasBadge ? `<div class="cat-badge-label">${activeBadgeTitle}</div>` : ''}
             </div>
-            <div class="cat-tooltip">${catName}${hasBadge ? '<br><span style="color:#22c55e;">🎖️ ' + activeBadgeTitle + '</span>' : ''}</div>
           `;
           col.appendChild(catHex);
 
@@ -2197,8 +2190,8 @@
       },
       {
         targetClass: 'hex-container',
-        title: '🟢 4. Forstør & Marker Færdigheder',
-        text: 'Klik på en sekskant for at forstørre den 3x, læse beskrivelsen og markere den som opnået i bunden!',
+        title: '🟢 4. Åbn & Opnå Kompetencer',
+        text: 'Klik på en sekskant for at forstørre den, læse den fulde beskrivelse og markere den som opnået!',
         pos: { top: '40%', left: '50%', transform: 'translate(-50%, -50%)' }
       },
       {
