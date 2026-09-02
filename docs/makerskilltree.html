@@ -1878,6 +1878,13 @@
           .select('user_id, skill_id')
           .in('user_id', userIds);
 
+        // Filtrer de samlede mål til kun at være indenfor holdets aktive kategorier
+        let classSpecificSkills = allSkills;
+        if (activeInspectionClassCategories && activeInspectionClassCategories.length > 0) {
+          classSpecificSkills = allSkills.filter(s => activeInspectionClassCategories.includes(s.cat));
+        }
+        const totalClassSkillsCount = classSpecificSkills.length;
+
         list.innerHTML = members.map(m => {
           const profile = profiles?.find(p => p.id === m.user_id);
           const studentName = profile?.full_name || profile?.username || 'Ukendt elev';
@@ -1885,7 +1892,8 @@
           const studentProg = {};
           skills?.filter(s => s.user_id === m.user_id).forEach(s => { studentProg[s.skill_id] = true; });
           
-          const completedCount = Object.keys(studentProg).length;
+          // Tæl kun gennemførte mål for de kategorier, der er aktive for holdet
+          const completedCount = classSpecificSkills.filter(s => studentProg[s.id]).length;
           const studentTitle = calculateGlobalTitle(allSkills, studentProg);
 
           return `
@@ -1895,7 +1903,7 @@
                 <span style="font-size:0.75rem; color:var(--accent-blue);">${studentTitle}</span>
               </div>
               <div style="display:flex; align-items:center; gap:10px;">
-                <span style="font-size:0.8rem;"><strong style="color:var(--active-green);">${completedCount}</strong> / ${allSkills.length} mål</span>
+                <span style="font-size:0.8rem;"><strong style="color:var(--active-green);">${completedCount}</strong> / ${totalClassSkillsCount} mål</span>
                 <button class="btn" style="padding:4px 8px; font-size:0.75rem;" onclick='openStudentTreeModal(${JSON.stringify(studentName)}, ${JSON.stringify(studentProg)})'>👁️ Se Skill Tree</button>
               </div>
             </div>
