@@ -427,7 +427,7 @@
     .btn-toggle-completion.not-done { background: var(--active-green); color: #064e3b; }
     .btn-toggle-completion.done { background: #475569; color: #f1f5f9; }
 
-    /* ELEV SKILLTREE LAG */
+    /* ELEV SKILLTREE LAG (INSPEKTION) */
     .student-tree-modal {
       display: none;
       position: fixed;
@@ -696,6 +696,7 @@
   <!-- FORSTØRRET SEKSKANT POPUP -->
   <div class="enlarged-hex-modal" id="enlargedHexModal" onclick="handleHexModalBackdrop(event)">
     <div class="enlarged-popup-wrapper">
+      
       <div class="enlarged-outer-header" id="enlargedMeta">Folieskæring • Niveau 1</div>
       
       <div class="enlarged-hex-svg-wrap" id="enlargedHexWrap">
@@ -725,10 +726,11 @@
           <span id="enlargedCheckBtnText" data-i18n="mark_achieved">Markér som opnået</span>
         </button>
       </div>
+
     </div>
   </div>
 
-  <!-- ELEV SKILLTREE OVERLAY -->
+  <!-- ELEV SKILLTREE OVERLAY (LAG VED SE ELEV-KLIK) -->
   <div class="student-tree-modal" id="studentTreeModal">
     <div class="student-tree-header">
       <div>
@@ -847,7 +849,7 @@
         <div id="adminStudentProgressView" style="display:none; margin-top:15px; background:#0f172a; padding:12px; border-radius:6px; border:1px solid #334155;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
             <strong id="progressClassTitle" style="color:var(--accent-blue);">Elever på holdet</strong>
-            <button class="btn btn-secondary" style="padding:2px 8px; font-size:0.75rem;" onclick="closeClassProgressView()">✕ Luk</button>
+            <button class="btn btn-secondary" style="padding:2px 8px; font-size:0.75rem;" onclick="closeClassProgressView()">✕ Luk oversigt</button>
           </div>
           <div id="studentProgressList"></div>
         </div>
@@ -857,10 +859,13 @@
             <strong id="classCategoriesTitle" style="color:var(--accent-blue);">Vælg aktive kategorier</strong>
             <button class="btn btn-secondary" style="padding:2px 8px; font-size:0.75rem;" onclick="closeClassCategoriesView()">✕ Luk</button>
           </div>
+          <p style="font-size:0.75rem; color:var(--text-muted); margin:0 0 10px 0;">Vælg hvilke kategorier dette hold skal arbejde med:</p>
+          
           <div class="toolbar-btns">
             <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="setAllClassCategories(true)">✓ Vælg alle</button>
             <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="setAllClassCategories(false)">✕ Fjern alle</button>
           </div>
+
           <div id="classCategoriesCheckboxes" style="max-height:240px; overflow-y:auto; margin-bottom:12px;"></div>
           <button class="btn" style="width:100%;" onclick="saveClassCategories()">💾 Gem Hold-Kategorier</button>
         </div>
@@ -929,7 +934,6 @@
       supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
 
-    // SPORINGS- OG I18N SYSTEM MED INDBYGGET DANSK FALLBACK
     let currentLang = localStorage.getItem('ms_language') || 'da';
     
     const DEFAULT_DA_FALLBACK = {
@@ -994,14 +998,10 @@
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         translations = await res.json();
       } catch (err) {
-        if (lang !== 'da') {
-          try {
-            const fallback = await fetch('locales/da.json');
-            translations = await fallback.json();
-          } catch (e) {
-            translations = { ...DEFAULT_DA_FALLBACK };
-          }
-        } else {
+        try {
+          const fallback = await fetch('locales/da.json');
+          translations = await fallback.json();
+        } catch (e) {
           translations = { ...DEFAULT_DA_FALLBACK };
         }
       }
@@ -1431,6 +1431,7 @@
           updateAuthUI(true, currentUserName, isAdmin);
           await fetchUserProgress();
           await fetchUserClass();
+
           checkShowJoinPrompt();
         } else {
           userProgress = JSON.parse(localStorage.getItem('ms_local_progress')) || {};
@@ -1504,7 +1505,10 @@
 
       const { error: joinError } = await supabaseClient
         .from('class_members')
-        .insert({ class_id: classData.id, user_id: currentUser.id });
+        .insert({
+          class_id: classData.id,
+          user_id: currentUser.id
+        });
 
       if (joinError) {
         alert('Du er allerede tilmeldt dette hold eller der opstod en fejl.');
@@ -1579,7 +1583,7 @@
         userEnrolledClasses.forEach(c => {
           const opt = document.createElement('option');
           opt.value = c.id;
-          opt.innerText = `👥 ${c.name}`;
+          opt.innerText = `👥 Hold: ${c.name}`;
           grp.appendChild(opt);
         });
         select.appendChild(grp);
@@ -1589,7 +1593,7 @@
       const activeDomains = [...new Set(relevantSkills.map(s => DOMAIN_MAP[s.cat] || '💻 Software'))];
       if (activeDomains.length > 1) {
         const grp = document.createElement('optgroup');
-        grp.label = '— Domæner —';
+        grp.label = '— Temaer / Domæner —';
         activeDomains.forEach(d => {
           const opt = document.createElement('option');
           opt.value = `DOMAIN:${d}`;
@@ -1790,7 +1794,10 @@
 
       const { error: joinError } = await supabaseClient
         .from('class_members')
-        .insert({ class_id: classData.id, user_id: currentUser.id });
+        .insert({
+          class_id: classData.id,
+          user_id: currentUser.id
+        });
 
       if (joinError) {
         alert('Du er allerede tilmeldt dette hold eller der opstod en fejl.');
@@ -1822,7 +1829,7 @@
             <option value="MAKER_DEFAULT" ${selectedViewFilter === 'MAKER_DEFAULT' ? 'selected' : ''}>${t('maker_default')}</option>
             <option value="ALL" ${selectedViewFilter === 'ALL' ? 'selected' : ''}>${t('show_all')}</option>
             ${userEnrolledClasses.map(c => `
-              <option value="${c.id}" ${selectedViewFilter === c.id ? 'selected' : ''}>👥 ${c.name}</option>
+              <option value="${c.id}" ${selectedViewFilter === c.id ? 'selected' : ''}>👥 Hold: ${c.name}</option>
             `).join('')}
           </select>
         </div>
@@ -1884,7 +1891,9 @@
       const boxes = container.querySelectorAll(`input[data-domain="${domain}"]`);
       const allChecked = Array.from(boxes).every(b => b.checked);
       const btn = document.getElementById(`btn_grp_${containerId}_${gIdx}`);
-      if (btn) btn.innerText = allChecked ? 'Skjul alle' : 'Vis alle';
+      if (btn) {
+        btn.innerText = allChecked ? 'Skjul alle' : 'Vis alle';
+      }
     }
 
     function toggleDomainGroupCheckboxes(containerId, domain, gIdx) {
@@ -1900,7 +1909,8 @@
     }
 
     function setAllClassCategories(state) {
-      document.querySelectorAll('.class-cat-checkbox').forEach(b => {
+      const boxes = document.querySelectorAll('.class-cat-checkbox');
+      boxes.forEach(b => {
         b.checked = state;
         b.dispatchEvent(new Event('change'));
       });
@@ -1909,7 +1919,11 @@
     function setAllGlobalCategories(state) {
       const relevantSkills = allSkills.filter(s => (s.lang || 'da') === currentLang);
       const allCats = [...new Set(relevantSkills.map(s => s.cat))];
-      hiddenCats = state ? [] : [...allCats];
+      if (state) {
+        hiddenCats = [];
+      } else {
+        hiddenCats = [...allCats];
+      }
       localStorage.setItem('ms_hiddenCats', JSON.stringify(hiddenCats));
       renderAdmin();
       renderApp();
@@ -1966,10 +1980,13 @@
       editingClassId = classId;
       document.getElementById('adminStudentProgressView').style.display = 'none';
       const panel = document.getElementById('adminClassCategoriesView');
-      document.getElementById('classCategoriesTitle').innerText = `Kategorier for: ${className}`;
+      const title = document.getElementById('classCategoriesTitle');
+
+      title.innerText = `Kategorier for: ${className}`;
       panel.style.display = 'block';
 
       const isAllSelected = !currentCategories || currentCategories.length === 0;
+
       buildGroupedCategoryHTML(
         'classCategoriesCheckboxes', 
         'class-cat-checkbox', 
@@ -1988,6 +2005,7 @@
       const checked = Array.from(document.querySelectorAll('.class-cat-checkbox:checked')).map(cb => cb.value);
       const relevantSkills = allSkills.filter(s => (s.lang || 'da') === currentLang);
       const allCats = [...new Set(relevantSkills.map(s => s.cat))];
+
       const toSave = (checked.length === allCats.length) ? null : checked;
 
       const { error } = await supabaseClient
@@ -2011,10 +2029,11 @@
       document.getElementById('adminClassCategoriesView').style.display = 'none';
       const panel = document.getElementById('adminStudentProgressView');
       const list = document.getElementById('studentProgressList');
-      document.getElementById('progressClassTitle').innerText = `Elever på: ${className}`;
+      const title = document.getElementById('progressClassTitle');
 
       panel.style.display = 'block';
-      list.innerHTML = '<span style="font-size:0.8rem; color:var(--text-muted);">Henter elever...</span>';
+      title.innerText = `Elever på: ${className}`;
+      list.innerHTML = '<span style="font-size:0.8rem; color:var(--text-muted);">Henter elever og progression...</span>';
 
       try {
         const { data: members, error: memError } = await supabaseClient
@@ -2028,12 +2047,26 @@
         }
 
         const userIds = members.map(m => m.user_id);
-        const { data: profiles } = await supabaseClient.from('profiles').select('id, full_name, username').in('id', userIds);
-        const { data: skills } = await supabaseClient.from('user_skills').select('user_id, skill_id').in('user_id', userIds);
 
+        const { data: profiles } = await supabaseClient
+          .from('profiles')
+          .select('id, full_name, username')
+          .in('id', userIds);
+
+        const { data: skills } = await supabaseClient
+          .from('user_skills')
+          .select('user_id, skill_id')
+          .in('user_id', userIds);
+
+        // Sproguafhængig ID-filtrering af holdets aktive kategorier
         let classSpecificSkills = allSkills.filter(s => (s.lang || 'da') === currentLang);
         if (activeInspectionClassCategories && activeInspectionClassCategories.length > 0) {
-          classSpecificSkills = classSpecificSkills.filter(s => activeInspectionClassCategories.includes(s.cat));
+          const allowedSkillIds = new Set(
+            allSkills
+              .filter(s => activeInspectionClassCategories.includes(s.cat))
+              .map(s => s.id)
+          );
+          classSpecificSkills = classSpecificSkills.filter(s => allowedSkillIds.has(s.id));
         }
         const totalClassSkillsCount = classSpecificSkills.length;
 
@@ -2069,6 +2102,7 @@
       document.getElementById('adminStudentProgressView').style.display = 'none';
     }
 
+    /* ELEV SKILLTREE LAG (INSPEKTION) */
     function openStudentTreeModal(studentName, studentProgress) {
       const modal = document.getElementById('studentTreeModal');
       const grid = document.getElementById('studentHoneycombGrid');
@@ -2079,13 +2113,19 @@
       
       let inspectSkills = langSkills;
       if (activeInspectionClassCategories && activeInspectionClassCategories.length > 0) {
-        inspectSkills = inspectSkills.filter(s => activeInspectionClassCategories.includes(s.cat));
+        const allowedSkillIds = new Set(
+          allSkills
+            .filter(s => activeInspectionClassCategories.includes(s.cat))
+            .map(s => s.id)
+        );
+        inspectSkills = inspectSkills.filter(s => allowedSkillIds.has(s.id));
       }
       
       const activeCount = inspectSkills.filter(s => studentProgress[s.id]).length;
       document.getElementById('studentTreeScore').innerText = `${activeCount} / ${inspectSkills.length}`;
 
       renderHoneycombIntoContainer(grid, inspectSkills, studentProgress, true);
+
       modal.style.display = 'flex';
       lucide.createIcons();
     }
@@ -2212,6 +2252,7 @@
       const langSkills = allSkills.filter(s => (s.lang || 'da') === currentLang);
       const prevTitle = calculateGlobalTitle(langSkills, userProgress);
       const prevCatTitles = getUnlockedCategoryTitles(category, langSkills, userProgress).map(t => t.title);
+
       const isCompleted = !userProgress[skillId];
 
       if (isCompleted) {
@@ -2398,7 +2439,11 @@
     function renderApp() {
       const honeycombGrid = document.getElementById('honeycombGrid');
       const emptyState = document.getElementById('emptyState');
-      const langSkills = allSkills.filter(s => (s.lang || 'da') === currentLang);
+
+      let langSkills = allSkills.filter(s => (s.lang || 'da') === currentLang);
+      if (langSkills.length === 0) {
+        langSkills = allSkills.filter(s => (s.lang || 'da') === 'da');
+      }
 
       if (langSkills.length === 0) {
         emptyState.style.display = 'block';
@@ -2418,7 +2463,13 @@
       } else if (selectedViewFilter !== 'ALL') {
         const selectedClass = userEnrolledClasses.find(c => c.id === selectedViewFilter);
         if (selectedClass && selectedClass.categories && selectedClass.categories.length > 0) {
-          availableSkills = availableSkills.filter(s => selectedClass.categories.includes(s.cat));
+          // ID-baseret opslag, så sprogforskelle i kategorinavne ikke afskærer elever
+          const allowedSkillIds = new Set(
+            allSkills
+              .filter(s => selectedClass.categories.includes(s.cat))
+              .map(s => s.id)
+          );
+          availableSkills = availableSkills.filter(s => allowedSkillIds.has(s.id));
         }
       }
 
