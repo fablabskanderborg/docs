@@ -88,12 +88,12 @@
     }
     .legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; font-weight: bold; }
     .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
-    .cluster-mesh { display: flex; align-items: flex-start; justify-content: center; padding: 20px; }
+   .cluster-mesh { display: flex; align-items: flex-end; justify-content: center; padding: 20px; }
     .cluster-col {
       display: flex; flex-direction: column; gap: 6px;
       margin-right: -24px; position: relative; width: 100px; flex-shrink: 0;
     }
-    .cluster-col:nth-child(even) { transform: translateY(45px); }
+    .cluster-col:nth-child(even) { transform: translateY(-45px); }
     .hex-container {
       width: 100px; height: 86.6px; position: relative;
       cursor: pointer; z-index: 1; transition: transform 0.15s ease, opacity 0.3s ease;
