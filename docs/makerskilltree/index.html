@@ -93,6 +93,7 @@
       padding: 0 15px;
     }
 
+    /* STANDARD SØJLE-GRID */
     .honeycomb-grid {
       display: flex;
       gap: 35px;
@@ -136,6 +137,59 @@
     .column:hover { z-index: 100; }
     .column:nth-child(even) { transform: translateY(-46px); }
 
+    /* KOMPAKT BIKUBE MOSAIK (STUDIETUR / CLUSTER) */
+    .honeycomb-cluster-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: auto;
+      padding: 20px 20px 90px 20px;
+    }
+
+    .cluster-legend {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 35px;
+      background: rgba(15, 23, 42, 0.85);
+      padding: 8px 18px;
+      border-radius: 20px;
+      border: 1px solid #334155;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.78rem;
+      font-weight: bold;
+    }
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .cluster-mesh {
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .cluster-col {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-right: -24px;
+      position: relative;
+      width: 100px;
+      flex-shrink: 0;
+    }
+    .cluster-col:nth-child(even) { transform: translateY(45px); }
+
+    /* HEXAGONS */
     .hex-container {
       width: 100px;
       height: 86.6px;
@@ -171,12 +225,26 @@
 
     .cat-hex-container { order: -1; margin-top: 15px; }
 
+    /* FARVE-KLYNGER (TEMAER) */
+    .theme-network .hex-outer-frame { stroke: #38bdf8; fill: #082f49; }
+    .theme-network .hex-icon { color: #38bdf8; }
+
+    .theme-pedagogy .hex-outer-frame { stroke: #a855f7; fill: #3b0764; }
+    .theme-pedagogy .hex-icon { color: #c084fc; }
+
+    .theme-enterprise .hex-outer-frame { stroke: #f59e0b; fill: #451a03; }
+    .theme-enterprise .hex-icon { color: #fbbf24; }
+
+    .theme-culture .hex-outer-frame { stroke: #ec4899; fill: #500724; }
+    .theme-culture .hex-icon { color: #f472b6; }
+
+    /* OPNÅEDE KOMPETENCER (GRØN GLØD) */
     .hex-container.active .hex-outer-frame,
     .cat-hex-container.completed .hex-outer-frame,
     .subcat-hex.completed .hex-outer-frame,
     .enlarged-hex-svg-wrap.completed .hex-outer-frame {
-      stroke: var(--active-green);
-      fill: #022c22;
+      stroke: var(--active-green) !important;
+      fill: #022c22 !important;
       filter: drop-shadow(0 0 8px rgba(34, 197, 94, 0.45));
     }
 
@@ -184,8 +252,10 @@
     .cat-hex-container.completed .hex-inner-frame,
     .subcat-hex.completed .hex-inner-frame,
     .enlarged-hex-svg-wrap.completed .hex-inner-frame {
-      stroke: var(--active-green);
+      stroke: var(--active-green) !important;
     }
+
+    .hex-container.active .hex-icon { color: var(--active-green) !important; }
 
     .hex-content {
       position: absolute;
@@ -201,7 +271,6 @@
     }
 
     .hex-icon { color: var(--accent-blue); width: 15px; height: 15px; flex-shrink: 0; }
-    .hex-container.active .hex-icon { color: var(--active-green); }
 
     .hex-text {
       font-size: 0.54rem;
@@ -425,7 +494,7 @@
     .btn-toggle-completion.not-done { background: var(--active-green); color: #064e3b; }
     .btn-toggle-completion.done { background: #475569; color: #f1f5f9; }
 
-    /* ELEV SKILLTREE LAG (INSPEKTION) */
+    /* ELEV SKILLTREE LAG */
     .student-tree-modal {
       display: none;
       position: fixed;
@@ -635,6 +704,12 @@
       footer { padding: 8px 12px; font-size: 0.78rem; justify-content: center; }
       .footer-info { gap: 10px; justify-content: center; }
       .honeycomb-grid { gap: 25px; padding-bottom: 90px; }
+      .cluster-mesh { padding: 10px 0 90px 0; }
+      .cluster-col { width: 70px; margin-right: -16px; }
+      .cluster-col:nth-child(even) { transform: translateY(32px); }
+      .cluster-col .hex-container { width: 70px; height: 60.6px; }
+      .cluster-col .hex-text { font-size: 0.42rem; max-width: 55px; }
+      .cluster-col .hex-icon { width: 12px; height: 12px; }
     }
   </style>
 </head>
@@ -661,7 +736,7 @@
         <strong id="emptyTitle">Indlæser...</strong><br>
         <span id="emptyDesc">Vælg eller opdater kompetencer under Superbruger Admin.</span>
       </div>
-      <div class="honeycomb-grid" id="honeycombGrid"></div>
+      <div id="honeycombGrid" class="honeycomb-grid"></div>
     </div>
   </div>
 
@@ -689,6 +764,7 @@
   <!-- FORSTØRRET SEKSKANT POPUP -->
   <div class="enlarged-hex-modal" id="enlargedHexModal" onclick="handleHexModalBackdrop(event)">
     <div class="enlarged-popup-wrapper">
+      
       <div class="enlarged-outer-header" id="enlargedMeta">Folieskæring • Niveau 1</div>
       
       <div class="enlarged-hex-svg-wrap" id="enlargedHexWrap">
@@ -718,10 +794,11 @@
           <span id="enlargedCheckBtnText">Markér som opnået</span>
         </button>
       </div>
+
     </div>
   </div>
 
-  <!-- ELEV SKILLTREE OVERLAY (LAG VED SE ELEV-KLIK) -->
+  <!-- ELEV SKILLTREE LAG -->
   <div class="student-tree-modal" id="studentTreeModal">
     <div class="student-tree-header">
       <div>
@@ -741,7 +818,7 @@
       </div>
     </div>
     <div class="student-tree-viewport">
-      <div class="honeycomb-grid" id="studentHoneycombGrid"></div>
+      <div id="studentHoneycombGrid" style="margin:auto;"></div>
     </div>
   </div>
 
@@ -959,6 +1036,13 @@
       '🔌 Hardware og Elektronik', 
       '🤝 Værkstedskultur'
     ];
+
+    const CATEGORY_THEMES = {
+      'Netværk & Fællesskab': { class: 'theme-network', color: '#38bdf8', label: 'Netværk & Fællesskab' },
+      'Pædagogik & Praksis': { class: 'theme-pedagogy', color: '#a855f7', label: 'Pædagogik & Praksis' },
+      'Entreprenørskab': { class: 'theme-enterprise', color: '#f59e0b', label: 'Entreprenørskab' },
+      'Kultur & Oplevelse': { class: 'theme-culture', color: '#ec4899', label: 'Kultur & Oplevelse' }
+    };
 
     function getUnlockedCategoryTitles(catName, skillsList, progress) {
       const catSkills = skillsList.filter(s => s.cat === catName).sort((a, b) => a.level - b.level);
@@ -1250,7 +1334,6 @@
           updateAuthUI(true, currentUserName, isAdmin);
           await fetchUserProgress();
           await fetchUserClass();
-
           checkShowJoinPrompt();
         } else {
           userProgress = JSON.parse(localStorage.getItem('ms_local_progress')) || {};
@@ -1704,9 +1787,7 @@
       const boxes = container.querySelectorAll(`input[data-domain="${domain}"]`);
       const allChecked = Array.from(boxes).every(b => b.checked);
       const btn = document.getElementById(`btn_grp_${containerId}_${gIdx}`);
-      if (btn) {
-        btn.innerText = allChecked ? 'Skjul alle' : 'Vis alle';
-      }
+      if (btn) btn.innerText = allChecked ? 'Skjul alle' : 'Vis alle';
     }
 
     function toggleDomainGroupCheckboxes(containerId, domain, gIdx) {
@@ -1722,8 +1803,7 @@
     }
 
     function setAllClassCategories(state) {
-      const boxes = document.querySelectorAll('.class-cat-checkbox');
-      boxes.forEach(b => {
+      document.querySelectorAll('.class-cat-checkbox').forEach(b => {
         b.checked = state;
         b.dispatchEvent(new Event('change'));
       });
@@ -1731,11 +1811,7 @@
 
     function setAllGlobalCategories(state) {
       const allCats = [...new Set(allSkills.map(s => s.cat))];
-      if (state) {
-        hiddenCats = [];
-      } else {
-        hiddenCats = [...allCats];
-      }
+      hiddenCats = state ? [] : [...allCats];
       localStorage.setItem('ms_hiddenCats', JSON.stringify(hiddenCats));
       renderAdmin();
       renderApp();
@@ -1792,13 +1868,10 @@
       editingClassId = classId;
       document.getElementById('adminStudentProgressView').style.display = 'none';
       const panel = document.getElementById('adminClassCategoriesView');
-      const title = document.getElementById('classCategoriesTitle');
-
-      title.innerText = `Kategorier for: ${className}`;
+      document.getElementById('classCategoriesTitle').innerText = `Kategorier for: ${className}`;
       panel.style.display = 'block';
 
       const isAllSelected = !currentCategories || currentCategories.length === 0;
-
       buildGroupedCategoryHTML(
         'classCategoriesCheckboxes', 
         'class-cat-checkbox', 
@@ -1816,7 +1889,6 @@
 
       const checked = Array.from(document.querySelectorAll('.class-cat-checkbox:checked')).map(cb => cb.value);
       const allCats = [...new Set(allSkills.map(s => s.cat))];
-
       const toSave = (checked.length === allCats.length) ? null : checked;
 
       const { error } = await supabaseClient
@@ -1840,10 +1912,9 @@
       document.getElementById('adminClassCategoriesView').style.display = 'none';
       const panel = document.getElementById('adminStudentProgressView');
       const list = document.getElementById('studentProgressList');
-      const title = document.getElementById('progressClassTitle');
+      document.getElementById('progressClassTitle').innerText = `Elever på: ${className}`;
 
       panel.style.display = 'block';
-      title.innerText = `Elever på: ${className}`;
       list.innerHTML = '<span style="font-size:0.8rem; color:var(--text-muted);">Henter elever og progression...</span>';
 
       try {
@@ -1858,16 +1929,8 @@
         }
 
         const userIds = members.map(m => m.user_id);
-
-        const { data: profiles } = await supabaseClient
-          .from('profiles')
-          .select('id, full_name, username')
-          .in('id', userIds);
-
-        const { data: skills } = await supabaseClient
-          .from('user_skills')
-          .select('user_id, skill_id')
-          .in('user_id', userIds);
+        const { data: profiles } = await supabaseClient.from('profiles').select('id, full_name, username').in('id', userIds);
+        const { data: skills } = await supabaseClient.from('user_skills').select('user_id, skill_id').in('user_id', userIds);
 
         let classSpecificSkills = allSkills;
         if (activeInspectionClassCategories && activeInspectionClassCategories.length > 0) {
@@ -2098,7 +2161,8 @@
 
     function createSkillHex(s, isDone, isReadOnly = false, progContext = null) {
       const hex = document.createElement('div');
-      hex.className = `hex-container ${isDone ? 'active' : ''}`;
+      const themeClass = CATEGORY_THEMES[s.cat]?.class || '';
+      hex.className = `hex-container ${themeClass} ${isDone ? 'active' : ''}`;
       hex.onclick = (e) => openSkillEnlargedModal(s, e, isReadOnly, progContext);
 
       hex.innerHTML = `
@@ -2115,8 +2179,59 @@
       return hex;
     }
 
-    function renderHoneycombIntoContainer(container, skillsList, progressMap, isReadOnly = false) {
+    /* KOMPAKT BIKUBE RENDERING (STUDIETUR / CLUSTER) */
+    function renderClusterMeshIntoContainer(container, skillsList, progressMap, isReadOnly = false) {
+      container.className = 'honeycomb-cluster-wrap';
       container.innerHTML = '';
+
+      // 1. Farve-forklaring i toppen
+      const presentCats = [...new Set(skillsList.map(s => s.cat))];
+      const legend = document.createElement('div');
+      legend.className = 'cluster-legend';
+      presentCats.forEach(cat => {
+        const theme = CATEGORY_THEMES[cat] || { color: '#38bdf8', label: cat };
+        const item = document.createElement('div');
+        item.className = 'legend-item';
+        item.innerHTML = `<span class="legend-dot" style="background:${theme.color};"></span><span>${theme.label}</span>`;
+        legend.appendChild(item);
+      });
+      container.appendChild(legend);
+
+      // 2. Gruppér kompetencerne i hver deres sammenhængende farve-klase
+      const clusterSkills = [];
+      presentCats.forEach(cat => {
+        const catSkills = skillsList.filter(s => s.cat === cat).sort((a, b) => a.level - b.level);
+        clusterSkills.push(...catSkills);
+      });
+
+      // 3. Fordel i 5 parallelle flettede søjler (5 x 5 = 25 felter)
+      const numCols = 5;
+      const columns = Array.from({ length: numCols }, () => []);
+      clusterSkills.forEach((skill, idx) => {
+        columns[idx % numCols].push(skill);
+      });
+
+      const mesh = document.createElement('div');
+      mesh.className = 'cluster-mesh';
+
+      columns.forEach(colSkills => {
+        const colEl = document.createElement('div');
+        colEl.className = 'cluster-col';
+        colSkills.forEach(s => {
+          const isDone = progressMap[s.id] || false;
+          colEl.appendChild(createSkillHex(s, isDone, isReadOnly, progressMap));
+        });
+        mesh.appendChild(colEl);
+      });
+
+      container.appendChild(mesh);
+    }
+
+    /* STANDARD SØJLE RENDERING (MAKER SKILLS) */
+    function renderStandardHoneycombIntoContainer(container, skillsList, progressMap, isReadOnly = false) {
+      container.className = 'honeycomb-grid';
+      container.innerHTML = '';
+
       const activeDomains = [...new Set(skillsList.map(s => DOMAIN_MAP[s.cat] || '💻 Software'))];
       const orderedDomains = DOMAIN_ORDER.filter(d => activeDomains.includes(d));
       if (orderedDomains.length === 0 && activeDomains.length > 0) orderedDomains.push(...activeDomains);
@@ -2231,6 +2346,17 @@
         domainSection.appendChild(domainColumns);
         container.appendChild(domainSection);
       });
+    }
+
+    function renderHoneycombIntoContainer(container, skillsList, progressMap, isReadOnly = false) {
+      // Skift automatisk til kompakt bikube hvis der vises studietur eller færre end 30 mål
+      const isStudieturView = skillsList.length <= 30 || skillsList.some(s => ['Netværk & Fællesskab', 'Pædagogik & Praksis', 'Entreprenørskab', 'Kultur & Oplevelse'].includes(s.cat));
+      
+      if (isStudieturView && skillsList.length > 0 && skillsList.length <= 40) {
+        renderClusterMeshIntoContainer(container, skillsList, progressMap, isReadOnly);
+      } else {
+        renderStandardHoneycombIntoContainer(container, skillsList, progressMap, isReadOnly);
+      }
     }
 
     function renderApp() {
