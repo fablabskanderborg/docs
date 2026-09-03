@@ -1395,7 +1395,7 @@
       const mesh = document.createElement('div');
       mesh.className = 'cluster-mesh';
       presentCats.forEach(cat => {
-        const catSkills = skillsList.filter(s => s.cat === cat).sort((a, b) => a.level - b.level);
+        const catSkills = skillsList.filter(s => s.cat === cat).sort((a, b) => b.level - a.level);
         const colEl = document.createElement('div');
         colEl.className = 'cluster-col';
         catSkills.forEach(s => {
