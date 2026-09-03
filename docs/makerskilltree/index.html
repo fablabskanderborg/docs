@@ -17,21 +17,15 @@
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
     }
-
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
     body {
       background-color: var(--bg-color);
       color: var(--text-main);
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      overflow: hidden;
+      margin: 0; padding: 0;
+      display: flex; flex-direction: column;
+      height: 100vh; overflow: hidden;
     }
-
     .shake { animation: screenShake 0.3s ease-in-out; }
     @keyframes screenShake {
       0%, 100% { transform: translate(0, 0); }
@@ -40,662 +34,277 @@
       60% { transform: translate(-3px, -2px); }
       80% { transform: translate(3px, 2px); }
     }
-
     header {
-      background: #0f172a;
-      padding: 10px 20px;
+      background: #0f172a; padding: 10px 20px;
       border-bottom: 1px solid #1e293b;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      z-index: 100;
-      position: relative;
-      flex-wrap: wrap;
-      gap: 10px;
+      display: flex; justify-content: space-between; align-items: center;
+      z-index: 100; position: relative; flex-wrap: wrap; gap: 10px;
     }
-
     h1 { margin: 0; font-size: 1.25rem; color: var(--text-main); letter-spacing: 0.5px; }
-
     .header-btns { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-
     .view-filter-select {
-      background: #1e293b;
-      border: 1px solid var(--accent-blue);
-      color: var(--accent-blue);
-      font-weight: bold;
-      font-size: 0.82rem;
-      padding: 5px 10px;
-      border-radius: 6px;
-      cursor: pointer;
-      width: auto;
+      background: #1e293b; border: 1px solid var(--accent-blue);
+      color: var(--accent-blue); font-weight: bold; font-size: 0.82rem;
+      padding: 5px 10px; border-radius: 6px; cursor: pointer; width: auto;
     }
-
     .main-container { display: flex; flex: 1; overflow: hidden; position: relative; }
-
     .viewport {
-      flex: 1;
-      padding: 15px;
-      overflow-x: auto;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-      display: flex;
-      flex-direction: column;
+      flex: 1; padding: 15px;
+      overflow-x: auto; overflow-y: auto; -webkit-overflow-scrolling: touch;
+      display: flex; flex-direction: column;
       background: radial-gradient(circle at center, #131f3f 0%, #0b1329 100%);
     }
-
     .empty-state {
-      margin: 60px auto;
-      text-align: center;
-      color: var(--text-muted);
-      font-size: 1rem;
-      max-width: 450px;
-      line-height: 1.5;
-      padding: 0 15px;
+      margin: 60px auto; text-align: center; color: var(--text-muted);
+      font-size: 1rem; max-width: 450px; line-height: 1.5; padding: 0 15px;
     }
-
-    /* STANDARD SØJLE-GRID */
     .honeycomb-grid {
-      display: flex;
-      gap: 35px;
-      padding: 20px 40px 90px 40px;
-      align-items: flex-end;
-      min-width: max-content;
-      margin: auto;
+      display: flex; gap: 35px; padding: 20px 40px 90px 40px;
+      align-items: flex-end; min-width: max-content; margin: auto;
     }
-
     .domain-section { display: flex; flex-direction: column; align-items: center; position: relative; }
-
     .domain-header {
-      font-size: 0.8rem;
-      font-weight: bold;
-      color: var(--accent-blue);
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 10px;
-      padding: 6px 14px;
-      background: rgba(15, 23, 42, 0.85);
-      border: 1px solid #334155;
-      border-radius: 20px;
-      white-space: nowrap;
-      z-index: 10;
+      font-size: 0.8rem; font-weight: bold; color: var(--accent-blue);
+      text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px;
+      padding: 6px 14px; background: rgba(15, 23, 42, 0.85);
+      border: 1px solid #334155; border-radius: 20px; white-space: nowrap; z-index: 10;
     }
-
     .domain-columns { display: flex; padding-top: 55px; }
-
     .column {
-      display: flex;
-      flex-direction: column-reverse;
-      gap: 6px;
-      margin-right: -21px;
-      position: relative;
-      z-index: 1;
-      align-items: center;
-      width: 100px;
-      flex-shrink: 0;
+      display: flex; flex-direction: column-reverse; gap: 6px;
+      margin-right: -21px; position: relative; z-index: 1;
+      align-items: center; width: 100px; flex-shrink: 0;
     }
-
     .column:hover { z-index: 100; }
     .column:nth-child(even) { transform: translateY(-46px); }
-
-    /* KOMPAKT BIKUBE MOSAIK (STUDIETUR / CLUSTER) */
     .honeycomb-cluster-wrap {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin: auto;
-      padding: 20px 20px 90px 20px;
+      display: flex; flex-direction: column; align-items: center;
+      margin: auto; padding: 20px 20px 90px 20px;
     }
-
     .cluster-legend {
-      display: flex;
-      gap: 15px;
-      flex-wrap: wrap;
-      justify-content: center;
-      margin-bottom: 35px;
-      background: rgba(15, 23, 42, 0.85);
-      padding: 8px 18px;
-      border-radius: 20px;
-      border: 1px solid #334155;
+      display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;
+      margin-bottom: 30px; background: rgba(15, 23, 42, 0.85);
+      padding: 8px 18px; border-radius: 20px; border: 1px solid #334155;
     }
-
-    .legend-item {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.78rem;
-      font-weight: bold;
-    }
-    .legend-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-    }
-
-    .cluster-mesh {
-      display: flex;
-      align-items: flex-start;
-      justify-content: center;
-      padding: 20px;
-    }
-
+    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; font-weight: bold; }
+    .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .cluster-mesh { display: flex; align-items: flex-start; justify-content: center; padding: 20px; }
     .cluster-col {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      margin-right: -24px;
-      position: relative;
-      width: 100px;
-      flex-shrink: 0;
+      display: flex; flex-direction: column; gap: 6px;
+      margin-right: -24px; position: relative; width: 100px; flex-shrink: 0;
     }
     .cluster-col:nth-child(even) { transform: translateY(45px); }
-
-    /* HEXAGONS */
     .hex-container {
-      width: 100px;
-      height: 86.6px;
-      position: relative;
-      cursor: pointer;
-      z-index: 1;
-      transition: transform 0.15s ease, opacity 0.3s ease;
+      width: 100px; height: 86.6px; position: relative;
+      cursor: pointer; z-index: 1; transition: transform 0.15s ease, opacity 0.3s ease;
       touch-action: manipulation;
     }
-
     .hex-container:active { transform: scale(0.96); }
-
     .hex-svg { width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
-
     .hex-outer-frame {
-      fill: #1e293b;
-      stroke: var(--inactive-border);
-      stroke-width: 3;
+      fill: #1e293b; stroke: var(--inactive-border); stroke-width: 3;
       transition: stroke 0.3s, fill 0.3s;
     }
-
-    .hex-outer-frame.dashed-frame {
-      stroke-dasharray: 6 3;
-      stroke: var(--accent-blue);
-    }
-
+    .hex-outer-frame.dashed-frame { stroke-dasharray: 6 3; stroke: var(--accent-blue); }
     .hex-inner-frame {
-      fill: #0f172a;
-      stroke: var(--inactive-border);
-      stroke-width: 1.5;
-      transition: stroke 0.3s;
+      fill: #0f172a; stroke: var(--inactive-border); stroke-width: 1.5; transition: stroke 0.3s;
     }
-
     .cat-hex-container { order: -1; margin-top: 15px; }
-
-    /* FARVE-KLYNGER (TEMAER) */
-    .theme-network .hex-outer-frame { stroke: #38bdf8; fill: #082f49; }
-    .theme-network .hex-icon { color: #38bdf8; }
-
-    .theme-pedagogy .hex-outer-frame { stroke: #a855f7; fill: #3b0764; }
-    .theme-pedagogy .hex-icon { color: #c084fc; }
-
-    .theme-enterprise .hex-outer-frame { stroke: #f59e0b; fill: #451a03; }
-    .theme-enterprise .hex-icon { color: #fbbf24; }
-
-    .theme-culture .hex-outer-frame { stroke: #ec4899; fill: #500724; }
-    .theme-culture .hex-icon { color: #f472b6; }
-
-    /* OPNÅEDE KOMPETENCER (GRØN GLØD) */
+    .hex-container.theme-network.active .hex-outer-frame { stroke: #38bdf8 !important; fill: #082f49 !important; filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.6)); }
+    .hex-container.theme-pedagogy.active .hex-outer-frame { stroke: #a855f7 !important; fill: #3b0764 !important; filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.6)); }
+    .hex-container.theme-enterprise.active .hex-outer-frame { stroke: #f59e0b !important; fill: #451a03 !important; filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.6)); }
+    .hex-container.theme-culture.active .hex-outer-frame { stroke: #ec4899 !important; fill: #500724 !important; filter: drop-shadow(0 0 8px rgba(236, 72, 153, 0.6)); }
     .hex-container.active .hex-outer-frame,
     .cat-hex-container.completed .hex-outer-frame,
     .subcat-hex.completed .hex-outer-frame,
     .enlarged-hex-svg-wrap.completed .hex-outer-frame {
-      stroke: var(--active-green) !important;
-      fill: #022c22 !important;
+      stroke: var(--active-green); fill: #022c22;
       filter: drop-shadow(0 0 8px rgba(34, 197, 94, 0.45));
     }
-
     .hex-container.active .hex-inner-frame,
     .cat-hex-container.completed .hex-inner-frame,
     .subcat-hex.completed .hex-inner-frame,
-    .enlarged-hex-svg-wrap.completed .hex-inner-frame {
-      stroke: var(--active-green) !important;
-    }
-
+    .enlarged-hex-svg-wrap.completed .hex-inner-frame { stroke: var(--active-green); }
     .hex-container.active .hex-icon { color: var(--active-green) !important; }
-
     .hex-content {
-      position: absolute;
-      top: 0; left: 0; width: 100%; height: 100%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 2px;
-      padding: 10px 12px;
-      box-sizing: border-box;
-      pointer-events: none;
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 2px; padding: 10px 12px; box-sizing: border-box; pointer-events: none;
     }
-
     .hex-icon { color: var(--accent-blue); width: 15px; height: 15px; flex-shrink: 0; }
-
     .hex-text {
-      font-size: 0.54rem;
-      font-weight: 700;
-      text-align: center;
-      line-height: 1.1;
-      color: var(--text-main);
-      padding: 0 2px;
-      max-width: 74px;
-      overflow-wrap: break-word;
-      word-break: break-word;
-      hyphens: auto;
-      display: -webkit-box;
-      -webkit-line-clamp: 3;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
+      font-size: 0.54rem; font-weight: 700; text-align: center; line-height: 1.1;
+      color: var(--text-main); padding: 0 2px; max-width: 74px; overflow-wrap: break-word;
+      word-break: break-word; hyphens: auto; display: -webkit-box;
+      -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
     }
-
     .hex-level { font-size: 0.60rem; font-weight: bold; color: var(--text-muted); line-height: 1; flex-shrink: 0; }
-
     .cat-hex-content {
-      position: absolute;
-      top: 0; left: 0; width: 100%; height: 100%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      pointer-events: none;
-      padding: 8px 10px;
-      box-sizing: border-box;
-      gap: 2px;
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      pointer-events: none; padding: 8px 10px; box-sizing: border-box; gap: 2px;
     }
-
     .cat-big-icon { width: 26px; height: 26px; color: var(--accent-blue); transition: color 0.3s; flex-shrink: 0; }
     .cat-hex-container.completed .cat-big-icon { color: var(--active-green); }
-
     .cat-badge-label {
-      font-size: 0.46rem;
-      font-weight: 800;
-      color: var(--active-green);
-      text-align: center;
-      line-height: 1.05;
-      max-width: 74px;
-      overflow-wrap: break-word;
-      word-break: break-word;
-      hyphens: auto;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-      margin-top: 1px;
+      font-size: 0.46rem; font-weight: 800; color: var(--active-green); text-align: center;
+      line-height: 1.05; max-width: 74px; overflow-wrap: break-word; word-break: break-word;
+      hyphens: auto; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+      overflow: hidden; margin-top: 1px;
     }
-
     .floating-emoji {
-      position: fixed;
-      pointer-events: none;
-      z-index: 15000;
-      font-size: 1.4rem;
+      position: fixed; pointer-events: none; z-index: 15000; font-size: 1.4rem;
       animation: floatEmoji 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
     }
     @keyframes floatEmoji {
       0% { transform: translate(0, 0) scale(0.6); opacity: 1; }
       100% { transform: translate(var(--tx), -70px) scale(1.3); opacity: 0; }
     }
-
-    /* FORSTØRRET SEKSKANT POPUP */
     .enlarged-hex-modal {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(11, 19, 41, 0.82);
-      backdrop-filter: blur(6px);
-      z-index: 15000;
-      justify-content: center;
-      align-items: center;
-      padding: 15px;
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(11, 19, 41, 0.82); backdrop-filter: blur(6px); z-index: 15000;
+      justify-content: center; align-items: center; padding: 15px;
     }
-
     .enlarged-popup-wrapper {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      position: relative;
+      display: flex; flex-direction: column; align-items: center; position: relative;
       animation: zoomInHex 0.24s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
     }
-
     @keyframes zoomInHex {
       from { transform: scale(0.35); opacity: 0; }
       to { transform: scale(1); opacity: 1; }
     }
-
     .enlarged-outer-header {
-      font-size: 0.88rem;
-      font-weight: 800;
-      color: var(--accent-blue);
-      text-transform: uppercase;
-      letter-spacing: 1.2px;
-      text-align: center;
-      margin-bottom: 12px;
-      background: rgba(15, 23, 42, 0.95);
-      padding: 6px 18px;
-      border-radius: 20px;
-      border: 1px solid #334155;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.6);
-      z-index: 10;
+      font-size: 0.88rem; font-weight: 800; color: var(--accent-blue); text-transform: uppercase;
+      letter-spacing: 1.2px; text-align: center; margin-bottom: 12px; background: rgba(15, 23, 42, 0.95);
+      padding: 6px 18px; border-radius: 20px; border: 1px solid #334155;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.6); z-index: 10;
     }
-
     .enlarged-hex-svg-wrap {
-      width: 320px;
-      height: 277px;
-      position: relative;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      width: 320px; height: 277px; position: relative; display: flex;
+      justify-content: center; align-items: center;
     }
-
     .enlarged-hex-inner-content {
-      position: absolute;
-      top: 10%;
-      left: 14%;
-      width: 72%;
-      height: 78%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 4px;
-      box-sizing: border-box;
-      z-index: 2;
+      position: absolute; top: 10%; left: 14%; width: 72%; height: 78%;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; padding: 4px; box-sizing: border-box; z-index: 2;
     }
-
     .enlarged-icon-wrap {
-      width: 44px;
-      height: 44px;
-      background: #0f172a;
-      border-radius: 50%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin-bottom: 6px;
-      border: 1.5px solid var(--accent-blue);
-      color: var(--accent-blue);
-      flex-shrink: 0;
+      width: 44px; height: 44px; background: #0f172a; border-radius: 50%; display: flex;
+      justify-content: center; align-items: center; margin-bottom: 6px;
+      border: 1.5px solid var(--accent-blue); color: var(--accent-blue); flex-shrink: 0;
     }
-
-    .enlarged-hex-svg-wrap.completed .enlarged-icon-wrap {
-      border-color: var(--active-green);
-      color: var(--active-green);
-    }
-
+    .enlarged-hex-svg-wrap.completed .enlarged-icon-wrap { border-color: var(--active-green); color: var(--active-green); }
     .enlarged-title {
-      font-size: 1.05rem;
-      font-weight: bold;
-      color: var(--text-main);
-      margin-bottom: 4px;
-      line-height: 1.2;
-      max-width: 210px;
+      font-size: 1.05rem; font-weight: bold; color: var(--text-main); margin-bottom: 4px;
+      line-height: 1.2; max-width: 210px;
     }
-
     .enlarged-desc {
-      font-size: 0.78rem;
-      color: #cbd5e1;
-      line-height: 1.35;
-      max-width: 215px;
-      overflow-y: auto;
-      max-height: 85px;
-      margin-bottom: 4px;
+      font-size: 0.78rem; color: #cbd5e1; line-height: 1.35; max-width: 215px;
+      overflow-y: auto; max-height: 85px; margin-bottom: 4px;
     }
-
     .enlarged-reward {
-      font-size: 0.74rem;
-      color: var(--active-green);
-      font-weight: bold;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      margin-top: 2px;
+      font-size: 0.74rem; color: var(--active-green); font-weight: bold;
+      display: flex; align-items: center; gap: 4px; margin-top: 2px;
     }
-
-    .enlarged-actions {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      width: 280px;
-      margin-top: 10px;
-      z-index: 10;
-    }
-
+    .enlarged-actions { display: flex; flex-direction: column; gap: 8px; width: 280px; margin-top: 10px; z-index: 10; }
     .btn-guide-disabled {
-      background: #1e293b;
-      color: #94a3b8;
-      border: 1px dashed #64748b;
-      cursor: default;
-      opacity: 0.85;
-      width: 100%;
-      padding: 7px;
-      font-size: 0.80rem;
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
+      background: #1e293b; color: #94a3b8; border: 1px dashed #64748b; cursor: default;
+      opacity: 0.85; width: 100%; padding: 7px; font-size: 0.80rem; border-radius: 6px;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
     }
-
     .btn-toggle-completion {
-      width: 100%;
-      padding: 10px;
-      font-size: 0.90rem;
-      border-radius: 8px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      font-weight: bold;
-      border: none;
-      transition: all 0.2s;
+      width: 100%; padding: 10px; font-size: 0.90rem; border-radius: 8px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      font-weight: bold; border: none; transition: all 0.2s;
     }
-
     .btn-toggle-completion.not-done { background: var(--active-green); color: #064e3b; }
     .btn-toggle-completion.done { background: #475569; color: #f1f5f9; }
-
-    /* ELEV SKILLTREE LAG */
     .student-tree-modal {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(11, 19, 41, 0.92);
-      backdrop-filter: blur(8px);
-      z-index: 16000;
-      flex-direction: column;
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(11, 19, 41, 0.92); backdrop-filter: blur(8px); z-index: 16000; flex-direction: column;
     }
-
     .student-tree-header {
-      background: #0f172a;
-      padding: 12px 20px;
-      border-bottom: 1px solid #334155;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 10px;
+      background: #0f172a; padding: 12px 20px; border-bottom: 1px solid #334155;
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
     }
-
-    .student-tree-viewport {
-      flex: 1;
-      overflow: auto;
-      padding: 20px;
-      display: flex;
-    }
-
+    .student-tree-viewport { flex: 1; overflow: auto; padding: 20px; display: flex; }
     .splash-modal {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(11, 19, 41, 0.85);
-      backdrop-filter: blur(8px);
-      z-index: 20000;
-      justify-content: center;
-      align-items: center;
-      padding: 15px;
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(11, 19, 41, 0.85); backdrop-filter: blur(8px); z-index: 20000;
+      justify-content: center; align-items: center; padding: 15px;
     }
     .splash-card {
-      background: #1e293b;
-      border: 2px solid var(--accent-blue);
-      box-shadow: 0 0 35px rgba(56, 189, 248, 0.4);
-      border-radius: 16px;
-      padding: 30px 25px;
-      text-align: center;
-      max-width: 400px;
-      width: 100%;
+      background: #1e293b; border: 2px solid var(--accent-blue);
+      box-shadow: 0 0 35px rgba(56, 189, 248, 0.4); border-radius: 16px; padding: 30px 25px;
+      text-align: center; max-width: 400px; width: 100%;
       animation: popScale 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
     }
-    @keyframes popScale {
-      from { transform: scale(0.7); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
-    }
-
+    @keyframes popScale { from { transform: scale(0.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     footer {
-      background: #0f172a;
-      border-top: 1px solid #1e293b;
-      padding: 10px 18px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.85rem;
-      z-index: 10;
-      flex-wrap: wrap;
-      gap: 8px;
+      background: #0f172a; border-top: 1px solid #1e293b; padding: 10px 18px;
+      display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem;
+      z-index: 10; flex-wrap: wrap; gap: 8px;
     }
-
     .footer-info { display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
     .footer-label { color: var(--text-muted); margin-right: 4px; }
     .footer-val { color: var(--text-main); font-weight: bold; }
-
     .modal {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.85);
-      z-index: 10000;
-      justify-content: center;
-      align-items: center;
-      padding: 12px;
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.85); z-index: 10000; justify-content: center;
+      align-items: center; padding: 12px;
     }
-
     .modal-box {
-      background: #1e293b;
-      padding: 20px;
-      border-radius: 8px;
-      width: 560px;
-      max-width: 100%;
-      max-height: 90vh;
-      overflow-y: auto;
+      background: #1e293b; padding: 20px; border-radius: 8px; width: 560px;
+      max-width: 100%; max-height: 90vh; overflow-y: auto;
     }
-
     .admin-section { margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid #334155; }
     .admin-section h3 { margin-top: 0; font-size: 0.95rem; color: var(--accent-blue); }
     .input-group { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
-
     input[type="text"], input[type="email"], input[type="password"], select, input[type="file"] {
-      background: #0f172a;
-      border: 1px solid #475569;
-      color: white;
-      padding: 9px 12px;
-      border-radius: 6px;
-      font-size: 0.9rem;
-      width: 100%;
+      background: #0f172a; border: 1px solid #475569; color: white;
+      padding: 9px 12px; border-radius: 6px; font-size: 0.9rem; width: 100%;
     }
-
     .btn {
-      background: var(--accent-blue);
-      color: #0f172a;
-      border: none;
-      padding: 8px 14px;
-      border-radius: 6px;
-      font-weight: bold;
-      font-size: 0.85rem;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
-      touch-action: manipulation;
+      background: var(--accent-blue); color: #0f172a; border: none; padding: 8px 14px;
+      border-radius: 6px; font-weight: bold; font-size: 0.85rem; cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center; gap: 4px; touch-action: manipulation;
     }
     .btn-secondary { background: #475569; color: white; }
     .btn-danger { background: #ef4444; color: white; }
-
     .toolbar-btns { display: flex; gap: 8px; margin-bottom: 10px; }
-
     .domain-group-box {
-      background: #0f172a;
-      border: 1px solid #334155;
-      border-radius: 6px;
-      margin-bottom: 10px;
-      padding: 8px 12px;
+      background: #0f172a; border: 1px solid #334155; border-radius: 6px;
+      margin-bottom: 10px; padding: 8px 12px;
     }
-
     .domain-group-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-weight: bold;
-      color: var(--accent-blue);
-      font-size: 0.85rem;
-      margin-bottom: 6px;
-      padding-bottom: 4px;
-      border-bottom: 1px solid #1e293b;
+      display: flex; justify-content: space-between; align-items: center;
+      font-weight: bold; color: var(--accent-blue); font-size: 0.85rem;
+      margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid #1e293b;
     }
-
-    .domain-group-items {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-      padding-left: 4px;
-    }
-
+    .domain-group-items { display: flex; flex-direction: column; gap: 5px; padding-left: 4px; }
     .class-tag {
-      background: #0f172a;
-      border: 1px solid #334155;
-      padding: 10px 12px;
-      border-radius: 6px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-      flex-wrap: wrap;
-      gap: 8px;
+      background: #0f172a; border: 1px solid #334155; padding: 10px 12px; border-radius: 6px;
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;
+      flex-wrap: wrap; gap: 8px;
     }
-
     .student-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 8px 10px;
-      border-bottom: 1px solid #1e293b;
-      font-size: 0.85rem;
-      flex-wrap: wrap;
-      gap: 8px;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 8px 10px; border-bottom: 1px solid #1e293b; font-size: 0.85rem; flex-wrap: wrap; gap: 8px;
     }
-
     .tutorial-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 11000; }
     .tutorial-box {
-      position: fixed;
-      background: #0f172a;
-      border: 2px solid var(--accent-blue);
-      border-radius: 10px;
-      padding: 18px;
-      width: 300px;
-      max-width: 90vw;
-      box-shadow: 0 15px 35px rgba(0,0,0,0.9);
-      z-index: 12000;
+      position: fixed; background: #0f172a; border: 2px solid var(--accent-blue);
+      border-radius: 10px; padding: 18px; width: 300px; max-width: 90vw;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.9); z-index: 12000;
     }
     .tutorial-box h4 { margin: 0 0 8px 0; color: var(--accent-blue); }
     .tutorial-box p { margin: 0 0 15px 0; font-size: 0.82rem; line-height: 1.4; }
     .tutorial-nav { display: flex; justify-content: space-between; align-items: center; }
-
     .highlight-target {
-      position: relative !important;
-      z-index: 11500 !important;
+      position: relative !important; z-index: 11500 !important;
       box-shadow: 0 0 0 4px var(--accent-blue), 0 0 20px var(--accent-blue) !important;
       border-radius: 6px;
     }
-
     @media (max-width: 768px) {
       header { padding: 10px 15px; }
       h1 { font-size: 1.1rem; width: 100%; text-align: center; }
@@ -714,7 +323,6 @@
   </style>
 </head>
 <body>
-
   <header>
     <h1>MAKER SKILL TREE</h1>
     <div class="header-btns">
@@ -761,18 +369,14 @@
     </div>
   </footer>
 
-  <!-- FORSTØRRET SEKSKANT POPUP -->
   <div class="enlarged-hex-modal" id="enlargedHexModal" onclick="handleHexModalBackdrop(event)">
     <div class="enlarged-popup-wrapper">
-      
       <div class="enlarged-outer-header" id="enlargedMeta">Folieskæring • Niveau 1</div>
-      
       <div class="enlarged-hex-svg-wrap" id="enlargedHexWrap">
         <svg class="hex-svg" viewBox="0 0 100 86.6">
           <polygon class="hex-outer-frame" points="25,2 75,2 98,43.3 75,84.6 25,84.6 2,43.3" />
           <polygon class="hex-inner-frame" points="28,9 72,9 90,43.3 72,77.6 28,77.6 10,43.3" />
         </svg>
-        
         <div class="enlarged-hex-inner-content">
           <div class="enlarged-icon-wrap" id="enlargedIconWrap">
             <i data-lucide="box" id="enlargedIcon" style="width: 24px; height: 24px;"></i>
@@ -784,7 +388,6 @@
           </div>
         </div>
       </div>
-
       <div class="enlarged-actions">
         <div class="btn-guide-disabled" onclick="event.stopPropagation();">
           <i data-lucide="file-text" style="width: 16px; height: 16px;"></i> Vejledning (Kommer snart)
@@ -794,11 +397,9 @@
           <span id="enlargedCheckBtnText">Markér som opnået</span>
         </button>
       </div>
-
     </div>
   </div>
 
-  <!-- ELEV SKILLTREE LAG -->
   <div class="student-tree-modal" id="studentTreeModal">
     <div class="student-tree-header">
       <div>
@@ -822,7 +423,6 @@
     </div>
   </div>
 
-  <!-- PROMPT: TILMELD HOLD -->
   <div class="modal" id="joinPromptModal">
     <div class="modal-box" style="border: 2px solid var(--accent-blue);">
       <h2 style="margin-top:0; color:var(--accent-blue);">Velkommen til Maker Skill Tree!</h2>
@@ -842,7 +442,6 @@
     </div>
   </div>
 
-  <!-- AUTH MODAL -->
   <div class="modal" id="authModal">
     <div class="modal-box">
       <h2 id="authModalTitle" style="margin-top:0;">Log ind</h2>
@@ -851,10 +450,8 @@
           <label style="font-size:0.8rem; color:var(--text-muted);">Dit fulde navn:</label>
           <input type="text" id="authName" placeholder="F.eks. Lærke Jensen">
         </div>
-
         <label style="font-size:0.8rem; color:var(--text-muted);">E-mail:</label>
         <input type="email" id="authEmail" placeholder="elev@skole.dk">
-        
         <label style="font-size:0.8rem; color:var(--text-muted);">Kodeord:</label>
         <input type="password" id="authPassword" placeholder="••••••••">
       </div>
@@ -868,7 +465,6 @@
     </div>
   </div>
 
-  <!-- ELEV HOLD MODAL -->
   <div class="modal" id="teamModal">
     <div class="modal-box">
       <h2 style="margin-top:0;">Mit Hold</h2>
@@ -890,11 +486,9 @@
     </div>
   </div>
 
-  <!-- SUPERBRUGER ADMIN MODAL -->
   <div class="modal" id="adminModal">
     <div class="modal-box">
       <h2 style="margin-top:0;">Superbruger Admin</h2>
-
       <div class="admin-section">
         <h3>1. Opret nyt Hold</h3>
         <div style="display:flex; gap:8px; margin-bottom:12px;">
@@ -902,11 +496,9 @@
           <button class="btn" onclick="handleCreateClass()">Opret Hold</button>
         </div>
       </div>
-
       <div class="admin-section">
         <h3>2. Administrer Hold & Hold-Kategorier</h3>
         <div id="adminClassList"><span style="font-size:0.8rem; color:var(--text-muted);">Henter hold...</span></div>
-        
         <div id="adminStudentProgressView" style="display:none; margin-top:15px; background:#0f172a; padding:12px; border-radius:6px; border:1px solid #334155;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
             <strong id="progressClassTitle" style="color:var(--accent-blue);">Elever på holdet</strong>
@@ -914,24 +506,20 @@
           </div>
           <div id="studentProgressList"></div>
         </div>
-
         <div id="adminClassCategoriesView" style="display:none; margin-top:15px; background:#0f172a; padding:12px; border-radius:6px; border:1px solid #334155;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
             <strong id="classCategoriesTitle" style="color:var(--accent-blue);">Vælg aktive kategorier</strong>
             <button class="btn btn-secondary" style="padding:2px 8px; font-size:0.75rem;" onclick="closeClassCategoriesView()">✕ Luk</button>
           </div>
           <p style="font-size:0.75rem; color:var(--text-muted); margin:0 0 10px 0;">Vælg hvilke kategorier dette hold skal arbejde med:</p>
-          
           <div class="toolbar-btns">
             <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="setAllClassCategories(true)">✓ Vælg alle</button>
             <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="setAllClassCategories(false)">✕ Fjern alle</button>
           </div>
-
           <div id="classCategoriesCheckboxes" style="max-height:240px; overflow-y:auto; margin-bottom:12px;"></div>
           <button class="btn" style="width:100%;" onclick="saveClassCategories()">💾 Gem Hold-Kategorier</button>
         </div>
       </div>
-
       <div class="admin-section">
         <h3>3. Opdater Kompetencer (CSV)</h3>
         <p style="font-size: 0.8rem; color: var(--text-muted); margin:0 0 10px 0;">Format: Kategori, Kategori_Titel, Underkategori, ID, Niveau, SVG_Ikon, Kort_Beskrivelse, Kompetence</p>
@@ -940,7 +528,6 @@
           <button class="btn" onclick="handleFileUpload()">Upload</button>
         </div>
       </div>
-
       <div class="admin-section">
         <h3>4. Generelt Synlige Kategorier (Global)</h3>
         <div class="toolbar-btns">
@@ -949,19 +536,16 @@
         </div>
         <div id="adminCategoryList" style="max-height:240px; overflow-y:auto;"></div>
       </div>
-
       <div class="admin-section" style="border-bottom:none;">
         <h3>5. Data-styring</h3>
         <button class="btn btn-danger" onclick="clearAllData()">Ryd Lokal Cache</button>
       </div>
-
       <div style="text-align: right;">
         <button class="btn" onclick="closeAdmin()">Luk</button>
       </div>
     </div>
   </div>
 
-  <!-- TITLE SPLASHSCREEN -->
   <div class="splash-modal" id="titleSplash">
     <div class="splash-card">
       <div style="font-size: 3rem; margin-bottom: 10px;" id="splashIcon">👑</div>
@@ -972,7 +556,6 @@
     </div>
   </div>
 
-  <!-- TUTORIAL -->
   <div class="tutorial-overlay" id="tutorialOverlay"></div>
   <div class="tutorial-box" id="tutorialBox" style="display:none;">
     <h4 id="tutTitle">Velkommen!</h4>
@@ -996,46 +579,19 @@
     }
 
     const DOMAIN_MAP = {
-      'Filhåndtering': '💻 Software',
-      'Vektorgrafik': '💻 Software',
-      'Rastergrafik': '💻 Software',
-      '3D-Modellering': '💻 Software',
-
-      'CO2 Laserskæring': '⚙️ Maskiner',
-      'Laserskæring': '⚙️ Maskiner',
-      '3D-Printning': '⚙️ Maskiner',
-      'Folieskæring': '⚙️ Maskiner',
-      'Digitalt Broderi': '⚙️ Maskiner',
-      'Materialekendskab': '⚙️ Maskiner',
-
-      'Elektronik': '🔌 Hardware og Elektronik',
-      'Microcontroller': '🔌 Hardware og Elektronik',
-
+      'Filhåndtering': '💻 Software', 'Vektorgrafik': '💻 Software', 'Rastergrafik': '💻 Software', '3D-Modellering': '💻 Software',
+      'CO2 Laserskæring': '⚙️ Maskiner', 'Laserskæring': '⚙️ Maskiner', '3D-Printning': '⚙️ Maskiner', 'Folieskæring': '⚙️ Maskiner', 'Digitalt Broderi': '⚙️ Maskiner', 'Materialekendskab': '⚙️ Maskiner',
+      'Elektronik': '🔌 Hardware og Elektronik', 'Microcontroller': '🔌 Hardware og Elektronik',
       'Værkstedskultur': '🤝 Værkstedskultur',
-
-      'Netværk & Fællesskab': '👥 Fællesskab & Netværk',
-      'Pædagogik & Praksis': '🎓 Didaktik & Facilitering',
-      'Entreprenørskab': '💼 Forretning & Værksted',
-      'Kultur & Oplevelse': '✨ Maker Faire & Kultur'
+      'Netværk & Fællesskab': '👥 Fællesskab & Netværk', 'Pædagogik & Praksis': '🎓 Didaktik & Facilitering', 'Entreprenørskab': '💼 Forretning & Værksted', 'Kultur & Oplevelse': '✨ Maker Faire & Kultur'
     };
 
     const DOMAIN_ORDER = [
-      '💻 Software', 
-      '⚙️ Maskiner', 
-      '🔌 Hardware og Elektronik', 
-      '🤝 Værkstedskultur',
-      '👥 Fællesskab & Netværk',
-      '🎓 Didaktik & Facilitering',
-      '💼 Forretning & Værksted',
-      '✨ Maker Faire & Kultur'
+      '💻 Software', '⚙️ Maskiner', '🔌 Hardware og Elektronik', '🤝 Værkstedskultur',
+      '👥 Fællesskab & Netværk', '🎓 Didaktik & Facilitering', '💼 Forretning & Værksted', '✨ Maker Faire & Kultur'
     ];
 
-    const MAKER_DEFAULT_DOMAINS = [
-      '💻 Software', 
-      '⚙️ Maskiner', 
-      '🔌 Hardware og Elektronik', 
-      '🤝 Værkstedskultur'
-    ];
+    const MAKER_DEFAULT_DOMAINS = ['💻 Software', '⚙️ Maskiner', '🔌 Hardware og Elektronik', '🤝 Værkstedskultur'];
 
     const CATEGORY_THEMES = {
       'Netværk & Fællesskab': { class: 'theme-network', color: '#38bdf8', label: 'Netværk & Fællesskab' },
@@ -1047,15 +603,12 @@
     function getUnlockedCategoryTitles(catName, skillsList, progress) {
       const catSkills = skillsList.filter(s => s.cat === catName).sort((a, b) => a.level - b.level);
       const unlocked = [];
-
       for (let i = 0; i < catSkills.length; i++) {
         const s = catSkills[i];
         const title = (s.catTitle || '').trim();
         if (title && title !== '#' && title !== '-' && title.toLowerCase() !== 'null') {
           const allPriorDone = catSkills.slice(0, i + 1).every(prevSkill => progress[prevSkill.id]);
-          if (allPriorDone) {
-            unlocked.push({ title: title, skillId: s.id, level: s.level });
-          }
+          if (allPriorDone) unlocked.push({ title: title, skillId: s.id, level: s.level });
         }
       }
       return unlocked;
@@ -1063,38 +616,21 @@
 
     function getLatestCategoryTitle(catName, skillsList, progress) {
       const titles = getUnlockedCategoryTitles(catName, skillsList, progress);
-      if (titles.length === 0) return null;
-      return titles[titles.length - 1].title;
+      return titles.length === 0 ? null : titles[titles.length - 1].title;
     }
 
     function calculateGlobalTitle(allSkillsList, progress) {
       if (allSkillsList.length === 0) return 'Deltager';
-
       const totalCompleted = allSkillsList.filter(s => progress[s.id]).length;
       const currentYear = new Date().getFullYear();
-
-      if (totalCompleted === allSkillsList.length && allSkillsList.length > 0) {
-        return `Maker-Guru ${currentYear}`;
-      }
-
+      if (totalCompleted === allSkillsList.length && allSkillsList.length > 0) return `Maker-Guru ${currentYear}`;
       const allCats = [...new Set(allSkillsList.map(s => s.cat))];
       const allCatsHaveTitle = allCats.length > 0 && allCats.every(c => getUnlockedCategoryTitles(c, allSkillsList, progress).length > 0);
       const advancedCompleted = allSkillsList.filter(s => s.level >= 5 && progress[s.id]).length;
-
-      if (allCatsHaveTitle && advancedCompleted >= 8) {
-        return `Værksteds-Troldmand ${currentYear}`;
-      }
-
+      if (allCatsHaveTitle && advancedCompleted >= 8) return `Værksteds-Troldmand ${currentYear}`;
       let totalBadges = 0;
-      allCats.forEach(c => {
-        totalBadges += getUnlockedCategoryTitles(c, allSkillsList, progress).length;
-      });
-
-      if (totalBadges > 0) {
-        return `${totalBadges} opnåede titler`;
-      }
-
-      return 'Deltager';
+      allCats.forEach(c => { totalBadges += getUnlockedCategoryTitles(c, allSkillsList, progress).length; });
+      return totalBadges > 0 ? `${totalBadges} opnåede titler` : 'Deltager';
     }
 
     let allSkills = [];
@@ -1114,9 +650,7 @@
     function generate5LetterCode() {
       const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
       let code = '';
-      for (let i = 0; i < 5; i++) {
-        code += chars.charAt(Math.floor(Math.random() * chars.length));
-      }
+      for (let i = 0; i < 5; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
       return code;
     }
 
@@ -1132,18 +666,12 @@
 
     function parseCSVLine(line) {
       const result = [];
-      let current = '';
-      let inQuotes = false;
+      let current = '', inQuotes = false;
       for (let i = 0; i < line.length; i++) {
         const char = line[i];
-        if (char === '"') {
-          inQuotes = !inQuotes;
-        } else if (char === ',' && !inQuotes) {
-          result.push(current.trim());
-          current = '';
-        } else {
-          current += char;
-        }
+        if (char === '"') inQuotes = !inQuotes;
+        else if (char === ',' && !inQuotes) { result.push(current.trim()); current = ''; }
+        else current += char;
       }
       result.push(current.trim());
       return result;
@@ -1152,7 +680,6 @@
     async function parseCSVText(text, showAlert = true) {
       const lines = text.trim().split(/\r?\n/);
       if (lines.length < 2) return;
-
       const header = parseCSVLine(lines[0]).map(h => h.toLowerCase().trim());
       const catIdx = header.indexOf('kategori');
       const catTitleIdx = header.indexOf('kategori_titel');
@@ -1162,22 +689,18 @@
       const iconIdx = header.indexOf('svg_ikon');
       const shortDescIdx = header.indexOf('kort_beskrivelse');
       const descIdx = header.indexOf('kompetence');
-
       const rowsToUpsert = [];
 
       for (let i = 1; i < lines.length; i++) {
         if (!lines[i].trim()) continue;
         const values = parseCSVLine(lines[i]);
         if (values.length < 5) continue;
-
         const category = (catIdx >= 0 ? values[catIdx] : values[0]) || '';
         const id = (idIdx >= 0 ? values[idIdx] : values[3]) || '';
         if (!id) continue;
-
         const rawCatTitle = catTitleIdx >= 0 ? values[catTitleIdx] : '';
         const catTitle = (rawCatTitle && rawCatTitle !== '#') ? rawCatTitle.trim() : '#';
-
-        const skillObj = {
+        rowsToUpsert.push({
           domain: DOMAIN_MAP[category.trim()] || '💻 Software',
           category: category.trim(),
           category_title: catTitle,
@@ -1187,62 +710,37 @@
           svg_icon: sanitizeIcon(iconIdx >= 0 ? values[iconIdx] : values[5]),
           short_desc: ((shortDescIdx >= 0 ? values[shortDescIdx] : values[6]) || '').trim(),
           full_desc: ((descIdx >= 0 ? values[descIdx] : values[7]) || '').replace(/^"|"$/g, '').trim()
-        };
-
-        rowsToUpsert.push(skillObj);
+        });
       }
 
       if (supabaseClient) {
         try {
-          const { error } = await supabaseClient
-            .from('skills')
-            .upsert(rowsToUpsert, { onConflict: 'id' });
-
+          const { error } = await supabaseClient.from('skills').upsert(rowsToUpsert, { onConflict: 'id' });
           if (error) throw error;
-
-          const { data: allData, error: fetchErr } = await supabaseClient
-            .from('skills')
-            .select('*')
-            .order('level', { ascending: true });
-
+          const { data: allData, error: fetchErr } = await supabaseClient.from('skills').select('*').order('level', { ascending: true });
           if (!fetchErr && allData) {
             allSkills = allData.map(s => ({
-              cat: s.category,
-              catTitle: s.category_title || '#',
-              subCat: s.subcategory || '',
-              id: s.id,
-              level: s.level,
-              svg: sanitizeIcon(s.svg_icon),
-              shortDesc: s.short_desc,
-              fullDesc: s.full_desc
+              cat: s.category, catTitle: s.category_title || '#', subCat: s.subcategory || '',
+              id: s.id, level: s.level, svg: sanitizeIcon(s.svg_icon), shortDesc: s.short_desc, fullDesc: s.full_desc
             }));
             localStorage.setItem('ms_allSkills', JSON.stringify(allSkills));
           }
-
-          if (showAlert) alert(`Succes: ${rowsToUpsert.length} kompetencer blev synkroniseret til Supabase!`);
+          if (showAlert) alert(`Succes: ${rowsToUpsert.length} kompetencer synkroniseret!`);
         } catch (err) {
-          console.error('Fejl ved upload til Supabase:', err);
           if (showAlert) alert('Fejl ved Supabase-synkronisering: ' + err.message);
         }
       } else {
         const existingMap = new Map(allSkills.map(s => [s.id, s]));
         rowsToUpsert.forEach(r => {
           existingMap.set(r.id, {
-            cat: r.category,
-            catTitle: r.category_title,
-            subCat: r.subcategory,
-            id: r.id,
-            level: r.level,
-            svg: r.svg_icon,
-            shortDesc: r.short_desc,
-            fullDesc: r.full_desc
+            cat: r.category, catTitle: r.category_title, subCat: r.subcategory,
+            id: r.id, level: r.level, svg: r.svg_icon, shortDesc: r.short_desc, fullDesc: r.full_desc
           });
         });
         allSkills = Array.from(existingMap.values());
         localStorage.setItem('ms_allSkills', JSON.stringify(allSkills));
-        if (showAlert) alert(`CSV indlæst lokalt (${rowsToUpsert.length} mål tilføjet/opdateret).`);
+        if (showAlert) alert(`CSV indlæst lokalt (${rowsToUpsert.length} mål).`);
       }
-
       updateViewFilterOptions();
       renderApp();
       renderAdmin();
@@ -1251,11 +749,7 @@
     function handleFileUpload() {
       const fileInput = document.getElementById('csvFileInput');
       const file = fileInput.files[0];
-      if (!file) {
-        alert('Vælg venligst en CSV-fil først.');
-        return;
-      }
-
+      if (!file) return alert('Vælg venligst en CSV-fil først.');
       const reader = new FileReader();
       reader.onload = async function(e) {
         await parseCSVText(e.target.result, true);
@@ -1267,70 +761,41 @@
     async function checkUserRole(userId) {
       if (!supabaseClient || !userId) return false;
       try {
-        const { data, error } = await supabaseClient
-          .from('profiles')
-          .select('role')
-          .eq('id', userId)
-          .maybeSingle();
-
-        if (error || !data) return false;
-        return data.role === 'admin' || data.role === 'teacher';
-      } catch (e) {
-        return false;
-      }
+        const { data, error } = await supabaseClient.from('profiles').select('role').eq('id', userId).maybeSingle();
+        return (!error && data) ? (data.role === 'admin' || data.role === 'teacher') : false;
+      } catch (e) { return false; }
     }
 
     async function ensureUserProfile(user) {
       if (!supabaseClient || !user) return;
       try {
-        const { data } = await supabaseClient
-          .from('profiles')
-          .select('id, full_name, role')
-          .eq('id', user.id)
-          .maybeSingle();
-
+        const { data } = await supabaseClient.from('profiles').select('id, full_name, role').eq('id', user.id).maybeSingle();
         if (!data) {
           const fallbackName = user.user_metadata?.full_name || user.email.split('@')[0];
           await supabaseClient.from('profiles').insert({
-            id: user.id,
-            username: user.email.split('@')[0],
-            full_name: fallbackName,
-            role: 'student'
+            id: user.id, username: user.email.split('@')[0], full_name: fallbackName, role: 'student'
           });
         }
-      } catch (e) {
-        console.error('Kunne ikke sikre profil:', e);
-      }
+      } catch (e) {}
     }
 
     async function initData() {
       const localCachedSkills = JSON.parse(localStorage.getItem('ms_allSkills'));
-      if (localCachedSkills && localCachedSkills.length > 0) {
-        allSkills = localCachedSkills;
-      }
-
+      if (localCachedSkills && localCachedSkills.length > 0) allSkills = localCachedSkills;
       if (!supabaseClient) {
         userProgress = JSON.parse(localStorage.getItem('ms_local_progress')) || {};
         updateViewFilterOptions();
         renderApp();
         return;
       }
-
       try {
         const { data: { session } } = await supabaseClient.auth.getSession();
         if (session) {
           currentUser = session.user;
           await ensureUserProfile(currentUser);
-          
-          const { data: prof } = await supabaseClient
-            .from('profiles')
-            .select('full_name, role')
-            .eq('id', currentUser.id)
-            .maybeSingle();
-
+          const { data: prof } = await supabaseClient.from('profiles').select('full_name, role').eq('id', currentUser.id).maybeSingle();
           currentUserName = prof?.full_name || currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
           const isAdmin = prof?.role === 'admin' || prof?.role === 'teacher';
-          
           updateAuthUI(true, currentUserName, isAdmin);
           await fetchUserProgress();
           await fetchUserClass();
@@ -1339,30 +804,17 @@
           userProgress = JSON.parse(localStorage.getItem('ms_local_progress')) || {};
           updateAuthUI(false);
         }
-
-        const { data: skillsData, error: skillsError } = await supabaseClient
-          .from('skills')
-          .select('*')
-          .order('level', { ascending: true });
-
+        const { data: skillsData, error: skillsError } = await supabaseClient.from('skills').select('*').order('level', { ascending: true });
         if (!skillsError && skillsData && skillsData.length > 0) {
           allSkills = skillsData.map(s => ({
-            cat: s.category,
-            catTitle: s.category_title || '#',
-            subCat: s.subcategory || '',
-            id: s.id,
-            level: s.level,
-            svg: sanitizeIcon(s.svg_icon),
-            shortDesc: s.short_desc,
-            fullDesc: s.full_desc
+            cat: s.category, catTitle: s.category_title || '#', subCat: s.subcategory || '',
+            id: s.id, level: s.level, svg: sanitizeIcon(s.svg_icon), shortDesc: s.short_desc, fullDesc: s.full_desc
           }));
           localStorage.setItem('ms_allSkills', JSON.stringify(allSkills));
         }
-
         updateViewFilterOptions();
         renderApp();
       } catch (err) {
-        console.error('Fejl under initialisering:', err);
         updateViewFilterOptions();
         renderApp();
       }
@@ -1371,49 +823,24 @@
     function checkShowJoinPrompt() {
       const hidePrompt = localStorage.getItem('ms_hide_join_prompt');
       if (currentUser && userEnrolledClasses.length === 0 && !hidePrompt) {
-        setTimeout(() => {
-          document.getElementById('joinPromptModal').style.display = 'flex';
-        }, 800);
+        setTimeout(() => { document.getElementById('joinPromptModal').style.display = 'flex'; }, 800);
       }
     }
 
     function closeJoinPromptModal() {
-      if (document.getElementById('dontShowJoinPromptAgain').checked) {
-        localStorage.setItem('ms_hide_join_prompt', 'true');
-      }
+      if (document.getElementById('dontShowJoinPromptAgain').checked) localStorage.setItem('ms_hide_join_prompt', 'true');
       document.getElementById('joinPromptModal').style.display = 'none';
     }
 
     async function handlePromptJoinClass() {
       const codeInput = document.getElementById('promptJoinCodeInput');
       const code = codeInput.value.trim().toUpperCase();
-
-      if (code.length !== 5) {
-        alert('Holdkoden skal være på 5 bogstaver.');
-        return;
-      }
-
-      const { data: classData, error: findError } = await supabaseClient
-        .from('classes')
-        .select('id, name')
-        .ilike('invite_code', code)
-        .maybeSingle();
-
-      if (findError || !classData) {
-        alert('Fandt intet hold med koden: ' + code);
-        return;
-      }
-
-      const { error: joinError } = await supabaseClient
-        .from('class_members')
-        .insert({
-          class_id: classData.id,
-          user_id: currentUser.id
-        });
-
-      if (joinError) {
-        alert('Du er allerede tilmeldt dette hold eller der opstod en fejl.');
-      } else {
+      if (code.length !== 5) return alert('Holdkoden skal være på 5 bogstaver.');
+      const { data: classData, error: findError } = await supabaseClient.from('classes').select('id, name').ilike('invite_code', code).maybeSingle();
+      if (findError || !classData) return alert('Fandt intet hold med koden: ' + code);
+      const { error: joinError } = await supabaseClient.from('class_members').insert({ class_id: classData.id, user_id: currentUser.id });
+      if (joinError) alert('Du er allerede tilmeldt dette hold eller der opstod en fejl.');
+      else {
         alert(`Du er nu tilmeldt holdet: ${classData.name}!`);
         closeJoinPromptModal();
         await fetchUserClass();
@@ -1424,46 +851,30 @@
     async function fetchUserProgress() {
       if (!currentUser || !supabaseClient) return;
       try {
-        const { data, error } = await supabaseClient
-          .from('user_skills')
-          .select('skill_id')
-          .eq('user_id', currentUser.id);
-
+        const { data, error } = await supabaseClient.from('user_skills').select('skill_id').eq('user_id', currentUser.id);
         if (!error && data) {
           userProgress = {};
           data.forEach(row => { userProgress[row.skill_id] = true; });
         }
-      } catch (e) {
-        console.error('Fejl ved hentning af fremskridt:', e);
-      }
+      } catch (e) {}
     }
 
     async function fetchUserClass() {
       if (!currentUser || !supabaseClient) return;
       try {
-        const { data, error } = await supabaseClient
-          .from('class_members')
-          .select('class_id, classes(id, name, invite_code, active_categories)')
-          .eq('user_id', currentUser.id);
-
+        const { data, error } = await supabaseClient.from('class_members').select('class_id, classes(id, name, invite_code, active_categories)').eq('user_id', currentUser.id);
         if (!error && data && data.length > 0) {
           userEnrolledClasses = data.map(d => ({
-            id: d.classes?.id,
-            name: d.classes?.name,
-            code: d.classes?.invite_code,
-            categories: d.classes?.active_categories || null
+            id: d.classes?.id, name: d.classes?.name, code: d.classes?.invite_code, categories: d.classes?.active_categories || null
           })).filter(c => c.id);
-
           currentUserClass = userEnrolledClasses.map(c => c.name).join(', ');
         } else {
-          userEnrolledClasses = [];
-          currentUserClass = 'Intet hold';
+          userEnrolledClasses = []; currentUserClass = 'Intet hold';
         }
         document.getElementById('footerUserClass').innerText = currentUserClass;
         updateViewFilterOptions();
       } catch (e) {
-        userEnrolledClasses = [];
-        currentUserClass = 'Intet hold';
+        userEnrolledClasses = []; currentUserClass = 'Intet hold';
         document.getElementById('footerUserClass').innerText = 'Intet hold';
         updateViewFilterOptions();
       }
@@ -1472,43 +883,28 @@
     function updateViewFilterOptions() {
       const select = document.getElementById('userViewFilterSelect');
       if (!select) return;
-
-      select.innerHTML = `
-        <option value="MAKER_DEFAULT">🛠️ Maker Skills (Standard)</option>
-        <option value="ALL">🌐 Vis Alt (Alle moduler)</option>
-      `;
-
+      select.innerHTML = `<option value="MAKER_DEFAULT">🛠️ Maker Skills (Standard)</option><option value="ALL">🌐 Vis Alt (Alle moduler)</option>`;
       if (userEnrolledClasses.length > 0) {
         const grp = document.createElement('optgroup');
         grp.label = '— Dine Tilmeldte Hold —';
         userEnrolledClasses.forEach(c => {
           const opt = document.createElement('option');
-          opt.value = c.id;
-          opt.innerText = `👥 Hold: ${c.name}`;
-          grp.appendChild(opt);
+          opt.value = c.id; opt.innerText = `👥 Hold: ${c.name}`; grp.appendChild(opt);
         });
         select.appendChild(grp);
       }
-
       const activeDomains = [...new Set(allSkills.map(s => DOMAIN_MAP[s.cat] || '💻 Software'))];
       if (activeDomains.length > 1) {
         const grp = document.createElement('optgroup');
         grp.label = '— Temaer / Domæner —';
         activeDomains.forEach(d => {
           const opt = document.createElement('option');
-          opt.value = `DOMAIN:${d}`;
-          opt.innerText = `📂 ${d}`;
-          grp.appendChild(opt);
+          opt.value = `DOMAIN:${d}`; opt.innerText = `📂 ${d}`; grp.appendChild(opt);
         });
         select.appendChild(grp);
       }
-
-      if (Array.from(select.options).some(o => o.value === selectedViewFilter)) {
-        select.value = selectedViewFilter;
-      } else {
-        selectedViewFilter = 'MAKER_DEFAULT';
-        select.value = 'MAKER_DEFAULT';
-      }
+      if (Array.from(select.options).some(o => o.value === selectedViewFilter)) select.value = selectedViewFilter;
+      else { selectedViewFilter = 'MAKER_DEFAULT'; select.value = 'MAKER_DEFAULT'; }
     }
 
     function handleViewFilterChange(val) {
@@ -1521,25 +917,14 @@
       const authBtn = document.getElementById('authBtn');
       const adminBtn = document.getElementById('adminBtn');
       const footerUserName = document.getElementById('footerUserName');
-
       if (isLoggedIn) {
-        authBtn.innerText = '🚪 Log ud';
-        authBtn.className = 'btn btn-secondary';
-        authBtn.onclick = handleSignOut;
-        footerUserName.innerText = displayName;
-
-        if (isAdmin) {
-          adminBtn.style.display = 'inline-block';
-        } else {
-          adminBtn.style.display = 'none';
-        }
+        authBtn.innerText = '🚪 Log ud'; authBtn.className = 'btn btn-secondary';
+        authBtn.onclick = handleSignOut; footerUserName.innerText = displayName;
+        adminBtn.style.display = isAdmin ? 'inline-block' : 'none';
       } else {
-        authBtn.innerText = '🔑 Log ind';
-        authBtn.className = 'btn';
-        authBtn.onclick = openAuthModal;
-        adminBtn.style.display = 'none';
-        footerUserName.innerText = 'Gæst';
-        document.getElementById('footerUserClass').innerText = 'Intet hold';
+        authBtn.innerText = '🔑 Log ind'; authBtn.className = 'btn';
+        authBtn.onclick = openAuthModal; adminBtn.style.display = 'none';
+        footerUserName.innerText = 'Gæst'; document.getElementById('footerUserClass').innerText = 'Intet hold';
       }
     }
 
@@ -1555,63 +940,32 @@
       document.getElementById('nameInputWrapper').style.display = isSignUpMode ? 'block' : 'none';
       document.getElementById('authModalTitle').innerText = isSignUpMode ? 'Opret Bruger' : 'Log ind';
       document.getElementById('authSubmitBtn').innerText = isSignUpMode ? 'Opret Profil' : 'Log ind';
-      document.getElementById('authToggleLink').innerText = isSignUpMode 
-        ? 'Har du allerede en bruger? Log ind her' 
-        : 'Har du ikke en bruger? Opret her';
+      document.getElementById('authToggleLink').innerText = isSignUpMode ? 'Har du allerede en bruger? Log ind her' : 'Har du ikke en bruger? Opret her';
     }
 
     async function handleAuthAction() {
       if (!supabaseClient) return;
-
       const email = document.getElementById('authEmail').value.trim();
       const password = document.getElementById('authPassword').value.trim();
       const fullName = document.getElementById('authName').value.trim();
-
-      if (!email || !password) {
-        alert('Udfyld venligst e-mail og kodeord.');
-        return;
-      }
-
+      if (!email || !password) return alert('Udfyld venligst e-mail og kodeord.');
       try {
         if (isSignUpMode) {
-          if (!fullName) {
-            alert('Udfyld venligst dit fulde navn.');
-            return;
-          }
-          const { data, error } = await supabaseClient.auth.signUp({
-            email,
-            password,
-            options: { data: { full_name: fullName } }
-          });
+          if (!fullName) return alert('Udfyld venligst dit fulde navn.');
+          const { data, error } = await supabaseClient.auth.signUp({ email, password, options: { data: { full_name: fullName } } });
           if (error) throw error;
-          
           if (data.user) {
-            await supabaseClient.from('profiles').upsert({
-              id: data.user.id,
-              username: email.split('@')[0],
-              full_name: fullName,
-              role: 'student'
-            });
+            await supabaseClient.from('profiles').upsert({ id: data.user.id, username: email.split('@')[0], full_name: fullName, role: 'student' });
           }
-
-          alert('Bruger oprettet!');
-          currentUser = data.user;
-          currentUserName = fullName;
+          alert('Bruger oprettet!'); currentUser = data.user; currentUserName = fullName;
         } else {
           const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
           if (error) throw error;
           currentUser = data.user;
           await ensureUserProfile(currentUser);
-
-          const { data: prof } = await supabaseClient
-            .from('profiles')
-            .select('full_name')
-            .eq('id', currentUser.id)
-            .maybeSingle();
-
+          const { data: prof } = await supabaseClient.from('profiles').select('full_name').eq('id', currentUser.id).maybeSingle();
           currentUserName = prof?.full_name || currentUser.user_metadata?.full_name || email.split('@')[0];
         }
-
         closeAuthModal();
         const isAdmin = await checkUserRole(currentUser.id);
         updateAuthUI(true, currentUserName, isAdmin);
@@ -1619,155 +973,85 @@
         await fetchUserClass();
         checkShowJoinPrompt();
         renderApp();
-      } catch (err) {
-        alert('Auth fejl: ' + err.message);
-      }
+      } catch (err) { alert('Auth fejl: ' + err.message); }
     }
 
     async function handleSignOut() {
       if (supabaseClient) await supabaseClient.auth.signOut();
-      currentUser = null;
-      currentUserName = "Gæst";
-      currentUserClass = "Intet hold";
-      userEnrolledClasses = [];
-      selectedViewFilter = 'MAKER_DEFAULT';
+      currentUser = null; currentUserName = "Gæst"; currentUserClass = "Intet hold";
+      userEnrolledClasses = []; selectedViewFilter = 'MAKER_DEFAULT';
       userProgress = JSON.parse(localStorage.getItem('ms_local_progress')) || {};
-      updateAuthUI(false);
-      updateViewFilterOptions();
-      renderApp();
+      updateAuthUI(false); updateViewFilterOptions(); renderApp();
     }
 
     async function handleCreateClass() {
-      if (!currentUser || !supabaseClient) {
-        alert('Du skal være logget ind for at oprette et hold.');
-        return;
-      }
-
+      if (!currentUser || !supabaseClient) return alert('Du skal være logget ind for at oprette et hold.');
       const nameInput = document.getElementById('newClassNameInput');
       const className = nameInput.value.trim();
       if (!className) return;
-
       const code = generate5LetterCode();
-
-      const { error } = await supabaseClient
-        .from('classes')
-        .insert({
-          name: className,
-          invite_code: code,
-          created_by: currentUser.id
-        });
-
-      if (error) {
-        alert('Kunne ikke oprette hold: ' + error.message);
-      } else {
-        nameInput.value = '';
-        renderAdmin();
-      }
+      const { error } = await supabaseClient.from('classes').insert({ name: className, invite_code: code, created_by: currentUser.id });
+      if (error) alert('Kunne ikke oprette hold: ' + error.message);
+      else { nameInput.value = ''; renderAdmin(); }
     }
 
     async function handleJoinClass() {
-      if (!currentUser || !supabaseClient) {
-        alert('Log ind for at tilmelde dig et hold.');
-        return;
-      }
-
+      if (!currentUser || !supabaseClient) return alert('Log ind for at tilmelde dig et hold.');
       const codeInput = document.getElementById('joinCodeInput');
       const code = codeInput.value.trim().toUpperCase();
-
-      if (code.length !== 5) {
-        alert('Holdkoden skal være på 5 bogstaver.');
-        return;
-      }
-
-      const { data: classData, error: findError } = await supabaseClient
-        .from('classes')
-        .select('id, name')
-        .ilike('invite_code', code)
-        .maybeSingle();
-
-      if (findError || !classData) {
-        alert('Fandt intet hold med koden: ' + code);
-        return;
-      }
-
-      const { error: joinError } = await supabaseClient
-        .from('class_members')
-        .insert({
-          class_id: classData.id,
-          user_id: currentUser.id
-        });
-
-      if (joinError) {
-        alert('Du er allerede tilmeldt dette hold eller der opstod en fejl.');
-      } else {
+      if (code.length !== 5) return alert('Holdkoden skal være på 5 bogstaver.');
+      const { data: classData, error: findError } = await supabaseClient.from('classes').select('id, name').ilike('invite_code', code).maybeSingle();
+      if (findError || !classData) return alert('Fandt intet hold med koden: ' + code);
+      const { error: joinError } = await supabaseClient.from('class_members').insert({ class_id: classData.id, user_id: currentUser.id });
+      if (joinError) alert('Du er allerede tilmeldt dette hold eller der opstod en fejl.');
+      else {
         alert(`Du er nu tilmeldt holdet: ${classData.name}!`);
-        codeInput.value = '';
-        await fetchUserClass();
-        renderTeamModal();
-        handleViewFilterChange(classData.id);
+        codeInput.value = ''; await fetchUserClass(); renderTeamModal(); handleViewFilterChange(classData.id);
       }
     }
 
     async function renderTeamModal() {
       const container = document.getElementById('userClassList');
-      if (!currentUser || !supabaseClient) {
-        container.innerHTML = '<span style="font-size:0.8rem; color:var(--text-muted);">Log ind for at se dine hold.</span>';
-        return;
-      }
-
-      if (userEnrolledClasses.length === 0) {
+      if (!currentUser || !supabaseClient || userEnrolledClasses.length === 0) {
         container.innerHTML = '<span style="font-size:0.8rem; color:var(--text-muted);">Du er ikke tilmeldt nogen hold endnu.</span>';
         return;
       }
-
       container.innerHTML = `
         <div style="margin-bottom:12px;">
           <label style="font-size:0.8rem; color:var(--text-muted);">Vælg aktiv visning:</label>
           <select style="margin-top:4px;" onchange="handleViewFilterChange(this.value)">
             <option value="MAKER_DEFAULT" ${selectedViewFilter === 'MAKER_DEFAULT' ? 'selected' : ''}>🛠️ Maker Skills (Standard)</option>
             <option value="ALL" ${selectedViewFilter === 'ALL' ? 'selected' : ''}>🌐 Vis alt (Alle moduler)</option>
-            ${userEnrolledClasses.map(c => `
-              <option value="${c.id}" ${selectedViewFilter === c.id ? 'selected' : ''}>👥 Hold: ${c.name}</option>
-            `).join('')}
+            ${userEnrolledClasses.map(c => `<option value="${c.id}" ${selectedViewFilter === c.id ? 'selected' : ''}>👥 Hold: ${c.name}</option>`).join('')}
           </select>
         </div>
-        ${userEnrolledClasses.map(d => `
-          <div class="class-tag">
-            <span><strong>${d.name}</strong> (Kode: <code style="color:var(--accent-blue); font-weight:bold;">${d.code || '-'}</code>)</span>
-          </div>
-        `).join('')}
+        ${userEnrolledClasses.map(d => `<div class="class-tag"><span><strong>${d.name}</strong> (Kode: <code style="color:var(--accent-blue); font-weight:bold;">${d.code || '-'}</code>)</span></div>`).join('')}
       `;
     }
 
     function buildGroupedCategoryHTML(containerId, checkboxClass, isCheckedFn) {
       const container = document.getElementById(containerId);
       container.innerHTML = '';
-
       const allCats = [...new Set(allSkills.map(s => s.cat))];
       if (allCats.length === 0) {
         container.innerHTML = '<span style="font-size:0.8rem; color:var(--text-muted);">Ingen kategorier fundet.</span>';
         return;
       }
-
       const domainGroups = {};
       allCats.forEach(cat => {
         const dom = DOMAIN_MAP[cat] || '💻 Software';
         if (!domainGroups[dom]) domainGroups[dom] = [];
         domainGroups[dom].push(cat);
       });
-
       Object.keys(domainGroups).forEach((domain, gIdx) => {
         const catsInGroup = domainGroups[domain];
         const allChecked = catsInGroup.every(cat => isCheckedFn(cat));
-        const btnLabel = allChecked ? 'Skjul alle' : 'Vis alle';
-
         const groupEl = document.createElement('div');
         groupEl.className = 'domain-group-box';
-
         groupEl.innerHTML = `
           <div class="domain-group-header">
             <span>${domain}</span>
-            <button type="button" id="btn_grp_${containerId}_${gIdx}" class="btn btn-secondary" style="padding:2px 8px; font-size:0.7rem;" onclick="toggleDomainGroupCheckboxes('${containerId}', '${domain}', ${gIdx})">${btnLabel}</button>
+            <button type="button" id="btn_grp_${containerId}_${gIdx}" class="btn btn-secondary" style="padding:2px 8px; font-size:0.7rem;" onclick="toggleDomainGroupCheckboxes('${containerId}', '${domain}', ${gIdx})">${allChecked ? 'Skjul alle' : 'Vis alle'}</button>
           </div>
           <div class="domain-group-items" data-domain="${domain}">
             ${catsInGroup.map(cat => `
@@ -1794,61 +1078,42 @@
       const container = document.getElementById(containerId);
       const boxes = container.querySelectorAll(`input[data-domain="${domain}"]`);
       const allChecked = Array.from(boxes).every(b => b.checked);
-      const targetState = !allChecked;
-      boxes.forEach(b => {
-        b.checked = targetState;
-        b.dispatchEvent(new Event('change'));
-      });
+      boxes.forEach(b => { b.checked = !allChecked; b.dispatchEvent(new Event('change')); });
       updateDomainHeaderBtn(containerId, domain, gIdx);
     }
 
     function setAllClassCategories(state) {
-      document.querySelectorAll('.class-cat-checkbox').forEach(b => {
-        b.checked = state;
-        b.dispatchEvent(new Event('change'));
-      });
+      document.querySelectorAll('.class-cat-checkbox').forEach(b => { b.checked = state; b.dispatchEvent(new Event('change')); });
     }
 
     function setAllGlobalCategories(state) {
       const allCats = [...new Set(allSkills.map(s => s.cat))];
       hiddenCats = state ? [] : [...allCats];
       localStorage.setItem('ms_hiddenCats', JSON.stringify(hiddenCats));
-      renderAdmin();
-      renderApp();
+      renderAdmin(); renderApp();
     }
 
     async function renderAdmin() {
       buildGroupedCategoryHTML('adminCategoryList', 'global-cat-checkbox', (cat) => !hiddenCats.includes(cat));
-
       document.querySelectorAll('.global-cat-checkbox').forEach(cb => {
         cb.addEventListener('change', (e) => {
           const cat = e.target.value;
-          if (e.target.checked) {
-            hiddenCats = hiddenCats.filter(c => c !== cat);
-          } else if (!hiddenCats.includes(cat)) {
-            hiddenCats.push(cat);
-          }
+          if (e.target.checked) hiddenCats = hiddenCats.filter(c => c !== cat);
+          else if (!hiddenCats.includes(cat)) hiddenCats.push(cat);
           localStorage.setItem('ms_hiddenCats', JSON.stringify(hiddenCats));
           renderApp();
         });
       });
-
       const classContainer = document.getElementById('adminClassList');
       if (!currentUser || !supabaseClient) {
-        classContainer.innerHTML = '<span style="font-size:0.8rem; color:var(--text-muted);">Log ind for at oprette og administrere hold.</span>';
+        classContainer.innerHTML = '<span style="font-size:0.8rem; color:var(--text-muted);">Log ind for at administrere hold.</span>';
         return;
       }
-
-      const { data, error } = await supabaseClient
-        .from('classes')
-        .select('id, name, invite_code, active_categories, class_members(count)')
-        .eq('created_by', currentUser.id);
-
+      const { data, error } = await supabaseClient.from('classes').select('id, name, invite_code, active_categories, class_members(count)').eq('created_by', currentUser.id);
       if (error || !data || data.length === 0) {
         classContainer.innerHTML = '<span style="font-size:0.8rem; color:var(--text-muted);">Du har ikke oprettet nogen hold endnu.</span>';
         return;
       }
-
       classContainer.innerHTML = data.map(c => `
         <div class="class-tag">
           <div>
@@ -1870,13 +1135,8 @@
       const panel = document.getElementById('adminClassCategoriesView');
       document.getElementById('classCategoriesTitle').innerText = `Kategorier for: ${className}`;
       panel.style.display = 'block';
-
       const isAllSelected = !currentCategories || currentCategories.length === 0;
-      buildGroupedCategoryHTML(
-        'classCategoriesCheckboxes', 
-        'class-cat-checkbox', 
-        (cat) => isAllSelected || currentCategories.includes(cat)
-      );
+      buildGroupedCategoryHTML('classCategoriesCheckboxes', 'class-cat-checkbox', (cat) => isAllSelected || currentCategories.includes(cat));
     }
 
     function closeClassCategoriesView() {
@@ -1886,24 +1146,14 @@
 
     async function saveClassCategories() {
       if (!editingClassId || !supabaseClient) return;
-
       const checked = Array.from(document.querySelectorAll('.class-cat-checkbox:checked')).map(cb => cb.value);
       const allCats = [...new Set(allSkills.map(s => s.cat))];
       const toSave = (checked.length === allCats.length) ? null : checked;
-
-      const { error } = await supabaseClient
-        .from('classes')
-        .update({ active_categories: toSave })
-        .eq('id', editingClassId);
-
-      if (error) {
-        alert('Kunne ikke gemme kategorier: ' + error.message);
-      } else {
+      const { error } = await supabaseClient.from('classes').update({ active_categories: toSave }).eq('id', editingClassId);
+      if (error) alert('Kunne ikke gemme kategorier: ' + error.message);
+      else {
         alert('Hold-kategorier opdateret!');
-        closeClassCategoriesView();
-        renderAdmin();
-        await fetchUserClass();
-        renderApp();
+        closeClassCategoriesView(); renderAdmin(); await fetchUserClass(); renderApp();
       }
     }
 
@@ -1913,21 +1163,14 @@
       const panel = document.getElementById('adminStudentProgressView');
       const list = document.getElementById('studentProgressList');
       document.getElementById('progressClassTitle').innerText = `Elever på: ${className}`;
-
       panel.style.display = 'block';
       list.innerHTML = '<span style="font-size:0.8rem; color:var(--text-muted);">Henter elever og progression...</span>';
-
       try {
-        const { data: members, error: memError } = await supabaseClient
-          .from('class_members')
-          .select('user_id')
-          .eq('class_id', classId);
-
+        const { data: members, error: memError } = await supabaseClient.from('class_members').select('user_id').eq('class_id', classId);
         if (memError || !members || members.length === 0) {
           list.innerHTML = '<span style="font-size:0.8rem; color:var(--text-muted);">Ingen elever tilmeldt dette hold endnu.</span>';
           return;
         }
-
         const userIds = members.map(m => m.user_id);
         const { data: profiles } = await supabaseClient.from('profiles').select('id, full_name, username').in('id', userIds);
         const { data: skills } = await supabaseClient.from('user_skills').select('user_id, skill_id').in('user_id', userIds);
@@ -1941,13 +1184,10 @@
         list.innerHTML = members.map(m => {
           const profile = profiles?.find(p => p.id === m.user_id);
           const studentName = profile?.full_name || profile?.username || 'Ukendt elev';
-          
           const studentProg = {};
           skills?.filter(s => s.user_id === m.user_id).forEach(s => { studentProg[s.skill_id] = true; });
-          
           const completedCount = classSpecificSkills.filter(s => studentProg[s.id]).length;
           const studentTitle = calculateGlobalTitle(allSkills, studentProg);
-
           return `
             <div class="student-row">
               <div>
@@ -1966,29 +1206,21 @@
       }
     }
 
-    function closeClassProgressView() {
-      document.getElementById('adminStudentProgressView').style.display = 'none';
-    }
+    function closeClassProgressView() { document.getElementById('adminStudentProgressView').style.display = 'none'; }
 
     function openStudentTreeModal(studentName, studentProgress) {
       const modal = document.getElementById('studentTreeModal');
       const grid = document.getElementById('studentHoneycombGrid');
-      
       document.getElementById('studentTreeName').innerText = studentName;
       document.getElementById('studentTreeTitle').innerText = calculateGlobalTitle(allSkills, studentProgress);
-      
       let inspectSkills = allSkills;
       if (activeInspectionClassCategories && activeInspectionClassCategories.length > 0) {
         inspectSkills = inspectSkills.filter(s => activeInspectionClassCategories.includes(s.cat));
       }
-      
       const activeCount = inspectSkills.filter(s => studentProgress[s.id]).length;
       document.getElementById('studentTreeScore').innerText = `${activeCount} / ${inspectSkills.length}`;
-
       renderHoneycombIntoContainer(grid, inspectSkills, studentProgress, true);
-
-      modal.style.display = 'flex';
-      lucide.createIcons();
+      modal.style.display = 'flex'; lucide.createIcons();
     }
 
     function closeStudentTreeModal() {
@@ -1999,24 +1231,18 @@
     async function deleteClass(classId) {
       if (!confirm('Er du sikker på, at du vil slette dette hold?')) return;
       await supabaseClient.from('classes').delete().eq('id', classId);
-      renderAdmin();
-      closeClassProgressView();
-      closeClassCategoriesView();
-      await fetchUserClass();
-      renderApp();
+      renderAdmin(); closeClassProgressView(); closeClassCategoriesView(); await fetchUserClass(); renderApp();
     }
 
     function spawnFloatingEmojis(x, y, category) {
       const list = ['⭐', '✨', '🚀', '🎯', '💡', '🔥', '⚙️'];
       for (let i = 0; i < 5; i++) {
-        const el = document.createElement('div');
-        el.className = 'floating-emoji';
+        const el = document.createElement('div'); el.className = 'floating-emoji';
         el.innerText = list[Math.floor(Math.random() * list.length)];
         el.style.left = (x + (Math.random() * 40 - 20)) + 'px';
         el.style.top = (y + (Math.random() * 20 - 10)) + 'px';
         el.style.setProperty('--tx', (Math.random() * 60 - 30) + 'px');
-        document.body.appendChild(el);
-        setTimeout(() => el.remove(), 1000);
+        document.body.appendChild(el); setTimeout(() => el.remove(), 1000);
       }
     }
 
@@ -2032,9 +1258,7 @@
       document.getElementById('splashTitleText').innerText = title;
       document.getElementById('titleSplash').style.display = 'flex';
       triggerScreenShake();
-      if (typeof confetti === 'function') {
-        confetti({ particleCount: 140, spread: 85, origin: { y: 0.6 } });
-      }
+      if (typeof confetti === 'function') confetti({ particleCount: 140, spread: 85, origin: { y: 0.6 } });
     }
 
     function closeTitleSplash() { document.getElementById('titleSplash').style.display = 'none'; }
@@ -2043,7 +1267,6 @@
       activeEnlargedSkill = skill;
       const prog = currentProg || userProgress;
       const isDone = !!prog[skill.id];
-
       const modal = document.getElementById('enlargedHexModal');
       const hexWrap = document.getElementById('enlargedHexWrap');
       const icon = document.getElementById('enlargedIcon');
@@ -2058,43 +1281,28 @@
       title.innerText = skill.shortDesc;
       meta.innerText = `${skill.cat} • Niveau ${skill.level}`;
       desc.innerText = skill.fullDesc;
-
       icon.setAttribute('data-lucide', skill.svg);
 
       if (skill.catTitle && skill.catTitle !== '#' && skill.catTitle !== '-') {
         rewardWrap.style.display = 'flex';
         rewardText.innerText = `Låser op for: ${skill.catTitle}`;
-      } else {
-        rewardWrap.style.display = 'none';
-      }
+      } else rewardWrap.style.display = 'none';
 
-      if (isReadOnly) {
-        checkBtn.style.display = 'none';
-      } else {
+      if (isReadOnly) checkBtn.style.display = 'none';
+      else {
         checkBtn.style.display = 'flex';
-        if (isDone) {
-          checkBtn.className = 'btn-toggle-completion done';
-          checkBtnText.innerText = '✓ Opnået (Klik for at fjerne)';
-        } else {
-          checkBtn.className = 'btn-toggle-completion not-done';
-          checkBtnText.innerText = 'Markér som opnået';
-        }
+        checkBtn.className = isDone ? 'btn-toggle-completion done' : 'btn-toggle-completion not-done';
+        checkBtnText.innerText = isDone ? '✓ Opnået (Klik for at fjerne)' : 'Markér som opnået';
       }
 
-      if (isDone) {
-        hexWrap.classList.add('completed');
-      } else {
-        hexWrap.classList.remove('completed');
-      }
+      if (isDone) hexWrap.classList.add('completed');
+      else hexWrap.classList.remove('completed');
 
-      modal.style.display = 'flex';
-      lucide.createIcons();
+      modal.style.display = 'flex'; lucide.createIcons();
     }
 
     function handleHexModalBackdrop(event) {
-      if (event.target.id === 'enlargedHexModal' || event.target.className === 'enlarged-popup-wrapper') {
-        closeEnlargedHexModal();
-      }
+      if (event.target.id === 'enlargedHexModal' || event.target.className === 'enlarged-popup-wrapper') closeEnlargedHexModal();
     }
 
     function closeEnlargedHexModal() {
@@ -2112,7 +1320,6 @@
     async function toggleSkill(skillId, event, category) {
       const prevTitle = calculateGlobalTitle(allSkills, userProgress);
       const prevCatTitles = getUnlockedCategoryTitles(category, allSkills, userProgress).map(t => t.title);
-
       const isCompleted = !userProgress[skillId];
 
       if (isCompleted) {
@@ -2120,20 +1327,13 @@
         const clientX = event?.clientX || (event?.touches && event.touches[0]?.clientX) || window.innerWidth / 2;
         const clientY = event?.clientY || (event?.touches && event.touches[0]?.clientY) || window.innerHeight / 2;
         spawnFloatingEmojis(clientX, clientY, category);
-      } else {
-        delete userProgress[skillId];
-      }
+      } else delete userProgress[skillId];
 
       if (currentUser && supabaseClient) {
         try {
-          if (isCompleted) {
-            await supabaseClient.from('user_skills').upsert({ user_id: currentUser.id, skill_id: skillId });
-          } else {
-            await supabaseClient.from('user_skills').delete().match({ user_id: currentUser.id, skill_id: skillId });
-          }
-        } catch (e) {
-          console.error('Fejl ved gemning i Supabase:', e);
-        }
+          if (isCompleted) await supabaseClient.from('user_skills').upsert({ user_id: currentUser.id, skill_id: skillId });
+          else await supabaseClient.from('user_skills').delete().match({ user_id: currentUser.id, skill_id: skillId });
+        } catch (e) {}
       } else {
         localStorage.setItem('ms_local_progress', JSON.stringify(userProgress));
       }
@@ -2150,7 +1350,6 @@
       if (isCompleted && newTitle !== prevTitle && (newTitle.startsWith('Værksteds-Troldmand') || newTitle.startsWith('Maker-Guru'))) {
         showSpecialSplash('🧙‍♂️', 'EKSLUSIV MESTERRANG!', 'Du har opnået en sjælden overordnet titel:', newTitle);
       }
-
       renderApp();
     }
 
@@ -2164,7 +1363,6 @@
       const themeClass = CATEGORY_THEMES[s.cat]?.class || '';
       hex.className = `hex-container ${themeClass} ${isDone ? 'active' : ''}`;
       hex.onclick = (e) => openSkillEnlargedModal(s, e, isReadOnly, progContext);
-
       hex.innerHTML = `
         <svg class="hex-svg" viewBox="0 0 100 86.6">
           <polygon class="hex-outer-frame" points="25,2 75,2 98,43.3 75,84.6 25,84.6 2,43.3" />
@@ -2179,12 +1377,9 @@
       return hex;
     }
 
-    /* KOMPAKT BIKUBE RENDERING (STUDIETUR / CLUSTER) */
     function renderClusterMeshIntoContainer(container, skillsList, progressMap, isReadOnly = false) {
       container.className = 'honeycomb-cluster-wrap';
       container.innerHTML = '';
-
-      // 1. Farve-forklaring i toppen
       const presentCats = [...new Set(skillsList.map(s => s.cat))];
       const legend = document.createElement('div');
       legend.className = 'cluster-legend';
@@ -2197,41 +1392,24 @@
       });
       container.appendChild(legend);
 
-      // 2. Gruppér kompetencerne i hver deres sammenhængende farve-klase
-      const clusterSkills = [];
-      presentCats.forEach(cat => {
-        const catSkills = skillsList.filter(s => s.cat === cat).sort((a, b) => a.level - b.level);
-        clusterSkills.push(...catSkills);
-      });
-
-      // 3. Fordel i 5 parallelle flettede søjler (5 x 5 = 25 felter)
-      const numCols = 5;
-      const columns = Array.from({ length: numCols }, () => []);
-      clusterSkills.forEach((skill, idx) => {
-        columns[idx % numCols].push(skill);
-      });
-
       const mesh = document.createElement('div');
       mesh.className = 'cluster-mesh';
-
-      columns.forEach(colSkills => {
+      presentCats.forEach(cat => {
+        const catSkills = skillsList.filter(s => s.cat === cat).sort((a, b) => a.level - b.level);
         const colEl = document.createElement('div');
         colEl.className = 'cluster-col';
-        colSkills.forEach(s => {
-          const isDone = progressMap[s.id] || false;
+        catSkills.forEach(s => {
+          const isDone = !!progressMap[s.id];
           colEl.appendChild(createSkillHex(s, isDone, isReadOnly, progressMap));
         });
         mesh.appendChild(colEl);
       });
-
       container.appendChild(mesh);
     }
 
-    /* STANDARD SØJLE RENDERING (MAKER SKILLS) */
     function renderStandardHoneycombIntoContainer(container, skillsList, progressMap, isReadOnly = false) {
       container.className = 'honeycomb-grid';
       container.innerHTML = '';
-
       const activeDomains = [...new Set(skillsList.map(s => DOMAIN_MAP[s.cat] || '💻 Software'))];
       const orderedDomains = DOMAIN_ORDER.filter(d => activeDomains.includes(d));
       if (orderedDomains.length === 0 && activeDomains.length > 0) orderedDomains.push(...activeDomains);
@@ -2239,29 +1417,23 @@
       orderedDomains.forEach(domainName => {
         const domainSkills = skillsList.filter(s => (DOMAIN_MAP[s.cat] || '💻 Software') === domainName);
         if (domainSkills.length === 0) return;
-
         const domainSection = document.createElement('div');
         domainSection.className = 'domain-section';
-
         const domainHeader = document.createElement('div');
         domainHeader.className = 'domain-header';
         domainHeader.innerText = domainName;
         domainSection.appendChild(domainHeader);
-
         const domainColumns = document.createElement('div');
         domainColumns.className = 'domain-columns';
-
         const domainCategories = [...new Set(domainSkills.map(s => s.cat))];
 
         domainCategories.forEach(catName => {
           const catSkills = domainSkills.filter(s => s.cat === catName).sort((a,b) => a.level - b.level);
           const col = document.createElement('div');
           col.className = 'column';
-
           const catIcon = catSkills[0]?.svg || 'folder';
           const activeBadgeTitle = getLatestCategoryTitle(catName, allSkills, progressMap);
           const hasBadge = !!activeBadgeTitle;
-
           const catHex = document.createElement('div');
           catHex.className = `hex-container cat-hex-container ${hasBadge ? 'completed' : ''}`;
           catHex.innerHTML = `
@@ -2277,44 +1449,32 @@
           col.appendChild(catHex);
 
           const subCatNames = [...new Set(catSkills.map(s => s.subCat).filter(sc => sc !== ''))];
-
           if (subCatNames.length === 0) {
             const firstFourSkills = catSkills.filter(s => s.level <= 4);
             const firstFourCompleted = firstFourSkills.filter(s => progressMap[s.id]).length;
             const isFirstFourDone = (firstFourCompleted === firstFourSkills.length && firstFourSkills.length > 0);
-
             const visibleSkills = isFirstFourDone ? catSkills : catSkills.filter(s => s.level <= 4);
-
             visibleSkills.forEach(s => {
               const isDone = progressMap[s.id] || false;
               col.appendChild(createSkillHex(s, isDone, isReadOnly, progressMap));
             });
           } else {
             let allPrevCompleted = true;
-
             subCatNames.forEach((scName) => {
               if (!allPrevCompleted) return;
-
               const scSkills = catSkills.filter(s => s.subCat === scName).sort((a,b) => a.level - b.level);
               const scCompletedCount = scSkills.filter(s => progressMap[s.id]).length;
               const isScCompleted = (scCompletedCount === scSkills.length && scSkills.length > 0);
-
               const subCatKey = `${catName}_${scName}`;
               let isExpanded = !isScCompleted;
-              if (manualSubCatExpanded[subCatKey] !== undefined) {
-                isExpanded = manualSubCatExpanded[subCatKey];
-              }
+              if (manualSubCatExpanded[subCatKey] !== undefined) isExpanded = manualSubCatExpanded[subCatKey];
 
               if (isScCompleted || manualSubCatExpanded[subCatKey] !== undefined) {
                 const scHex = document.createElement('div');
                 scHex.className = `hex-container subcat-hex ${isScCompleted ? 'completed' : ''}`;
-                if (!isReadOnly) {
-                  scHex.onclick = () => toggleSubCatFold(subCatKey);
-                }
-
+                if (!isReadOnly) scHex.onclick = () => toggleSubCatFold(subCatKey);
                 const scIcon = scSkills[0]?.svg || 'folder';
                 const foldLabel = isExpanded ? '▲ Skjul' : '▼ Vis';
-
                 scHex.innerHTML = `
                   <svg class="hex-svg" viewBox="0 0 100 86.6">
                     <polygon class="hex-outer-frame dashed-frame" points="25,2 75,2 98,43.3 75,84.6 25,84.6 2,43.3" />
@@ -2335,23 +1495,18 @@
                   col.appendChild(createSkillHex(s, isDone, isReadOnly, progressMap));
                 });
               }
-
               allPrevCompleted = isScCompleted;
             });
           }
-
           domainColumns.appendChild(col);
         });
-
         domainSection.appendChild(domainColumns);
         container.appendChild(domainSection);
       });
     }
 
     function renderHoneycombIntoContainer(container, skillsList, progressMap, isReadOnly = false) {
-      // Skift automatisk til kompakt bikube hvis der vises studietur eller færre end 30 mål
       const isStudieturView = skillsList.length <= 30 || skillsList.some(s => ['Netværk & Fællesskab', 'Pædagogik & Praksis', 'Entreprenørskab', 'Kultur & Oplevelse'].includes(s.cat));
-      
       if (isStudieturView && skillsList.length > 0 && skillsList.length <= 40) {
         renderClusterMeshIntoContainer(container, skillsList, progressMap, isReadOnly);
       } else {
@@ -2362,7 +1517,6 @@
     function renderApp() {
       const honeycombGrid = document.getElementById('honeycombGrid');
       const emptyState = document.getElementById('emptyState');
-
       if (allSkills.length === 0) {
         emptyState.style.display = 'block';
         honeycombGrid.innerHTML = '';
@@ -2372,7 +1526,6 @@
       emptyState.style.display = 'none';
 
       let availableSkills = allSkills.filter(s => !hiddenCats.includes(s.cat));
-
       if (selectedViewFilter === 'MAKER_DEFAULT') {
         availableSkills = availableSkills.filter(s => MAKER_DEFAULT_DOMAINS.includes(DOMAIN_MAP[s.cat] || '💻 Software'));
       } else if (selectedViewFilter.startsWith('DOMAIN:')) {
@@ -2387,7 +1540,6 @@
 
       const totalSkillsCount = availableSkills.length;
       const activeSkillsCount = availableSkills.filter(s => userProgress[s.id]).length;
-
       document.getElementById('footerUserTitle').innerText = calculateGlobalTitle(allSkills, userProgress);
       document.getElementById('footerScore').innerText = `${activeSkillsCount} / ${totalSkillsCount}`;
 
@@ -2404,36 +1556,11 @@
 
     let tutStep = 0;
     const tutSteps = [
-      {
-        targetId: 'authBtn',
-        title: '🔑 1. Login & Profil',
-        text: 'Opret en bruger med dit rigtige navn og e-mail for at gemme dine fremskridt.',
-        pos: { top: '70px', right: '20px' }
-      },
-      {
-        targetId: 'teamBtn',
-        title: '👥 2. Tilmeld Hold & Vælg Visning',
-        text: 'Tilmeld dig et hold med en 5-bogstavs kode, eller skift mellem dine tilmeldte hold i menuen.',
-        pos: { top: '70px', right: '110px' }
-      },
-      {
-        targetId: 'adminBtn',
-        title: '⚙️ 3. Superbruger Admin',
-        text: 'Opret hold, tildel kategorier pr. samling/mappe eller upload nye CSV-kompetencer.',
-        pos: { top: '70px', right: '210px' }
-      },
-      {
-        targetClass: 'hex-container',
-        title: '🟢 4. Åbn & Opnå Kompetencer',
-        text: 'Klik på en sekskant for at forstørre den, læse den fulde beskrivelse og markere den som opnået!',
-        pos: { top: '40%', left: '50%', transform: 'translate(-50%, -50%)' }
-      },
-      {
-        targetId: 'targetUser',
-        title: '👤 5. Status & Tæller',
-        text: 'Nederst kan du se dit navn, aktivt hold, opnåede titler og tælleren.',
-        pos: { bottom: '60px', left: '20px' }
-      }
+      { targetId: 'authBtn', title: '🔑 1. Login & Profil', text: 'Opret en bruger med dit rigtige navn og e-mail for at gemme dine fremskridt.', pos: { top: '70px', right: '20px' } },
+      { targetId: 'teamBtn', title: '👥 2. Tilmeld Hold & Vælg Visning', text: 'Tilmeld dig et hold med en 5-bogstavs kode, eller skift mellem dine tilmeldte hold i menuen.', pos: { top: '70px', right: '110px' } },
+      { targetId: 'adminBtn', title: '⚙️ 3. Superbruger Admin', text: 'Opret hold, tildel kategorier pr. samling/mappe eller upload nye CSV-kompetencer.', pos: { top: '70px', right: '210px' } },
+      { targetClass: 'hex-container', title: '🟢 4. Åbn & Opnå Kompetencer', text: 'Klik på en sekskant for at forstørre den, læse den fulde beskrivelse og markere den som opnået!', pos: { top: '40%', left: '50%', transform: 'translate(-50%, -50%)' } },
+      { targetId: 'targetUser', title: '👤 5. Status & Tæller', text: 'Nederst kan du se dit navn, aktivt hold, opnåede titler og tælleren.', pos: { bottom: '60px', left: '20px' } }
     ];
 
     function startTutorial() {
@@ -2445,35 +1572,26 @@
 
     function showTutStep() {
       document.querySelectorAll('.highlight-target').forEach(el => el.classList.remove('highlight-target'));
-
       const step = tutSteps[tutStep];
       document.getElementById('tutTitle').innerText = step.title;
       document.getElementById('tutText').innerText = step.text;
       document.getElementById('tutStepCount').innerText = `Trin ${tutStep + 1} / ${tutSteps.length}`;
-
       const box = document.getElementById('tutorialBox');
       box.style.top = step.pos.top || 'auto';
       box.style.bottom = step.pos.bottom || 'auto';
       box.style.left = step.pos.left || 'auto';
       box.style.right = step.pos.right || 'auto';
       box.style.transform = step.pos.transform || 'none';
-
       let targetEl = null;
       if (step.targetId) targetEl = document.getElementById(step.targetId);
       if (step.targetClass) targetEl = document.querySelector('.' + step.targetClass);
-
       if (targetEl) targetEl.classList.add('highlight-target');
-
       document.getElementById('tutNextBtn').innerText = (tutStep === tutSteps.length - 1) ? 'Afslut' : 'Næste ➔';
     }
 
     function nextTutorialStep() {
-      if (tutStep < tutSteps.length - 1) {
-        tutStep++;
-        showTutStep();
-      } else {
-        closeTutorial();
-      }
+      if (tutStep < tutSteps.length - 1) { tutStep++; showTutStep(); }
+      else closeTutorial();
     }
 
     function closeTutorial() {
@@ -2485,8 +1603,7 @@
 
     window.onload = function() {
       initData();
-      const hasSeen = localStorage.getItem('ms_hasSeenTutorial');
-      if (!hasSeen) setTimeout(startTutorial, 500);
+      if (!localStorage.getItem('ms_hasSeenTutorial')) setTimeout(startTutorial, 500);
     };
   </script>
 </body>
