@@ -58,7 +58,7 @@
 
     .header-btns { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 
-    .view-filter-select, .lang-select {
+    .view-filter-select {
       background: #1e293b;
       border: 1px solid var(--accent-blue);
       color: var(--accent-blue);
@@ -69,8 +69,6 @@
       cursor: pointer;
       width: auto;
     }
-
-    .lang-select { border-color: #64748b; color: #f8fafc; }
 
     .main-container { display: flex; flex: 1; overflow: hidden; position: relative; }
 
@@ -645,19 +643,14 @@
   <header>
     <h1>MAKER SKILL TREE</h1>
     <div class="header-btns">
-      <select id="userLangSelect" class="lang-select" onchange="handleLanguageChange(this.value)">
-        <option value="da">🇩🇰 Dansk</option>
-        <option value="en">🇬🇧 English</option>
-        <option value="uk">🇺🇦 Українська</option>
-      </select>
       <select id="userViewFilterSelect" class="view-filter-select" onchange="handleViewFilterChange(this.value)">
-        <option value="MAKER_DEFAULT" data-i18n="maker_default">🛠️ Maker Skills (Standard)</option>
-        <option value="ALL" data-i18n="show_all">🌐 Vis Alt (Alle moduler)</option>
+        <option value="MAKER_DEFAULT">🛠️ Maker Skills (Standard)</option>
+        <option value="ALL">🌐 Vis Alt (Alle moduler)</option>
       </select>
-      <button class="btn btn-secondary" onclick="startTutorial()" data-i18n="btn_guide">❓ Guide</button>
-      <button class="btn" id="teamBtn" onclick="openTeamModal()" data-i18n="btn_team">👥 Mit Hold</button>
-      <button class="btn" id="adminBtn" onclick="openAdmin()" style="display:none;" data-i18n="btn_admin">⚙️ Superbruger</button>
-      <button class="btn" id="authBtn" onclick="openAuthModal()" data-i18n="btn_login">🔑 Log ind</button>
+      <button class="btn btn-secondary" onclick="startTutorial()">❓ Guide</button>
+      <button class="btn" id="teamBtn" onclick="openTeamModal()">👥 Mit Hold</button>
+      <button class="btn" id="adminBtn" onclick="openAdmin()" style="display:none;">⚙️ Superbruger</button>
+      <button class="btn" id="authBtn" onclick="openAuthModal()">🔑 Log ind</button>
     </div>
   </header>
 
@@ -665,8 +658,8 @@
     <div class="viewport">
       <div id="emptyState" class="empty-state" style="display:none;">
         <i data-lucide="upload-cloud" style="width: 48px; height: 48px; margin-bottom: 15px; color: var(--accent-blue);"></i><br>
-        <strong>Indlæser...</strong><br>
-        <span>Vælg eller opdater kompetencer under Superbruger Admin.</span>
+        <strong id="emptyTitle">Indlæser...</strong><br>
+        <span id="emptyDesc">Vælg eller opdater kompetencer under Superbruger Admin.</span>
       </div>
       <div class="honeycomb-grid" id="honeycombGrid"></div>
     </div>
@@ -675,19 +668,19 @@
   <footer>
     <div class="footer-info">
       <div id="targetUser">
-        <span class="footer-label" data-i18n="lbl_name">Navn:</span>
+        <span class="footer-label">Navn:</span>
         <span class="footer-val" id="footerUserName">Gæst</span>
       </div>
       <div>
-        <span class="footer-label" data-i18n="lbl_class">Hold:</span>
+        <span class="footer-label">Hold:</span>
         <span class="footer-val" id="footerUserClass" style="color: var(--accent-blue);">Intet hold</span>
       </div>
       <div>
-        <span class="footer-label" data-i18n="lbl_title">Titel:</span>
+        <span class="footer-label">Titel:</span>
         <span class="footer-val" id="footerUserTitle" style="color: var(--accent-blue);">Deltager</span>
       </div>
       <div id="targetScore">
-        <span class="footer-label" data-i18n="lbl_score">Opnåede kompetencer:</span>
+        <span class="footer-label">Opnåede kompetencer:</span>
         <span class="footer-val" id="footerScore" style="color: var(--active-green);">0 / 0</span>
       </div>
     </div>
@@ -696,7 +689,6 @@
   <!-- FORSTØRRET SEKSKANT POPUP -->
   <div class="enlarged-hex-modal" id="enlargedHexModal" onclick="handleHexModalBackdrop(event)">
     <div class="enlarged-popup-wrapper">
-      
       <div class="enlarged-outer-header" id="enlargedMeta">Folieskæring • Niveau 1</div>
       
       <div class="enlarged-hex-svg-wrap" id="enlargedHexWrap">
@@ -719,14 +711,13 @@
 
       <div class="enlarged-actions">
         <div class="btn-guide-disabled" onclick="event.stopPropagation();">
-          <i data-lucide="file-text" style="width: 16px; height: 16px;"></i> <span data-i18n="guide_coming">Vejledning (Kommer snart)</span>
+          <i data-lucide="file-text" style="width: 16px; height: 16px;"></i> Vejledning (Kommer snart)
         </div>
         <button class="btn-toggle-completion" id="enlargedCheckBtn" onclick="confirmSkillCompletion(event)">
           <i data-lucide="check-circle" style="width: 20px; height: 20px;"></i>
-          <span id="enlargedCheckBtnText" data-i18n="mark_achieved">Markér som opnået</span>
+          <span id="enlargedCheckBtnText">Markér som opnået</span>
         </button>
       </div>
-
     </div>
   </div>
 
@@ -734,19 +725,19 @@
   <div class="student-tree-modal" id="studentTreeModal">
     <div class="student-tree-header">
       <div>
-        <span style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px;" data-i18n="student_view">Elev Oversigt</span>
+        <span style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px;">Elev Oversigt</span>
         <h2 id="studentTreeName" style="margin:2px 0 0 0; color:var(--accent-blue); font-size:1.15rem;">Elev Navn</h2>
       </div>
       <div style="display:flex; align-items:center; gap:15px; flex-wrap:wrap;">
         <div>
-          <span style="font-size:0.75rem; color:var(--text-muted);" data-i18n="student_achieved_title">Opnået titel: </span>
+          <span style="font-size:0.75rem; color:var(--text-muted);">Opnået titel: </span>
           <strong id="studentTreeTitle" style="color:var(--accent-blue); font-size:0.85rem;">-</strong>
         </div>
         <div>
-          <span style="font-size:0.75rem; color:var(--text-muted);" data-i18n="student_goal">Mål: </span>
+          <span style="font-size:0.75rem; color:var(--text-muted);">Mål: </span>
           <strong id="studentTreeScore" style="color:var(--active-green); font-size:0.85rem;">0 / 0</strong>
         </div>
-        <button class="btn btn-secondary" onclick="closeStudentTreeModal()" data-i18n="btn_close_student">✕ Luk Elev-visning</button>
+        <button class="btn btn-secondary" onclick="closeStudentTreeModal()">✕ Luk Elev-visning</button>
       </div>
     </div>
     <div class="student-tree-viewport">
@@ -757,19 +748,19 @@
   <!-- PROMPT: TILMELD HOLD -->
   <div class="modal" id="joinPromptModal">
     <div class="modal-box" style="border: 2px solid var(--accent-blue);">
-      <h2 style="margin-top:0; color:var(--accent-blue);" data-i18n="welcome_title">Velkommen til Maker Skill Tree!</h2>
-      <p style="font-size:0.85rem; color:var(--text-main); line-height:1.4;" data-i18n="welcome_desc">
+      <h2 style="margin-top:0; color:var(--accent-blue);">Velkommen til Maker Skill Tree!</h2>
+      <p style="font-size:0.85rem; color:var(--text-main); line-height:1.4;">
         Er du tilknyttet et hold eller en workshop? Indtast den 5-bogstavs holdkode, du har fået udleveret af din underviser:
       </p>
       <div style="display:flex; gap:8px; margin: 15px 0;">
         <input type="text" id="promptJoinCodeInput" placeholder="F.eks. EINDH" maxlength="5" style="text-transform: uppercase; font-weight:bold; font-size:1.1rem; letter-spacing:2px; text-align:center; width:140px;">
-        <button class="btn" onclick="handlePromptJoinClass()" data-i18n="btn_join_class">Tilmeld Hold</button>
+        <button class="btn" onclick="handlePromptJoinClass()">Tilmeld Hold</button>
       </div>
       <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px; border-top:1px solid #334155; padding-top:12px;">
         <label style="font-size:0.75rem; color:var(--text-muted); display:flex; align-items:center; gap:6px; cursor:pointer;">
-          <input type="checkbox" id="dontShowJoinPromptAgain"> <span data-i18n="dont_show_again">Vis ikke dette vindue igen</span>
+          <input type="checkbox" id="dontShowJoinPromptAgain"> Vis ikke dette vindue igen
         </label>
-        <button class="btn btn-secondary" onclick="closeJoinPromptModal()" data-i18n="btn_continue_guest">Fortsæt som gæst</button>
+        <button class="btn btn-secondary" onclick="closeJoinPromptModal()">Fortsæt som gæst</button>
       </div>
     </div>
   </div>
@@ -777,32 +768,25 @@
   <!-- AUTH MODAL -->
   <div class="modal" id="authModal">
     <div class="modal-box">
-      <h2 id="authModalTitle" style="margin-top:0;" data-i18n="login_title">Log ind</h2>
+      <h2 id="authModalTitle" style="margin-top:0;">Log ind</h2>
       <div class="input-group">
         <div id="nameInputWrapper" style="display:none;">
-          <label style="font-size:0.8rem; color:var(--text-muted);" data-i18n="full_name">Dit fulde navn:</label>
+          <label style="font-size:0.8rem; color:var(--text-muted);">Dit fulde navn:</label>
           <input type="text" id="authName" placeholder="F.eks. Lærke Jensen">
-          
-          <label style="font-size:0.8rem; color:var(--text-muted); margin-top:8px; display:block;" data-i18n="pref_lang">Foretrukket sprog:</label>
-          <select id="authPrefLang" style="margin-top:2px;">
-            <option value="da">🇩🇰 Dansk</option>
-            <option value="en">🇬🇧 English</option>
-            <option value="uk">🇺🇦 Українська</option>
-          </select>
         </div>
 
-        <label style="font-size:0.8rem; color:var(--text-muted);" data-i18n="email">E-mail:</label>
+        <label style="font-size:0.8rem; color:var(--text-muted);">E-mail:</label>
         <input type="email" id="authEmail" placeholder="elev@skole.dk">
         
-        <label style="font-size:0.8rem; color:var(--text-muted);" data-i18n="password">Kodeord:</label>
+        <label style="font-size:0.8rem; color:var(--text-muted);">Kodeord:</label>
         <input type="password" id="authPassword" placeholder="••••••••">
       </div>
       <div style="margin-top:15px; display:flex; gap:10px; justify-content:flex-end;">
-        <button class="btn btn-secondary" onclick="closeAuthModal()" data-i18n="cancel">Annuller</button>
-        <button class="btn" id="authSubmitBtn" onclick="handleAuthAction()" data-i18n="btn_login">Log ind</button>
+        <button class="btn btn-secondary" onclick="closeAuthModal()">Annuller</button>
+        <button class="btn" id="authSubmitBtn" onclick="handleAuthAction()">Log ind</button>
       </div>
       <div style="margin-top:15px; text-align:center;">
-        <a href="javascript:void(0)" id="authToggleLink" onclick="toggleAuthMode()" style="color:var(--accent-blue); font-size:0.8rem;" data-i18n="link_no_account">Har du ikke en bruger? Opret her</a>
+        <a href="javascript:void(0)" id="authToggleLink" onclick="toggleAuthMode()" style="color:var(--accent-blue); font-size:0.8rem;">Har du ikke en bruger? Opret her</a>
       </div>
     </div>
   </div>
@@ -810,21 +794,21 @@
   <!-- ELEV HOLD MODAL -->
   <div class="modal" id="teamModal">
     <div class="modal-box">
-      <h2 style="margin-top:0;" data-i18n="my_team_header">Mit Hold</h2>
+      <h2 style="margin-top:0;">Mit Hold</h2>
       <div class="admin-section">
-        <h3 data-i18n="join_team_sub">Tilmeld dig et hold</h3>
-        <p style="font-size: 0.8rem; color: var(--text-muted); margin:0 0 10px 0;" data-i18n="join_code_desc">Indtast den 5-bogstavs holdkode du har fået:</p>
+        <h3>Tilmeld dig et hold</h3>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin:0 0 10px 0;">Indtast den 5-bogstavs holdkode du har fået:</p>
         <div style="display:flex; gap:8px;">
           <input type="text" id="joinCodeInput" placeholder="F.eks. EINDH" maxlength="5" style="text-transform: uppercase; font-weight:bold; font-size:1.1rem; letter-spacing:2px; text-align:center; width:140px;">
-          <button class="btn" onclick="handleJoinClass()" data-i18n="btn_join">Tilmeld</button>
+          <button class="btn" onclick="handleJoinClass()">Tilmeld</button>
         </div>
       </div>
       <div class="admin-section" style="border-bottom:none;">
-        <h3 data-i18n="enrolled_teams_sub">Dine tilmeldte hold & visningsfilter</h3>
-        <div id="userClassList"></div>
+        <h3>Dine tilmeldte hold & visningsfilter</h3>
+        <div id="userClassList"><span style="font-size:0.8rem; color:var(--text-muted);">Indlæser...</span></div>
       </div>
       <div style="text-align: right;">
-        <button class="btn" onclick="closeTeamModal()" data-i18n="btn_close">Luk</button>
+        <button class="btn" onclick="closeTeamModal()">Luk</button>
       </div>
     </div>
   </div>
@@ -844,7 +828,7 @@
 
       <div class="admin-section">
         <h3>2. Administrer Hold & Hold-Kategorier</h3>
-        <div id="adminClassList"></div>
+        <div id="adminClassList"><span style="font-size:0.8rem; color:var(--text-muted);">Henter hold...</span></div>
         
         <div id="adminStudentProgressView" style="display:none; margin-top:15px; background:#0f172a; padding:12px; border-radius:6px; border:1px solid #334155;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
@@ -873,7 +857,7 @@
 
       <div class="admin-section">
         <h3>3. Opdater Kompetencer (CSV)</h3>
-        <p style="font-size: 0.8rem; color: var(--text-muted); margin:0 0 10px 0;">Format: Sprog (valgfri), Kategori, Kategori_Titel, Underkategori, ID, Niveau, SVG_Ikon, Kort_Beskrivelse, Kompetence</p>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin:0 0 10px 0;">Format: Kategori, Kategori_Titel, Underkategori, ID, Niveau, SVG_Ikon, Kort_Beskrivelse, Kompetence</p>
         <div style="display:flex; gap:10px;">
           <input type="file" id="csvFileInput" accept=".csv">
           <button class="btn" onclick="handleFileUpload()">Upload</button>
@@ -904,10 +888,10 @@
   <div class="splash-modal" id="titleSplash">
     <div class="splash-card">
       <div style="font-size: 3rem; margin-bottom: 10px;" id="splashIcon">👑</div>
-      <h2 style="color: var(--active-green); margin: 0 0 5px 0;" id="splashHeader" data-i18n="splash_new_title">NY TITEL OPNÅET!</h2>
-      <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;" id="splashSub" data-i18n="splash_rank_up">Du er steget i rang og mestring:</p>
+      <h2 style="color: var(--active-green); margin: 0 0 5px 0;" id="splashHeader">NY TITEL OPNÅET!</h2>
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;" id="splashSub">Du er steget i rang og mestring:</p>
       <div id="splashTitleText" style="font-size: 1.35rem; font-weight: bold; color: var(--accent-blue); margin-bottom: 25px;">-</div>
-      <button class="btn" style="width: 100%; padding: 10px;" onclick="closeTitleSplash()" data-i18n="btn_continue">Fortsæt!</button>
+      <button class="btn" style="width: 100%; padding: 10px;" onclick="closeTitleSplash()">Fortsæt!</button>
     </div>
   </div>
 
@@ -934,169 +918,23 @@
       supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
 
-    let currentLang = localStorage.getItem('ms_language') || 'da';
-    
-    const DEFAULT_DA_FALLBACK = {
-      maker_default: "🛠️ Maker Skills (Standard)",
-      show_all: "🌐 Vis Alt (Alle moduler)",
-      btn_guide: "❓ Guide",
-      btn_team: "👥 Mit Hold",
-      btn_admin: "⚙️ Superbruger",
-      btn_login: "🔑 Log ind",
-      btn_logout: "🚪 Log ud",
-      lbl_name: "Navn:",
-      lbl_class: "Hold:",
-      lbl_title: "Titel:",
-      lbl_score: "Opnåede kompetencer:",
-      guest: "Gæst",
-      no_class: "Intet hold",
-      participant: "Deltager",
-      level: "Niveau",
-      guide_coming: "Vejledning (Kommer snart)",
-      mark_achieved: "Markér som opnået",
-      unmark_achieved: "✓ Opnået (Klik for at fjerne)",
-      student_view: "Elev Oversigt",
-      student_achieved_title: "Opnået titel:",
-      student_goal: "Mål:",
-      btn_close_student: "✕ Luk Elev-visning",
-      welcome_title: "Velkommen til Maker Skill Tree!",
-      welcome_desc: "Er du tilknyttet et hold eller en workshop? Indtast den 5-bogstavs holdkode, du har fået udleveret af din underviser:",
-      btn_join_class: "Tilmeld Hold",
-      dont_show_again: "Vis ikke dette vindue igen",
-      btn_continue_guest: "Fortsæt som gæst",
-      login_title: "Log ind",
-      signup_title: "Opret Bruger",
-      full_name: "Dit fulde navn:",
-      pref_lang: "Foretrukket sprog:",
-      email: "E-mail:",
-      password: "Kodeord:",
-      cancel: "Annuller",
-      btn_create_profile: "Opret Profil",
-      link_no_account: "Har du ikke en bruger? Opret her",
-      link_has_account: "Har du allerede en bruger? Log ind her",
-      my_team_header: "Mit Hold",
-      join_team_sub: "Tilmeld dig et hold",
-      join_code_desc: "Indtast den 5-bogstavs holdkode du har fået:",
-      btn_join: "Tilmeld",
-      enrolled_teams_sub: "Dine tilmeldte hold & visningsfilter",
-      btn_close: "Luk",
-      splash_new_title: "NY TITEL OPNÅET!",
-      splash_rank_up: "Du er steget i rang og mestring:",
-      btn_continue: "Fortsæt!",
-      splash_wizard: "EKSLUSIV MESTERRANG!",
-      splash_wizard_desc: "Du har opnået en sjælden overordnet titel:",
-      titles_count: "opnåede titler",
-      fold_hide: "▲ Skjul",
-      fold_show: "▼ Vis"
-    };
-
-    let translations = { ...DEFAULT_DA_FALLBACK };
-
-    async function loadTranslations(lang) {
-      try {
-        const res = await fetch(`locales/${lang}.json`);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        translations = await res.json();
-      } catch (err) {
-        try {
-          const fallback = await fetch('locales/da.json');
-          translations = await fallback.json();
-        } catch (e) {
-          translations = { ...DEFAULT_DA_FALLBACK };
-        }
-      }
-      applyTranslations();
-    }
-
-    function t(key) {
-      return translations[key] || DEFAULT_DA_FALLBACK[key] || key;
-    }
-
-    function applyTranslations() {
-      document.documentElement.lang = currentLang;
-      const langSel = document.getElementById('userLangSelect');
-      if (langSel) langSel.value = currentLang;
-
-      document.querySelectorAll('[data-i18n]').forEach(el => {
-        const key = el.getAttribute('data-i18n');
-        if (translations[key]) {
-          el.innerText = translations[key];
-        }
-      });
-
-      if (!currentUser) {
-        document.getElementById('authBtn').innerText = t('btn_login');
-        document.getElementById('footerUserName').innerText = t('guest');
-        document.getElementById('footerUserClass').innerText = t('no_class');
-        document.getElementById('footerUserTitle').innerText = t('participant');
-      } else {
-        document.getElementById('authBtn').innerText = t('btn_logout');
-      }
-
-      if (isSignUpMode) {
-        document.getElementById('authModalTitle').innerText = t('signup_title');
-        document.getElementById('authSubmitBtn').innerText = t('btn_create_profile');
-        document.getElementById('authToggleLink').innerText = t('link_has_account');
-      } else {
-        document.getElementById('authModalTitle').innerText = t('login_title');
-        document.getElementById('authSubmitBtn').innerText = t('btn_login');
-        document.getElementById('authToggleLink').innerText = t('link_no_account');
-      }
-    }
-
-    async function handleLanguageChange(newLang) {
-      currentLang = newLang;
-      localStorage.setItem('ms_language', newLang);
-
-      if (currentUser && supabaseClient) {
-        supabaseClient.from('profiles').update({ preferred_language: newLang }).eq('id', currentUser.id);
-      }
-
-      await loadTranslations(newLang);
-      updateViewFilterOptions();
-      renderApp();
-    }
-
     const DOMAIN_MAP = {
       'Filhåndtering': '💻 Software',
-      'File Management': '💻 Software',
-      'Керування файлами': '💻 Software',
       'Vektorgrafik': '💻 Software',
-      'Vector Graphics': '💻 Software',
-      'Векторна графіка': '💻 Software',
       'Rastergrafik': '💻 Software',
-      'Raster Graphics': '💻 Software',
-      'Растрова графіка': '💻 Software',
       '3D-Modellering': '💻 Software',
-      '3D Modeling': '💻 Software',
-      '3D-Моделювання': '💻 Software',
 
       'CO2 Laserskæring': '⚙️ Maskiner',
-      'CO2 Laser Cutting': '⚙️ Maskiner',
-      'Лазерна різка CO2': '⚙️ Maskiner',
       'Laserskæring': '⚙️ Maskiner',
       '3D-Printning': '⚙️ Maskiner',
-      '3D Printing': '⚙️ Maskiner',
-      '3D-Друк': '⚙️ Maskiner',
       'Folieskæring': '⚙️ Maskiner',
-      'Vinyl Cutting': '⚙️ Maskiner',
-      'Плотерна різка': '⚙️ Maskiner',
       'Digitalt Broderi': '⚙️ Maskiner',
-      'Digital Embroidery': '⚙️ Maskiner',
-      'Цифрова вишивка': '⚙️ Maskiner',
       'Materialekendskab': '⚙️ Maskiner',
-      'Materials Science': '⚙️ Maskiner',
-      'Матеріалознавство': '⚙️ Maskiner',
 
       'Elektronik': '🔌 Hardware og Elektronik',
-      'Electronics': '🔌 Hardware og Elektronik',
-      'Електроніка': '🔌 Hardware og Elektronik',
       'Microcontroller': '🔌 Hardware og Elektronik',
-      'Мікроконтролери': '🔌 Hardware og Elektronik',
 
       'Værkstedskultur': '🤝 Værkstedskultur',
-      'Workshop Culture': '🤝 Værkstedskultur',
-      'Культура майстерні': '🤝 Værkstedskultur',
 
       'Netværk & Fællesskab': '👥 Fællesskab & Netværk',
       'Pædagogik & Praksis': '🎓 Didaktik & Facilitering',
@@ -1146,7 +984,7 @@
     }
 
     function calculateGlobalTitle(allSkillsList, progress) {
-      if (allSkillsList.length === 0) return t('participant');
+      if (allSkillsList.length === 0) return 'Deltager';
 
       const totalCompleted = allSkillsList.filter(s => progress[s.id]).length;
       const currentYear = new Date().getFullYear();
@@ -1169,10 +1007,10 @@
       });
 
       if (totalBadges > 0) {
-        return `${totalBadges} ${t('titles_count')}`;
+        return `${totalBadges} opnåede titler`;
       }
 
-      return t('participant');
+      return 'Deltager';
     }
 
     let allSkills = [];
@@ -1232,7 +1070,6 @@
       if (lines.length < 2) return;
 
       const header = parseCSVLine(lines[0]).map(h => h.toLowerCase().trim());
-      const langIdx = header.findIndex(h => h === 'sprog' || h === 'lang' || h === 'language');
       const catIdx = header.indexOf('kategori');
       const catTitleIdx = header.indexOf('kategori_titel');
       const subCatIdx = header.indexOf('underkategori');
@@ -1249,25 +1086,23 @@
         const values = parseCSVLine(lines[i]);
         if (values.length < 5) continue;
 
-        const lang = (langIdx >= 0 ? values[langIdx] : 'da').toLowerCase().trim() || 'da';
-        const category = (catIdx >= 0 ? values[catIdx] : values[langIdx >= 0 ? 1 : 0]) || '';
-        const id = (idIdx >= 0 ? values[idIdx] : values[langIdx >= 0 ? 4 : 3]) || '';
+        const category = (catIdx >= 0 ? values[catIdx] : values[0]) || '';
+        const id = (idIdx >= 0 ? values[idIdx] : values[3]) || '';
         if (!id) continue;
 
         const rawCatTitle = catTitleIdx >= 0 ? values[catTitleIdx] : '';
         const catTitle = (rawCatTitle && rawCatTitle !== '#') ? rawCatTitle.trim() : '#';
 
         const skillObj = {
-          lang: lang,
           domain: DOMAIN_MAP[category.trim()] || '💻 Software',
           category: category.trim(),
           category_title: catTitle,
-          subcategory: (subCatIdx >= 0 ? values[subCatIdx] : '') || '',
+          subcategory: (subCatIdx >= 0 ? values[subCatIdx] : values[2]) || '',
           id: id.trim(),
-          level: parseInt((lvlIdx >= 0 ? values[lvlIdx] : 1), 10) || 1,
-          svg_icon: sanitizeIcon(iconIdx >= 0 ? values[iconIdx] : 'folder'),
-          short_desc: ((shortDescIdx >= 0 ? values[shortDescIdx] : '') || '').trim(),
-          full_desc: ((descIdx >= 0 ? values[descIdx] : '') || '').replace(/^"|"$/g, '').trim()
+          level: parseInt((lvlIdx >= 0 ? values[lvlIdx] : values[4]), 10) || 1,
+          svg_icon: sanitizeIcon(iconIdx >= 0 ? values[iconIdx] : values[5]),
+          short_desc: ((shortDescIdx >= 0 ? values[shortDescIdx] : values[6]) || '').trim(),
+          full_desc: ((descIdx >= 0 ? values[descIdx] : values[7]) || '').replace(/^"|"$/g, '').trim()
         };
 
         rowsToUpsert.push(skillObj);
@@ -1277,11 +1112,9 @@
         try {
           const { error } = await supabaseClient
             .from('skills')
-            .upsert(rowsToUpsert, { onConflict: 'id, lang' });
+            .upsert(rowsToUpsert, { onConflict: 'id' });
 
-          if (error) {
-            await supabaseClient.from('skills').upsert(rowsToUpsert, { onConflict: 'id' });
-          }
+          if (error) throw error;
 
           const { data: allData, error: fetchErr } = await supabaseClient
             .from('skills')
@@ -1290,7 +1123,6 @@
 
           if (!fetchErr && allData) {
             allSkills = allData.map(s => ({
-              lang: s.lang || 'da',
               cat: s.category,
               catTitle: s.category_title || '#',
               subCat: s.subcategory || '',
@@ -1303,16 +1135,15 @@
             localStorage.setItem('ms_allSkills', JSON.stringify(allSkills));
           }
 
-          if (showAlert) alert(`Succes: ${rowsToUpsert.length} kompetencer synkroniseret!`);
+          if (showAlert) alert(`Succes: ${rowsToUpsert.length} kompetencer blev synkroniseret til Supabase!`);
         } catch (err) {
           console.error('Fejl ved upload til Supabase:', err);
           if (showAlert) alert('Fejl ved Supabase-synkronisering: ' + err.message);
         }
       } else {
-        const existingMap = new Map(allSkills.map(s => [`${s.lang || 'da'}_${s.id}`, s]));
+        const existingMap = new Map(allSkills.map(s => [s.id, s]));
         rowsToUpsert.forEach(r => {
-          existingMap.set(`${r.lang}_${r.id}`, {
-            lang: r.lang,
+          existingMap.set(r.id, {
             cat: r.category,
             catTitle: r.category_title,
             subCat: r.subcategory,
@@ -1365,12 +1196,12 @@
       }
     }
 
-    async function ensureUserProfile(user, preferredLanguage = 'da') {
+    async function ensureUserProfile(user) {
       if (!supabaseClient || !user) return;
       try {
         const { data } = await supabaseClient
           .from('profiles')
-          .select('id, full_name, role, preferred_language')
+          .select('id, full_name, role')
           .eq('id', user.id)
           .maybeSingle();
 
@@ -1380,12 +1211,8 @@
             id: user.id,
             username: user.email.split('@')[0],
             full_name: fallbackName,
-            role: 'student',
-            preferred_language: preferredLanguage
+            role: 'student'
           });
-        } else if (data.preferred_language) {
-          currentLang = data.preferred_language;
-          localStorage.setItem('ms_language', currentLang);
         }
       } catch (e) {
         console.error('Kunne ikke sikre profil:', e);
@@ -1393,8 +1220,6 @@
     }
 
     async function initData() {
-      await loadTranslations(currentLang);
-
       const localCachedSkills = JSON.parse(localStorage.getItem('ms_allSkills'));
       if (localCachedSkills && localCachedSkills.length > 0) {
         allSkills = localCachedSkills;
@@ -1415,17 +1240,11 @@
           
           const { data: prof } = await supabaseClient
             .from('profiles')
-            .select('full_name, role, preferred_language')
+            .select('full_name, role')
             .eq('id', currentUser.id)
             .maybeSingle();
 
           currentUserName = prof?.full_name || currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
-          if (prof?.preferred_language) {
-            currentLang = prof.preferred_language;
-            localStorage.setItem('ms_language', currentLang);
-            await loadTranslations(currentLang);
-          }
-
           const isAdmin = prof?.role === 'admin' || prof?.role === 'teacher';
           
           updateAuthUI(true, currentUserName, isAdmin);
@@ -1445,7 +1264,6 @@
 
         if (!skillsError && skillsData && skillsData.length > 0) {
           allSkills = skillsData.map(s => ({
-            lang: s.lang || 'da',
             cat: s.category,
             catTitle: s.category_title || '#',
             subCat: s.subcategory || '',
@@ -1488,7 +1306,7 @@
       const code = codeInput.value.trim().toUpperCase();
 
       if (code.length !== 5) {
-        alert(t('join_code_desc'));
+        alert('Holdkoden skal være på 5 bogstaver.');
         return;
       }
 
@@ -1556,14 +1374,14 @@
           currentUserClass = userEnrolledClasses.map(c => c.name).join(', ');
         } else {
           userEnrolledClasses = [];
-          currentUserClass = t('no_class');
+          currentUserClass = 'Intet hold';
         }
         document.getElementById('footerUserClass').innerText = currentUserClass;
         updateViewFilterOptions();
       } catch (e) {
         userEnrolledClasses = [];
-        currentUserClass = t('no_class');
-        document.getElementById('footerUserClass').innerText = t('no_class');
+        currentUserClass = 'Intet hold';
+        document.getElementById('footerUserClass').innerText = 'Intet hold';
         updateViewFilterOptions();
       }
     }
@@ -1573,13 +1391,13 @@
       if (!select) return;
 
       select.innerHTML = `
-        <option value="MAKER_DEFAULT">${t('maker_default')}</option>
-        <option value="ALL">${t('show_all')}</option>
+        <option value="MAKER_DEFAULT">🛠️ Maker Skills (Standard)</option>
+        <option value="ALL">🌐 Vis Alt (Alle moduler)</option>
       `;
 
       if (userEnrolledClasses.length > 0) {
         const grp = document.createElement('optgroup');
-        grp.label = `— ${t('lbl_class')} —`;
+        grp.label = '— Dine Tilmeldte Hold —';
         userEnrolledClasses.forEach(c => {
           const opt = document.createElement('option');
           opt.value = c.id;
@@ -1589,8 +1407,7 @@
         select.appendChild(grp);
       }
 
-      const relevantSkills = allSkills.filter(s => (s.lang || 'da') === currentLang);
-      const activeDomains = [...new Set(relevantSkills.map(s => DOMAIN_MAP[s.cat] || '💻 Software'))];
+      const activeDomains = [...new Set(allSkills.map(s => DOMAIN_MAP[s.cat] || '💻 Software'))];
       if (activeDomains.length > 1) {
         const grp = document.createElement('optgroup');
         grp.label = '— Temaer / Domæner —';
@@ -1623,7 +1440,7 @@
       const footerUserName = document.getElementById('footerUserName');
 
       if (isLoggedIn) {
-        authBtn.innerText = t('btn_logout');
+        authBtn.innerText = '🚪 Log ud';
         authBtn.className = 'btn btn-secondary';
         authBtn.onclick = handleSignOut;
         footerUserName.innerText = displayName;
@@ -1634,12 +1451,12 @@
           adminBtn.style.display = 'none';
         }
       } else {
-        authBtn.innerText = t('btn_login');
+        authBtn.innerText = '🔑 Log ind';
         authBtn.className = 'btn';
         authBtn.onclick = openAuthModal;
         adminBtn.style.display = 'none';
-        footerUserName.innerText = t('guest');
-        document.getElementById('footerUserClass').innerText = t('no_class');
+        footerUserName.innerText = 'Gæst';
+        document.getElementById('footerUserClass').innerText = 'Intet hold';
       }
     }
 
@@ -1653,7 +1470,11 @@
     function toggleAuthMode() {
       isSignUpMode = !isSignUpMode;
       document.getElementById('nameInputWrapper').style.display = isSignUpMode ? 'block' : 'none';
-      applyTranslations();
+      document.getElementById('authModalTitle').innerText = isSignUpMode ? 'Opret Bruger' : 'Log ind';
+      document.getElementById('authSubmitBtn').innerText = isSignUpMode ? 'Opret Profil' : 'Log ind';
+      document.getElementById('authToggleLink').innerText = isSignUpMode 
+        ? 'Har du allerede en bruger? Log ind her' 
+        : 'Har du ikke en bruger? Opret her';
     }
 
     async function handleAuthAction() {
@@ -1662,7 +1483,6 @@
       const email = document.getElementById('authEmail').value.trim();
       const password = document.getElementById('authPassword').value.trim();
       const fullName = document.getElementById('authName').value.trim();
-      const chosenLang = document.getElementById('authPrefLang').value;
 
       if (!email || !password) {
         alert('Udfyld venligst e-mail og kodeord.');
@@ -1678,7 +1498,7 @@
           const { data, error } = await supabaseClient.auth.signUp({
             email,
             password,
-            options: { data: { full_name: fullName, preferred_language: chosenLang } }
+            options: { data: { full_name: fullName } }
           });
           if (error) throw error;
           
@@ -1687,15 +1507,13 @@
               id: data.user.id,
               username: email.split('@')[0],
               full_name: fullName,
-              role: 'student',
-              preferred_language: chosenLang
+              role: 'student'
             });
           }
 
           alert('Bruger oprettet!');
           currentUser = data.user;
           currentUserName = fullName;
-          await handleLanguageChange(chosenLang);
         } else {
           const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
           if (error) throw error;
@@ -1704,14 +1522,11 @@
 
           const { data: prof } = await supabaseClient
             .from('profiles')
-            .select('full_name, preferred_language')
+            .select('full_name')
             .eq('id', currentUser.id)
             .maybeSingle();
 
           currentUserName = prof?.full_name || currentUser.user_metadata?.full_name || email.split('@')[0];
-          if (prof?.preferred_language) {
-            await handleLanguageChange(prof.preferred_language);
-          }
         }
 
         closeAuthModal();
@@ -1729,8 +1544,8 @@
     async function handleSignOut() {
       if (supabaseClient) await supabaseClient.auth.signOut();
       currentUser = null;
-      currentUserName = t('guest');
-      currentUserClass = t('no_class');
+      currentUserName = "Gæst";
+      currentUserClass = "Intet hold";
       userEnrolledClasses = [];
       selectedViewFilter = 'MAKER_DEFAULT';
       userProgress = JSON.parse(localStorage.getItem('ms_local_progress')) || {};
@@ -1813,21 +1628,21 @@
     async function renderTeamModal() {
       const container = document.getElementById('userClassList');
       if (!currentUser || !supabaseClient) {
-        container.innerHTML = `<span style="font-size:0.8rem; color:var(--text-muted);">${t('no_class')}</span>`;
+        container.innerHTML = '<span style="font-size:0.8rem; color:var(--text-muted);">Log ind for at se dine hold.</span>';
         return;
       }
 
       if (userEnrolledClasses.length === 0) {
-        container.innerHTML = `<span style="font-size:0.8rem; color:var(--text-muted);">${t('no_class')}</span>`;
+        container.innerHTML = '<span style="font-size:0.8rem; color:var(--text-muted);">Du er ikke tilmeldt nogen hold endnu.</span>';
         return;
       }
 
       container.innerHTML = `
         <div style="margin-bottom:12px;">
-          <label style="font-size:0.8rem; color:var(--text-muted);">${t('lbl_class')}:</label>
+          <label style="font-size:0.8rem; color:var(--text-muted);">Vælg aktiv visning:</label>
           <select style="margin-top:4px;" onchange="handleViewFilterChange(this.value)">
-            <option value="MAKER_DEFAULT" ${selectedViewFilter === 'MAKER_DEFAULT' ? 'selected' : ''}>${t('maker_default')}</option>
-            <option value="ALL" ${selectedViewFilter === 'ALL' ? 'selected' : ''}>${t('show_all')}</option>
+            <option value="MAKER_DEFAULT" ${selectedViewFilter === 'MAKER_DEFAULT' ? 'selected' : ''}>🛠️ Maker Skills (Standard)</option>
+            <option value="ALL" ${selectedViewFilter === 'ALL' ? 'selected' : ''}>🌐 Vis alt (Alle moduler)</option>
             ${userEnrolledClasses.map(c => `
               <option value="${c.id}" ${selectedViewFilter === c.id ? 'selected' : ''}>👥 Hold: ${c.name}</option>
             `).join('')}
@@ -1845,9 +1660,7 @@
       const container = document.getElementById(containerId);
       container.innerHTML = '';
 
-      const relevantSkills = allSkills.filter(s => (s.lang || 'da') === currentLang);
-      const allCats = [...new Set(relevantSkills.map(s => s.cat))];
-
+      const allCats = [...new Set(allSkills.map(s => s.cat))];
       if (allCats.length === 0) {
         container.innerHTML = '<span style="font-size:0.8rem; color:var(--text-muted);">Ingen kategorier fundet.</span>';
         return;
@@ -1917,8 +1730,7 @@
     }
 
     function setAllGlobalCategories(state) {
-      const relevantSkills = allSkills.filter(s => (s.lang || 'da') === currentLang);
-      const allCats = [...new Set(relevantSkills.map(s => s.cat))];
+      const allCats = [...new Set(allSkills.map(s => s.cat))];
       if (state) {
         hiddenCats = [];
       } else {
@@ -1947,7 +1759,7 @@
 
       const classContainer = document.getElementById('adminClassList');
       if (!currentUser || !supabaseClient) {
-        classContainer.innerHTML = '<span style="font-size:0.8rem; color:var(--text-muted);">Log ind for at administrere hold.</span>';
+        classContainer.innerHTML = '<span style="font-size:0.8rem; color:var(--text-muted);">Log ind for at oprette og administrere hold.</span>';
         return;
       }
 
@@ -2003,8 +1815,7 @@
       if (!editingClassId || !supabaseClient) return;
 
       const checked = Array.from(document.querySelectorAll('.class-cat-checkbox:checked')).map(cb => cb.value);
-      const relevantSkills = allSkills.filter(s => (s.lang || 'da') === currentLang);
-      const allCats = [...new Set(relevantSkills.map(s => s.cat))];
+      const allCats = [...new Set(allSkills.map(s => s.cat))];
 
       const toSave = (checked.length === allCats.length) ? null : checked;
 
@@ -2058,15 +1869,9 @@
           .select('user_id, skill_id')
           .in('user_id', userIds);
 
-        // Sproguafhængig ID-filtrering af holdets aktive kategorier
-        let classSpecificSkills = allSkills.filter(s => (s.lang || 'da') === currentLang);
+        let classSpecificSkills = allSkills;
         if (activeInspectionClassCategories && activeInspectionClassCategories.length > 0) {
-          const allowedSkillIds = new Set(
-            allSkills
-              .filter(s => activeInspectionClassCategories.includes(s.cat))
-              .map(s => s.id)
-          );
-          classSpecificSkills = classSpecificSkills.filter(s => allowedSkillIds.has(s.id));
+          classSpecificSkills = allSkills.filter(s => activeInspectionClassCategories.includes(s.cat));
         }
         const totalClassSkillsCount = classSpecificSkills.length;
 
@@ -2078,7 +1883,7 @@
           skills?.filter(s => s.user_id === m.user_id).forEach(s => { studentProg[s.skill_id] = true; });
           
           const completedCount = classSpecificSkills.filter(s => studentProg[s.id]).length;
-          const studentTitle = calculateGlobalTitle(allSkills.filter(s => (s.lang || 'da') === currentLang), studentProg);
+          const studentTitle = calculateGlobalTitle(allSkills, studentProg);
 
           return `
             <div class="student-row">
@@ -2087,8 +1892,8 @@
                 <span style="font-size:0.75rem; color:var(--accent-blue);">${studentTitle}</span>
               </div>
               <div style="display:flex; align-items:center; gap:10px;">
-                <span style="font-size:0.8rem;"><strong style="color:var(--active-green);">${completedCount}</strong> / ${totalClassSkillsCount} ${t('student_goal')}</span>
-                <button class="btn" style="padding:4px 8px; font-size:0.75rem;" onclick='openStudentTreeModal(${JSON.stringify(studentName)}, ${JSON.stringify(studentProg)})'>👁️ ${t('student_view')}</button>
+                <span style="font-size:0.8rem;"><strong style="color:var(--active-green);">${completedCount}</strong> / ${totalClassSkillsCount} mål</span>
+                <button class="btn" style="padding:4px 8px; font-size:0.75rem;" onclick='openStudentTreeModal(${JSON.stringify(studentName)}, ${JSON.stringify(studentProg)})'>👁️ Se Skill Tree</button>
               </div>
             </div>
           `;
@@ -2102,23 +1907,16 @@
       document.getElementById('adminStudentProgressView').style.display = 'none';
     }
 
-    /* ELEV SKILLTREE LAG (INSPEKTION) */
     function openStudentTreeModal(studentName, studentProgress) {
       const modal = document.getElementById('studentTreeModal');
       const grid = document.getElementById('studentHoneycombGrid');
-      const langSkills = allSkills.filter(s => (s.lang || 'da') === currentLang);
-
-      document.getElementById('studentTreeName').innerText = studentName;
-      document.getElementById('studentTreeTitle').innerText = calculateGlobalTitle(langSkills, studentProgress);
       
-      let inspectSkills = langSkills;
+      document.getElementById('studentTreeName').innerText = studentName;
+      document.getElementById('studentTreeTitle').innerText = calculateGlobalTitle(allSkills, studentProgress);
+      
+      let inspectSkills = allSkills;
       if (activeInspectionClassCategories && activeInspectionClassCategories.length > 0) {
-        const allowedSkillIds = new Set(
-          allSkills
-            .filter(s => activeInspectionClassCategories.includes(s.cat))
-            .map(s => s.id)
-        );
-        inspectSkills = inspectSkills.filter(s => allowedSkillIds.has(s.id));
+        inspectSkills = inspectSkills.filter(s => activeInspectionClassCategories.includes(s.cat));
       }
       
       const activeCount = inspectSkills.filter(s => studentProgress[s.id]).length;
@@ -2195,14 +1993,14 @@
       const checkBtnText = document.getElementById('enlargedCheckBtnText');
 
       title.innerText = skill.shortDesc;
-      meta.innerText = `${skill.cat} • ${t('level')} ${skill.level}`;
+      meta.innerText = `${skill.cat} • Niveau ${skill.level}`;
       desc.innerText = skill.fullDesc;
 
       icon.setAttribute('data-lucide', skill.svg);
 
       if (skill.catTitle && skill.catTitle !== '#' && skill.catTitle !== '-') {
         rewardWrap.style.display = 'flex';
-        rewardText.innerText = `${t('splash_new_title')} ${skill.catTitle}`;
+        rewardText.innerText = `Låser op for: ${skill.catTitle}`;
       } else {
         rewardWrap.style.display = 'none';
       }
@@ -2213,10 +2011,10 @@
         checkBtn.style.display = 'flex';
         if (isDone) {
           checkBtn.className = 'btn-toggle-completion done';
-          checkBtnText.innerText = t('unmark_achieved');
+          checkBtnText.innerText = '✓ Opnået (Klik for at fjerne)';
         } else {
           checkBtn.className = 'btn-toggle-completion not-done';
-          checkBtnText.innerText = t('mark_achieved');
+          checkBtnText.innerText = 'Markér som opnået';
         }
       }
 
@@ -2249,9 +2047,8 @@
     }
 
     async function toggleSkill(skillId, event, category) {
-      const langSkills = allSkills.filter(s => (s.lang || 'da') === currentLang);
-      const prevTitle = calculateGlobalTitle(langSkills, userProgress);
-      const prevCatTitles = getUnlockedCategoryTitles(category, langSkills, userProgress).map(t => t.title);
+      const prevTitle = calculateGlobalTitle(allSkills, userProgress);
+      const prevCatTitles = getUnlockedCategoryTitles(category, allSkills, userProgress).map(t => t.title);
 
       const isCompleted = !userProgress[skillId];
 
@@ -2279,16 +2076,16 @@
       }
 
       if (isCompleted) {
-        const newCatTitles = getUnlockedCategoryTitles(category, langSkills, userProgress).map(t => t.title);
+        const newCatTitles = getUnlockedCategoryTitles(category, allSkills, userProgress).map(t => t.title);
         const freshlyUnlocked = newCatTitles.filter(t => !prevCatTitles.includes(t));
         if (freshlyUnlocked.length > 0) {
-          showSpecialSplash('🎖️', t('splash_new_title'), `${t('splash_rank_up')} ${category}:`, freshlyUnlocked[0]);
+          showSpecialSplash('🎖️', 'TITEL OPNÅET!', `Du har opnået en ny titel i ${category}:`, freshlyUnlocked[0]);
         }
       }
 
-      const newTitle = calculateGlobalTitle(langSkills, userProgress);
+      const newTitle = calculateGlobalTitle(allSkills, userProgress);
       if (isCompleted && newTitle !== prevTitle && (newTitle.startsWith('Værksteds-Troldmand') || newTitle.startsWith('Maker-Guru'))) {
-        showSpecialSplash('🧙‍♂️', t('splash_wizard'), t('splash_wizard_desc'), newTitle);
+        showSpecialSplash('🧙‍♂️', 'EKSLUSIV MESTERRANG!', 'Du har opnået en sjælden overordnet titel:', newTitle);
       }
 
       renderApp();
@@ -2347,7 +2144,7 @@
           col.className = 'column';
 
           const catIcon = catSkills[0]?.svg || 'folder';
-          const activeBadgeTitle = getLatestCategoryTitle(catName, allSkills.filter(s => (s.lang || 'da') === currentLang), progressMap);
+          const activeBadgeTitle = getLatestCategoryTitle(catName, allSkills, progressMap);
           const hasBadge = !!activeBadgeTitle;
 
           const catHex = document.createElement('div');
@@ -2401,7 +2198,7 @@
                 }
 
                 const scIcon = scSkills[0]?.svg || 'folder';
-                const foldLabel = isExpanded ? t('fold_hide') : t('fold_show');
+                const foldLabel = isExpanded ? '▲ Skjul' : '▼ Vis';
 
                 scHex.innerHTML = `
                   <svg class="hex-svg" viewBox="0 0 100 86.6">
@@ -2440,12 +2237,7 @@
       const honeycombGrid = document.getElementById('honeycombGrid');
       const emptyState = document.getElementById('emptyState');
 
-      let langSkills = allSkills.filter(s => (s.lang || 'da') === currentLang);
-      if (langSkills.length === 0) {
-        langSkills = allSkills.filter(s => (s.lang || 'da') === 'da');
-      }
-
-      if (langSkills.length === 0) {
+      if (allSkills.length === 0) {
         emptyState.style.display = 'block';
         honeycombGrid.innerHTML = '';
         document.getElementById('footerScore').innerText = '0 / 0';
@@ -2453,7 +2245,7 @@
       }
       emptyState.style.display = 'none';
 
-      let availableSkills = langSkills.filter(s => !hiddenCats.includes(s.cat));
+      let availableSkills = allSkills.filter(s => !hiddenCats.includes(s.cat));
 
       if (selectedViewFilter === 'MAKER_DEFAULT') {
         availableSkills = availableSkills.filter(s => MAKER_DEFAULT_DOMAINS.includes(DOMAIN_MAP[s.cat] || '💻 Software'));
@@ -2463,20 +2255,14 @@
       } else if (selectedViewFilter !== 'ALL') {
         const selectedClass = userEnrolledClasses.find(c => c.id === selectedViewFilter);
         if (selectedClass && selectedClass.categories && selectedClass.categories.length > 0) {
-          // ID-baseret opslag, så sprogforskelle i kategorinavne ikke afskærer elever
-          const allowedSkillIds = new Set(
-            allSkills
-              .filter(s => selectedClass.categories.includes(s.cat))
-              .map(s => s.id)
-          );
-          availableSkills = availableSkills.filter(s => allowedSkillIds.has(s.id));
+          availableSkills = availableSkills.filter(s => selectedClass.categories.includes(s.cat));
         }
       }
 
       const totalSkillsCount = availableSkills.length;
       const activeSkillsCount = availableSkills.filter(s => userProgress[s.id]).length;
 
-      document.getElementById('footerUserTitle').innerText = calculateGlobalTitle(langSkills, userProgress);
+      document.getElementById('footerUserTitle').innerText = calculateGlobalTitle(allSkills, userProgress);
       document.getElementById('footerScore').innerText = `${activeSkillsCount} / ${totalSkillsCount}`;
 
       renderHoneycombIntoContainer(honeycombGrid, availableSkills, userProgress, false);
