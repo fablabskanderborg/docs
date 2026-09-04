@@ -1957,8 +1957,9 @@
           `;
           col.appendChild(catHex);
 
-          const defaultSubName = (currentLang === 'en') ? 'General' : 'Generelt';
+         const defaultSubName = (currentLang === 'en') ? 'General' : 'Generelt';
           const subCatNames = [...new Set(catSkills.map(s => s.subCat || defaultSubName))];
+          
           if (subCatNames.length === 1 && subCatNames[0] === defaultSubName) {
             const firstFourSkills = catSkills.filter(s => s.level <= 4);
             const firstFourCompleted = firstFourSkills.filter(s => progressMap[s.id]).length;
@@ -1973,16 +1974,20 @@
             subCatNames.forEach((scName) => {
               if (!allPrevCompleted) return;
               const scSkills = catSkills.filter(s => (s.subCat || defaultSubName) === scName).sort((a,b) => a.level - b.level);
+              
+              // Tjekker progression på ID (uafhængigt af sprog)
               const scCompletedCount = scSkills.filter(s => progressMap[s.id]).length;
               const isScCompleted = (scCompletedCount === scSkills.length && scSkills.length > 0);
-              const subCatKey = `${catName}_${scName}`;
+              
+              // Brug det første mål-ID som stabil sproguafhængig nøgle
+              const stableKey = scSkills[0]?.id || scName;
               let isExpanded = !isScCompleted;
-              if (manualSubCatExpanded[subCatKey] !== undefined) isExpanded = manualSubCatExpanded[subCatKey];
+              if (manualSubCatExpanded[stableKey] !== undefined) isExpanded = manualSubCatExpanded[stableKey];
 
-              if (isScCompleted || manualSubCatExpanded[subCatKey] !== undefined) {
+              if (isScCompleted || manualSubCatExpanded[stableKey] !== undefined) {
                 const scHex = document.createElement('div');
                 scHex.className = `hex-container subcat-hex ${isScCompleted ? 'completed' : ''}`;
-                if (!isReadOnly) scHex.onclick = () => toggleSubCatFold(subCatKey);
+                if (!isReadOnly) scHex.onclick = () => toggleSubCatFold(stableKey);
                 const scIcon = scSkills[0]?.svg || 'folder';
                 const foldLabel = isExpanded ? (currentLang === 'en' ? '▲ Hide' : '▲ Skjul') : (currentLang === 'en' ? '▼ Show' : '▼ Vis');
                 scHex.innerHTML = `
@@ -2008,12 +2013,6 @@
               allPrevCompleted = isScCompleted;
             });
           }
-          domainColumns.appendChild(col);
-        });
-        domainSection.appendChild(domainColumns);
-        container.appendChild(domainSection);
-      });
-    }
 
     function renderHoneycombIntoContainer(container, skillsList, progressMap, isReadOnly = false) {
       const isStudieturView = skillsList.length <= 30 || skillsList.some(s => [
