@@ -224,13 +224,20 @@
     .footer-info { display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
     .footer-label { color: var(--text-muted); margin-right: 4px; }
     .footer-val { color: var(--text-main); font-weight: bold; }
+    
+    /* MODAL BASE */
     .modal {
       display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.85); z-index: 10000; justify-content: center; align-items: center; padding: 12px;
     }
+    /* Standard modal boks (Login, Hold, Velkomst) */
     .modal-box {
-      background: #1e293b; padding: 24px; border-radius: 10px; width: 94vw; max-width: 1180px;
-      max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+      background: #1e293b; padding: 20px; border-radius: 8px; width: 440px; max-width: 95vw;
+      max-height: 90vh; overflow-y: auto; box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+    }
+    /* Bred modal boks eksklusivt til Superbruger Admin */
+    .modal-box.modal-wide {
+      width: 94vw; max-width: 1180px; padding: 24px; border-radius: 10px; box-shadow: 0 20px 40px rgba(0,0,0,0.8);
     }
     .modal-top-header {
       display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;
@@ -472,7 +479,7 @@
         <label style="font-size:0.8rem; color:var(--text-muted);" data-i18n="auth_lbl_pass">Kodeord:</label>
         <input type="password" id="authPassword" placeholder="••••••••">
       </div>
-      <div style="margin-top:15px; display:flex; gap:10px; justify-flex-end;">
+      <div style="margin-top:15px; display:flex; gap:10px; justify-content:flex-end;">
         <button class="btn btn-secondary" onclick="closeAuthModal()" data-i18n="btn_cancel">Annuller</button>
         <button class="btn" id="authSubmitBtn" onclick="handleAuthAction()" data-i18n="btn_login">Log ind</button>
       </div>
@@ -504,7 +511,7 @@
   </div>
 
   <div class="modal" id="adminModal">
-    <div class="modal-box">
+    <div class="modal-box modal-wide">
       <div class="modal-top-header">
         <h2 style="margin:0; font-size:1.3rem; color:var(--accent-blue);" data-i18n="admin_panel_title">⚙️ Superbruger Admin</h2>
         <button class="btn btn-secondary" onclick="closeAdmin()" data-i18n="btn_close">✕ Luk</button>
@@ -1230,7 +1237,7 @@
       const { data: classData, error: findError } = await supabaseClient.from('classes').select('id, name').ilike('invite_code', code).maybeSingle();
       if (findError || !classData) return alert((currentLang === 'en' ? 'No team found with code: ' : 'Fandt intet hold med koden: ') + code);
       const { error: joinError } = await supabaseClient.from('class_members').insert({ class_id: classData.id, user_id: currentUser.id });
-      if (joinError) alert(currentLang === 'en' ? 'Already member or error.' : 'Du er allerede tilmeldt dette hold eller der opstod en fejl.');
+      if (joinError) alert(currentLang === 'en' ? 'Already joined or error occurred.' : 'Du er allerede tilmeldt dette hold eller der opstod en fejl.');
       else {
         alert(`${currentLang === 'en' ? 'You joined: ' : 'Du er nu tilmeldt holdet: '} ${classData.name}!`);
         codeInput.value = ''; await fetchUserClass(); renderTeamModal(); handleViewFilterChange(classData.id);
@@ -1957,7 +1964,7 @@
           `;
           col.appendChild(catHex);
 
-         const defaultSubName = (currentLang === 'en') ? 'General' : 'Generelt';
+          const defaultSubName = (currentLang === 'en') ? 'General' : 'Generelt';
           const subCatNames = [...new Set(catSkills.map(s => s.subCat || defaultSubName))];
           
           if (subCatNames.length === 1 && subCatNames[0] === defaultSubName) {
@@ -1975,11 +1982,11 @@
               if (!allPrevCompleted) return;
               const scSkills = catSkills.filter(s => (s.subCat || defaultSubName) === scName).sort((a,b) => a.level - b.level);
               
-              // Tjekker progression på ID (uafhængigt af sprog)
+              // Tjekker progression på stabile ID'er
               const scCompletedCount = scSkills.filter(s => progressMap[s.id]).length;
               const isScCompleted = (scCompletedCount === scSkills.length && scSkills.length > 0);
               
-              // Brug det første mål-ID som stabil sproguafhængig nøgle
+              // Stabil nøgle baseret på første ID (uafhængigt af sprog)
               const stableKey = scSkills[0]?.id || scName;
               let isExpanded = !isScCompleted;
               if (manualSubCatExpanded[stableKey] !== undefined) isExpanded = manualSubCatExpanded[stableKey];
@@ -2013,6 +2020,12 @@
               allPrevCompleted = isScCompleted;
             });
           }
+          domainColumns.appendChild(col);
+        });
+        domainSection.appendChild(domainColumns);
+        container.appendChild(domainSection);
+      });
+    }
 
     function renderHoneycombIntoContainer(container, skillsList, progressMap, isReadOnly = false) {
       const isStudieturView = skillsList.length <= 30 || skillsList.some(s => [
