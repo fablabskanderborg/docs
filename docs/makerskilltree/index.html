@@ -229,8 +229,12 @@
       background: rgba(0,0,0,0.85); z-index: 10000; justify-content: center; align-items: center; padding: 12px;
     }
     .modal-box {
-      background: #1e293b; padding: 24px; border-radius: 10px; width: 92vw; max-width: 1100px;
+      background: #1e293b; padding: 24px; border-radius: 10px; width: 94vw; max-width: 1180px;
       max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+    }
+    .modal-top-header {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;
+      padding-bottom: 10px; border-bottom: 1px solid #334155;
     }
     .admin-section { margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid #334155; }
     .admin-section h3 { margin-top: 0; font-size: 0.95rem; color: var(--accent-blue); }
@@ -262,6 +266,32 @@
       display: flex; justify-content: space-between; align-items: center;
       padding: 8px 10px; border-bottom: 1px solid #1e293b; font-size: 0.85rem; flex-wrap: wrap; gap: 8px;
     }
+
+    /* 4 GRUPPER AF KATEGORI-KNAPPER */
+    .editor-cat-groups {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 10px; margin: 12px 0 16px 0;
+    }
+    .editor-cat-group-box {
+      background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 10px;
+    }
+    .editor-cat-group-title {
+      font-size: 0.78rem; font-weight: bold; color: var(--accent-blue); text-transform: uppercase;
+      letter-spacing: 0.8px; margin-bottom: 8px; border-bottom: 1px solid #1e293b; padding-bottom: 4px;
+    }
+    .editor-cat-btn-grid {
+      display: flex; flex-wrap: wrap; gap: 6px;
+    }
+    .btn-cat-pill {
+      background: #1e293b; border: 1px solid #475569; color: var(--text-main);
+      padding: 5px 9px; font-size: 0.75rem; border-radius: 5px; cursor: pointer; transition: all 0.15s ease;
+    }
+    .btn-cat-pill:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
+    .btn-cat-pill.active {
+      background: var(--accent-blue); color: #0b1329; font-weight: bold; border-color: var(--accent-blue);
+    }
+
+    /* INLINE EDITOR FORM */
     .editor-item {
       background: #0f172a; border: 1px solid #334155; padding: 12px; border-radius: 8px;
       display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px;
@@ -273,14 +303,14 @@
     .editor-handle { color: var(--text-muted); cursor: grab; font-size: 1.2rem; }
     .editor-handle:active { cursor: grabbing; }
     .editor-grid {
-      display: grid; grid-template-columns: 140px 180px 1fr 1fr; gap: 8px;
+      display: grid; grid-template-columns: 140px 140px 170px 1fr 1fr; gap: 8px;
     }
     .editor-grid input, .editor-grid textarea {
       background: #162032; border: 1px solid #334155; color: var(--text-main);
       padding: 6px 8px; border-radius: 4px; font-size: 0.80rem; width: 100%;
     }
     .editor-grid textarea { resize: vertical; min-height: 34px; height: 34px; font-family: inherit; }
-    @media (max-width: 900px) {
+    @media (max-width: 1024px) {
       .editor-grid { grid-template-columns: 1fr; }
     }
     .tutorial-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 11000; }
@@ -483,7 +513,11 @@
 
   <div class="modal" id="adminModal">
     <div class="modal-box">
-      <h2 style="margin-top:0;">Superbruger Admin</h2>
+      <div class="modal-top-header">
+        <h2 style="margin:0; font-size:1.3rem; color:var(--accent-blue);">⚙️ Superbruger Admin</h2>
+        <button class="btn btn-secondary" onclick="closeAdmin()">✕ Luk</button>
+      </div>
+
       <div class="admin-section">
         <h3>1. Opret nyt Hold</h3>
         <div style="display:flex; gap:8px; margin-bottom:12px;">
@@ -491,6 +525,7 @@
           <button class="btn" onclick="handleCreateClass()">Opret Hold</button>
         </div>
       </div>
+
       <div class="admin-section">
         <h3>2. Administrer Hold & Hold-Kategorier</h3>
         <div id="adminClassList"><span style="font-size:0.8rem; color:var(--text-muted);">Henter hold...</span></div>
@@ -515,6 +550,7 @@
           <button class="btn" style="width:100%;" onclick="saveClassCategories()">💾 Gem Hold-Kategorier</button>
         </div>
       </div>
+
       <div class="admin-section">
         <h3>3. Opdater Kompetencer (CSV)</h3>
         <p style="font-size: 0.8rem; color: var(--text-muted); margin:0 0 10px 0;">Format: Sprog, Kategori, Kategori_Titel, Underkategori, ID, Niveau, SVG_Ikon, Kort_Beskrivelse, Kompetence, Vejledning</p>
@@ -523,6 +559,7 @@
           <button class="btn" onclick="handleFileUpload()">Upload</button>
         </div>
       </div>
+
       <div class="admin-section">
         <h3>4. Generelt Synlige Kategorier (Global)</h3>
         <div class="toolbar-btns">
@@ -531,6 +568,7 @@
         </div>
         <div id="adminCategoryList" style="max-height:240px; overflow-y:auto;"></div>
       </div>
+
       <div class="admin-section">
         <h3>5. Data-styring</h3>
         <button class="btn btn-danger" onclick="clearAllData()">Ryd Lokal Cache</button>
@@ -538,22 +576,35 @@
       
       <!-- 6. KOMPETENCE-EDITOR -->
       <div class="admin-section" style="border-bottom:none;">
-        <h3>6. Kompetence-Editor (Drag & Drop)</h3>
-        <p style="font-size: 0.8rem; color: var(--text-muted); margin:0 0 10px 0;">
-          Vælg sprog og kategori for at omrokere niveauer, rette tekster eller tilføje vejlednings-links.
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+          <h3>6. Kompetence-Editor (Drag & Drop)</h3>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <label style="font-size:0.8rem; color:var(--text-muted);">Sprog:</label>
+            <select id="editorLangSelect" style="width:auto; padding:5px 10px;" onchange="handleEditorLangChange()">
+              <option value="da">🇩🇰 Dansk (da)</option>
+              <option value="en">🇬🇧 English (en)</option>
+            </select>
+          </div>
+        </div>
+        
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin:4px 0 10px 0;">
+          Klik på en kategori for at omrokere, rette underkategorier, tildele kategori-titler eller indsætte vejledninger:
         </p>
-        <div style="display:flex; gap:10px; margin-bottom:12px; flex-wrap:wrap;">
-          <select id="editorLangSelect" style="width:auto; flex:1;" onchange="handleEditorFilterChange()">
-            <option value="da">🇩🇰 Dansk (da)</option>
-            <option value="en">🇬🇧 English (en)</option>
-          </select>
-          <select id="editorCatSelect" style="width:auto; flex:2;" onchange="loadEditorCategorySkills()">
-            <option value="">-- Vælg en kategori --</option>
-          </select>
+
+        <!-- 4 GRUPPER AF KATEGORI-KNAPPER -->
+        <div class="editor-cat-groups" id="editorCatButtonGroups">
+          <!-- Udfyldes dynamisk i JS -->
         </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <strong id="editorActiveCatTitle" style="color:var(--accent-blue); font-size:0.95rem;">Vælg en kategori ovenfor</strong>
+          <span id="editorActiveCatCount" style="font-size:0.75rem; color:var(--text-muted);"></span>
+        </div>
+
         <div id="editorSkillList" style="display:flex; flex-direction:column; gap:8px; margin-bottom:12px; min-height:50px;">
-          <span style="font-size:0.8rem; color:var(--text-muted);">Vælg en kategori foroven for at se mål.</span>
+          <span style="font-size:0.8rem; color:var(--text-muted);">Klik på en kategori-knap ovenfor for at redigere kompetencerne.</span>
         </div>
+
         <div style="display:flex; gap:8px; flex-wrap:wrap;">
           <button class="btn btn-secondary" style="font-size:0.75rem;" onclick="addNewSkillToEditor()">➕ Tilføj Mål</button>
           <button class="btn btn-secondary" style="font-size:0.75rem;" onclick="exportEditorCategoryCSV()">⬇️ Hent CSV</button>
@@ -561,11 +612,14 @@
         </div>
       </div>
 
-      <div style="text-align: right; margin-top: 15px;">
-        <button class="btn" onclick="closeAdmin()">Luk</button>
+      <div style="text-align: right; margin-top: 15px; border-top: 1px solid #334155; padding-top: 12px;">
+        <button class="btn" onclick="closeAdmin()">Luk Admin</button>
       </div>
     </div>
   </div>
+
+  <!-- Datalist til autoforslag på underkategorier -->
+  <datalist id="subcatDatalist"></datalist>
 
   <div class="splash-modal" id="titleSplash">
     <div class="splash-card">
@@ -602,17 +656,16 @@
     const DOMAIN_MAP = {
       'Filhåndtering': '💻 Software', 'Vektorgrafik': '💻 Software', 'Rastergrafik': '💻 Software', '3D-Modellering': '💻 Software',
       'CO2 Laserskæring': '⚙️ Maskiner', 'Laserskæring': '⚙️ Maskiner', '3D-Printning': '⚙️ Maskiner', 'Folieskæring': '⚙️ Maskiner', 'Digitalt Broderi': '⚙️ Maskiner', 'Materialekendskab': '⚙️ Maskiner',
-      'Elektronik': '🔌 Hardware og Elektronik', 'Microcontroller': '🔌 Hardware og Elektronik',
-      'Værkstedskultur': '🤝 Værkstedskultur',
-      'Netværk & Fællesskab': '👥 Fællesskab & Netværk', 'Pædagogik & Praksis': '🎓 Didaktik & Facilitering', 'Entreprenørskab': '💼 Forretning & Værksted', 'Kultur & Oplevelse': '✨ Maker Faire & Kultur'
+      'Elektronik': '🔌 Hardware', 'Microcontroller': '🔌 Hardware',
+      'Værkstedskultur': '🤝 Kultur',
+      'Netværk & Fællesskab': '🤝 Kultur', 'Pædagogik & Praksis': '🤝 Kultur', 'Entreprenørskab': '🤝 Kultur', 'Kultur & Oplevelse': '🤝 Kultur'
     };
 
     const DOMAIN_ORDER = [
-      '💻 Software', '⚙️ Maskiner', '🔌 Hardware og Elektronik', '🤝 Værkstedskultur',
-      '👥 Fællesskab & Netværk', '🎓 Didaktik & Facilitering', '💼 Forretning & Værksted', '✨ Maker Faire & Kultur'
+      '💻 Software', '⚙️ Maskiner', '🔌 Hardware', '🤝 Kultur'
     ];
 
-    const MAKER_DEFAULT_DOMAINS = ['💻 Software', '⚙️ Maskiner', '🔌 Hardware og Elektronik', '🤝 Værkstedskultur'];
+    const MAKER_DEFAULT_DOMAINS = ['💻 Software', '⚙️ Maskiner', '🔌 Hardware', '🤝 Kultur'];
 
     const CATEGORY_THEMES = {
       'Netværk & Fællesskab': { class: 'theme-network', color: '#38bdf8', label: 'Netværk & Fællesskab' },
@@ -671,6 +724,7 @@
 
     let editorSortableInstance = null;
     let activeEditorSkills = [];
+    let selectedEditorCategory = null;
 
     function handleLanguageChange(newLang) {
       currentLang = newLang;
@@ -974,7 +1028,7 @@
     function closeAuthModal() { document.getElementById('authModal').style.display = 'none'; }
     function openTeamModal() { renderTeamModal(); document.getElementById('teamModal').style.display = 'flex'; }
     function closeTeamModal() { document.getElementById('teamModal').style.display = 'none'; }
-    function openAdmin() { populateEditorCategories(); renderAdmin(); document.getElementById('adminModal').style.display = 'flex'; }
+    function openAdmin() { renderEditorCategoryButtons(); renderAdmin(); document.getElementById('adminModal').style.display = 'flex'; }
     function closeAdmin() { document.getElementById('adminModal').style.display = 'none'; renderApp(); }
 
     function toggleAuthMode() {
@@ -1276,40 +1330,103 @@
       renderAdmin(); closeClassProgressView(); closeClassCategoriesView(); await fetchUserClass(); renderApp();
     }
 
-    /* KOMPETENCE-EDITOR METODER */
-    function populateEditorCategories() {
-      const select = document.getElementById('editorCatSelect');
-      if (!select) return;
-      const cats = [...new Set(allSkills.map(s => s.cat))];
-      select.innerHTML = '<option value="">-- Vælg en kategori --</option>' +
-        cats.map(c => `<option value="${c}">${c}</option>`).join('');
+    /* 4 GRUPPER AF KATEGORI-KNAPPER */
+    function renderEditorCategoryButtons() {
+      const container = document.getElementById('editorCatButtonGroups');
+      if (!container) return;
+      container.innerHTML = '';
+
+      const allCats = [...new Set(allSkills.map(s => s.cat))];
+      if (allCats.length === 0) {
+        container.innerHTML = '<span style="font-size:0.8rem; color:var(--text-muted);">Ingen kategorier indlæst.</span>';
+        return;
+      }
+
+      // De 4 faste grupper
+      const groups = {
+        '💻 Software': ['Filhåndtering', 'Vektorgrafik', 'Rastergrafik', '3D-Modellering'],
+        '⚙️ Maskiner': ['CO2 Laserskæring', 'Laserskæring', '3D-Printning', 'Folieskæring', 'Digitalt Broderi', 'Materialekendskab'],
+        '🔌 Hardware': ['Elektronik', 'Microcontroller'],
+        '🤝 Kultur': ['Værkstedskultur', 'Netværk & Fællesskab', 'Pædagogik & Praksis', 'Entreprenørskab', 'Kultur & Oplevelse']
+      };
+
+      Object.keys(groups).forEach(grpName => {
+        const catList = groups[grpName].filter(c => allCats.includes(c));
+        // Find evt. dynamiske kategorier der matcher dette domæne
+        allCats.forEach(c => {
+          if (!catList.includes(c) && (DOMAIN_MAP[c] === grpName)) catList.push(c);
+        });
+
+        if (catList.length === 0) return;
+
+        const box = document.createElement('div');
+        box.className = 'editor-cat-group-box';
+        box.innerHTML = `
+          <div class="editor-cat-group-title">${grpName}</div>
+          <div class="editor-cat-btn-grid" id="cat_btn_grp_${grpName}"></div>
+        `;
+        const btnGrid = box.querySelector('.editor-cat-btn-grid');
+
+        catList.forEach(c => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = `btn-cat-pill ${selectedEditorCategory === c ? 'active' : ''}`;
+          btn.innerText = c;
+          btn.onclick = () => selectEditorCategory(c);
+          btnGrid.appendChild(btn);
+        });
+
+        container.appendChild(box);
+      });
     }
 
-    function handleEditorFilterChange() {
+    function selectEditorCategory(catName) {
+      selectedEditorCategory = catName;
+      renderEditorCategoryButtons();
       loadEditorCategorySkills();
     }
 
+    function handleEditorLangChange() {
+      loadEditorCategorySkills();
+    }
+
+    function updateSubcatDatalist(catSkills) {
+      const datalist = document.getElementById('subcatDatalist');
+      if (!datalist) return;
+      const uniqueSubcats = [...new Set(catSkills.map(s => s.subCat).filter(sc => sc && sc.trim() !== ''))];
+      datalist.innerHTML = uniqueSubcats.map(sc => `<option value="${sc}">`).join('');
+    }
+
     function loadEditorCategorySkills() {
-      const cat = document.getElementById('editorCatSelect').value;
+      const cat = selectedEditorCategory;
       const lang = document.getElementById('editorLangSelect').value;
       const container = document.getElementById('editorSkillList');
+      const titleEl = document.getElementById('editorActiveCatTitle');
+      const countEl = document.getElementById('editorActiveCatCount');
 
       if (!cat) {
-        container.innerHTML = '<span style="font-size:0.8rem; color:var(--text-muted);">Vælg en kategori foroven for at se mål.</span>';
+        titleEl.innerText = 'Vælg en kategori ovenfor';
+        countEl.innerText = '';
+        container.innerHTML = '<span style="font-size:0.8rem; color:var(--text-muted);">Klik på en kategori-knap ovenfor for at redigere kompetencerne.</span>';
         return;
       }
+
+      titleEl.innerText = `${cat} (${lang.toUpperCase()})`;
 
       activeEditorSkills = allSkills
         .filter(s => s.cat === cat && (s.lang || 'da') === lang)
         .sort((a, b) => a.level - b.level);
 
       if (activeEditorSkills.length === 0) {
+        // Kopiér ID og struktur fra dansk, hvis valgt sprog ikke er oprettet endnu
         activeEditorSkills = allSkills
           .filter(s => s.cat === cat && (s.lang || 'da') === 'da')
           .sort((a, b) => a.level - b.level)
           .map(s => ({ ...s, lang: lang, shortDesc: `${s.shortDesc} (${lang})`, fullDesc: `${s.fullDesc}` }));
       }
 
+      countEl.innerText = `${activeEditorSkills.length} mål fundet`;
+      updateSubcatDatalist(allSkills.filter(s => s.cat === cat));
       renderEditorList();
     }
 
@@ -1318,7 +1435,7 @@
       container.innerHTML = '';
 
       activeEditorSkills.forEach((s, idx) => {
-        s.level = idx + 1;
+        s.level = idx + 1; // Niveauer genberegnes automatisk
         const el = document.createElement('div');
         el.className = 'editor-item';
         el.dataset.id = s.id;
@@ -1332,7 +1449,11 @@
           <div class="editor-grid">
             <div>
               <label style="font-size:0.68rem; color:var(--text-muted); display:block;">Underkategori:</label>
-              <input type="text" value="${s.subCat || ''}" placeholder="Underkategori" oninput="updateSkillField('${s.id}', 'subCat', this.value)">
+              <input type="text" list="subcatDatalist" value="${s.subCat || ''}" placeholder="F.eks. Styring..." oninput="updateSkillField('${s.id}', 'subCat', this.value)">
+            </div>
+            <div>
+              <label style="font-size:0.68rem; color:var(--text-muted); display:block;">Kategori Titel (Badge):</label>
+              <input type="text" value="${(s.catTitle && s.catTitle !== '#') ? s.catTitle : ''}" placeholder="# eller Titel" oninput="updateSkillField('${s.id}', 'catTitle', this.value || '#')">
             </div>
             <div>
               <label style="font-size:0.68rem; color:var(--text-muted); display:block;">Kort Titel:</label>
@@ -1369,13 +1490,13 @@
     }
 
     function addNewSkillToEditor() {
-      const cat = document.getElementById('editorCatSelect').value;
+      const cat = selectedEditorCategory;
       const lang = document.getElementById('editorLangSelect').value;
-      if (!cat) return alert('Vælg en kategori først.');
+      if (!cat) return alert('Vælg en kategori-knap ovenfor først.');
 
       const fallbackSubCat = activeEditorSkills.length > 0 ? activeEditorSkills[activeEditorSkills.length - 1].subCat : '';
       const fallbackSvg = activeEditorSkills.length > 0 ? activeEditorSkills[activeEditorSkills.length - 1].svg : 'folder';
-      const newId = `${cat.substring(0, 3).toUpperCase()}_${Date.now().toString().slice(-4)}`;
+      const newId = `${cat.substring(0, 3).toUpperCase().replace(/[^A-Z]/g, '')}_${Date.now().toString().slice(-4)}`;
 
       activeEditorSkills.push({
         cat: cat,
@@ -1393,12 +1514,13 @@
     }
 
     function removeSingleSkill(skillId) {
-      if (!confirm('Vil du fjerne dette mål fra listen?')) return;
+      if (!confirm(`Er du sikker på, at du vil fjerne dette unikke ID: ${skillId}?`)) return;
       activeEditorSkills = activeEditorSkills.filter(s => s.id !== skillId);
       renderEditorList();
     }
 
     async function pushEditorToSupabase() {
+      if (!selectedEditorCategory) return alert('Vælg en kategori først.');
       if (!activeEditorSkills || activeEditorSkills.length === 0) return alert('Ingen kompetencer at gemme.');
       if (!supabaseClient) return alert('Supabase er ikke forbundet.');
 
@@ -1450,7 +1572,7 @@
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.setAttribute('download', `${activeEditorSkills[0].cat}_export.csv`);
+      link.setAttribute('download', `${selectedEditorCategory}_export.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
