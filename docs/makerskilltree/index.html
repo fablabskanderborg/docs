@@ -927,7 +927,7 @@
         const catTitle = (rawCatTitle && rawCatTitle !== '#') ? rawCatTitle.trim() : '#';
         rowsToUpsert.push({
           lang: langVal.trim().toLowerCase(),
-          domain: DOMAIN_MAP[category.trim()] || (langVal.trim().toLowerCase() === 'en' ? '💻 Software' : '💻 Software'),
+          domain: DOMAIN_MAP[category.trim()] || '💻 Software',
           category: category.trim(),
           category_title: catTitle,
           subcategory: (subCatIdx >= 0 ? values[subCatIdx] : values[2]) || '',
@@ -1237,7 +1237,7 @@
       const { data: classData, error: findError } = await supabaseClient.from('classes').select('id, name').ilike('invite_code', code).maybeSingle();
       if (findError || !classData) return alert((currentLang === 'en' ? 'No team found with code: ' : 'Fandt intet hold med koden: ') + code);
       const { error: joinError } = await supabaseClient.from('class_members').insert({ class_id: classData.id, user_id: currentUser.id });
-      if (joinError) alert(currentLang === 'en' ? 'Already joined or error occurred.' : 'Du er allerede tilmeldt dette hold eller der opstod en fejl.');
+      if (joinError) alert(currentLang === 'en' ? 'Already member or error.' : 'Du er allerede tilmeldt dette hold eller der opstod en fejl.');
       else {
         alert(`${currentLang === 'en' ? 'You joined: ' : 'Du er nu tilmeldt holdet: '} ${classData.name}!`);
         codeInput.value = ''; await fetchUserClass(); renderTeamModal(); handleViewFilterChange(classData.id);
@@ -1933,7 +1933,7 @@
         const domainColumns = document.createElement('div');
         domainColumns.className = 'domain-columns';
 
-        // Sortering af kategorier efter CATEGORY_ORDER
+        // Sortering af kategorier efter den faste CATEGORY_ORDER
         const domainCategories = [...new Set(domainSkills.map(s => s.cat))].sort((a, b) => {
           const idxA = CATEGORY_ORDER.indexOf(a);
           const idxB = CATEGORY_ORDER.indexOf(b);
@@ -1964,9 +1964,14 @@
           `;
           col.appendChild(catHex);
 
+          // Find underkategorier i stabil rækkefølge
+          const subCatNames = [];
+          catSkills.forEach(s => {
+            const sc = s.subCat || (currentLang === 'en' ? 'General' : 'Generelt');
+            if (!subCatNames.includes(sc)) subCatNames.push(sc);
+          });
+
           const defaultSubName = (currentLang === 'en') ? 'General' : 'Generelt';
-          const subCatNames = [...new Set(catSkills.map(s => s.subCat || defaultSubName))];
-          
           if (subCatNames.length === 1 && subCatNames[0] === defaultSubName) {
             const firstFourSkills = catSkills.filter(s => s.level <= 4);
             const firstFourCompleted = firstFourSkills.filter(s => progressMap[s.id]).length;
@@ -1982,11 +1987,11 @@
               if (!allPrevCompleted) return;
               const scSkills = catSkills.filter(s => (s.subCat || defaultSubName) === scName).sort((a,b) => a.level - b.level);
               
-              // Tjekker progression på stabile ID'er
+              // Progression beregnes på unikke ID'er (uafhængigt af sprog)
               const scCompletedCount = scSkills.filter(s => progressMap[s.id]).length;
               const isScCompleted = (scCompletedCount === scSkills.length && scSkills.length > 0);
               
-              // Stabil nøgle baseret på første ID (uafhængigt af sprog)
+              // Stabil nøgle baseret på første ID i underkategorien
               const stableKey = scSkills[0]?.id || scName;
               let isExpanded = !isScCompleted;
               if (manualSubCatExpanded[stableKey] !== undefined) isExpanded = manualSubCatExpanded[stableKey];
