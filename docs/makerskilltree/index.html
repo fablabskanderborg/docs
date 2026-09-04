@@ -5,58 +5,45 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Maker Skill Tree</title>
   <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
-      --bg-color: #0b1329;
-      --card-bg: #1e293b;
-      --accent-blue: #38bdf8;
-      --active-green: #22c55e;
-      --inactive-border: #475569;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
+      --bg-color: #0b1329; --card-bg: #1e293b; --accent-blue: #38bdf8;
+      --active-green: #22c55e; --inactive-border: #475569; --text-main: #f8fafc; --text-muted: #94a3b8;
     }
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     body {
-      background-color: var(--bg-color);
-      color: var(--text-main);
+      background-color: var(--bg-color); color: var(--text-main);
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      margin: 0; padding: 0;
-      display: flex; flex-direction: column;
-      height: 100vh; overflow: hidden;
+      margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden;
     }
     .shake { animation: screenShake 0.3s ease-in-out; }
     @keyframes screenShake {
       0%, 100% { transform: translate(0, 0); }
-      20% { transform: translate(-4px, 3px); }
-      40% { transform: translate(4px, -3px); }
-      60% { transform: translate(-3px, -2px); }
-      80% { transform: translate(3px, 2px); }
+      20% { transform: translate(-4px, 3px); } 40% { transform: translate(4px, -3px); }
+      60% { transform: translate(-3px, -2px); } 80% { transform: translate(3px, 2px); }
     }
     header {
-      background: #0f172a; padding: 10px 20px;
-      border-bottom: 1px solid #1e293b;
-      display: flex; justify-content: space-between; align-items: center;
-      z-index: 100; position: relative; flex-wrap: wrap; gap: 10px;
+      background: #0f172a; padding: 10px 20px; border-bottom: 1px solid #1e293b;
+      display: flex; justify-content: space-between; align-items: center; z-index: 100;
+      position: relative; flex-wrap: wrap; gap: 10px;
     }
     h1 { margin: 0; font-size: 1.25rem; color: var(--text-main); letter-spacing: 0.5px; }
     .header-btns { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
     .view-filter-select {
-      background: #1e293b; border: 1px solid var(--accent-blue);
-      color: var(--accent-blue); font-weight: bold; font-size: 0.82rem;
-      padding: 5px 10px; border-radius: 6px; cursor: pointer; width: auto;
+      background: #1e293b; border: 1px solid var(--accent-blue); color: var(--accent-blue);
+      font-weight: bold; font-size: 0.82rem; padding: 5px 10px; border-radius: 6px; cursor: pointer; width: auto;
     }
     .main-container { display: flex; flex: 1; overflow: hidden; position: relative; }
     .viewport {
-      flex: 1; padding: 15px;
-      overflow-x: auto; overflow-y: auto; -webkit-overflow-scrolling: touch;
-      display: flex; flex-direction: column;
-      background: radial-gradient(circle at center, #131f3f 0%, #0b1329 100%);
+      flex: 1; padding: 15px; overflow-x: auto; overflow-y: auto; -webkit-overflow-scrolling: touch;
+      display: flex; flex-direction: column; background: radial-gradient(circle at center, #131f3f 0%, #0b1329 100%);
     }
     .empty-state {
-      margin: 60px auto; text-align: center; color: var(--text-muted);
-      font-size: 1rem; max-width: 450px; line-height: 1.5; padding: 0 15px;
+      margin: 60px auto; text-align: center; color: var(--text-muted); font-size: 1rem;
+      max-width: 450px; line-height: 1.5; padding: 0 15px;
     }
     .honeycomb-grid {
       display: flex; gap: 35px; padding: 20px 40px 90px 40px;
@@ -64,46 +51,39 @@
     }
     .domain-section { display: flex; flex-direction: column; align-items: center; position: relative; }
     .domain-header {
-      font-size: 0.8rem; font-weight: bold; color: var(--accent-blue);
-      text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px;
-      padding: 6px 14px; background: rgba(15, 23, 42, 0.85);
+      font-size: 0.8rem; font-weight: bold; color: var(--accent-blue); text-transform: uppercase;
+      letter-spacing: 1px; margin-bottom: 10px; padding: 6px 14px; background: rgba(15, 23, 42, 0.85);
       border: 1px solid #334155; border-radius: 20px; white-space: nowrap; z-index: 10;
     }
     .domain-columns { display: flex; padding-top: 55px; }
     .column {
-      display: flex; flex-direction: column-reverse; gap: 6px;
-      margin-right: -21px; position: relative; z-index: 1;
-      align-items: center; width: 100px; flex-shrink: 0;
+      display: flex; flex-direction: column-reverse; gap: 6px; margin-right: -21px;
+      position: relative; z-index: 1; align-items: center; width: 100px; flex-shrink: 0;
     }
     .column:hover { z-index: 100; }
     .column:nth-child(even) { transform: translateY(-46px); }
     .honeycomb-cluster-wrap {
-      display: flex; flex-direction: column; align-items: center;
-      margin: auto; padding: 20px 20px 90px 20px;
+      display: flex; flex-direction: column; align-items: center; margin: auto; padding: 20px 20px 90px 20px;
     }
     .cluster-legend {
-      display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;
-      margin-bottom: 30px; background: rgba(15, 23, 42, 0.85);
-      padding: 8px 18px; border-radius: 20px; border: 1px solid #334155;
+      display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; margin-bottom: 30px;
+      background: rgba(15, 23, 42, 0.85); padding: 8px 18px; border-radius: 20px; border: 1px solid #334155;
     }
     .legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; font-weight: bold; }
     .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
-   .cluster-mesh { display: flex; align-items: flex-end; justify-content: center; padding: 20px; }
+    .cluster-mesh { display: flex; align-items: flex-end; justify-content: center; padding: 20px; }
     .cluster-col {
-      display: flex; flex-direction: column; gap: 6px;
-      margin-right: -24px; position: relative; width: 100px; flex-shrink: 0;
+      display: flex; flex-direction: column; gap: 6px; margin-right: -24px; position: relative; width: 100px; flex-shrink: 0;
     }
     .cluster-col:nth-child(even) { transform: translateY(-45px); }
     .hex-container {
-      width: 100px; height: 86.6px; position: relative;
-      cursor: pointer; z-index: 1; transition: transform 0.15s ease, opacity 0.3s ease;
-      touch-action: manipulation;
+      width: 100px; height: 86.6px; position: relative; cursor: pointer; z-index: 1;
+      transition: transform 0.15s ease, opacity 0.3s ease; touch-action: manipulation;
     }
     .hex-container:active { transform: scale(0.96); }
     .hex-svg { width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
     .hex-outer-frame {
-      fill: #1e293b; stroke: var(--inactive-border); stroke-width: 3;
-      transition: stroke 0.3s, fill 0.3s;
+      fill: #1e293b; stroke: var(--inactive-border); stroke-width: 3; transition: stroke 0.3s, fill 0.3s;
     }
     .hex-outer-frame.dashed-frame { stroke-dasharray: 6 3; stroke: var(--accent-blue); }
     .hex-inner-frame {
@@ -118,8 +98,7 @@
     .cat-hex-container.completed .hex-outer-frame,
     .subcat-hex.completed .hex-outer-frame,
     .enlarged-hex-svg-wrap.completed .hex-outer-frame {
-      stroke: var(--active-green); fill: #022c22;
-      filter: drop-shadow(0 0 8px rgba(34, 197, 94, 0.45));
+      stroke: var(--active-green); fill: #022c22; filter: drop-shadow(0 0 8px rgba(34, 197, 94, 0.45));
     }
     .hex-container.active .hex-inner-frame,
     .cat-hex-container.completed .hex-inner-frame,
@@ -135,8 +114,8 @@
     .hex-text {
       font-size: 0.54rem; font-weight: 700; text-align: center; line-height: 1.1;
       color: var(--text-main); padding: 0 2px; max-width: 74px; overflow-wrap: break-word;
-      word-break: break-word; hyphens: auto; display: -webkit-box;
-      -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+      word-break: break-word; hyphens: auto; display: -webkit-box; -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical; overflow: hidden;
     }
     .hex-level { font-size: 0.60rem; font-weight: bold; color: var(--text-muted); line-height: 1; flex-shrink: 0; }
     .cat-hex-content {
@@ -180,8 +159,7 @@
       box-shadow: 0 4px 15px rgba(0,0,0,0.6); z-index: 10;
     }
     .enlarged-hex-svg-wrap {
-      width: 320px; height: 277px; position: relative; display: flex;
-      justify-content: center; align-items: center;
+      width: 320px; height: 277px; position: relative; display: flex; justify-content: center; align-items: center;
     }
     .enlarged-hex-inner-content {
       position: absolute; top: 10%; left: 14%; width: 72%; height: 78%;
@@ -195,16 +173,14 @@
     }
     .enlarged-hex-svg-wrap.completed .enlarged-icon-wrap { border-color: var(--active-green); color: var(--active-green); }
     .enlarged-title {
-      font-size: 1.05rem; font-weight: bold; color: var(--text-main); margin-bottom: 4px;
-      line-height: 1.2; max-width: 210px;
+      font-size: 1.05rem; font-weight: bold; color: var(--text-main); margin-bottom: 4px; line-height: 1.2; max-width: 210px;
     }
     .enlarged-desc {
       font-size: 0.78rem; color: #cbd5e1; line-height: 1.35; max-width: 215px;
       overflow-y: auto; max-height: 85px; margin-bottom: 4px;
     }
     .enlarged-reward {
-      font-size: 0.74rem; color: var(--active-green); font-weight: bold;
-      display: flex; align-items: center; gap: 4px; margin-top: 2px;
+      font-size: 0.74rem; color: var(--active-green); font-weight: bold; display: flex; align-items: center; gap: 4px; margin-top: 2px;
     }
     .enlarged-actions { display: flex; flex-direction: column; gap: 8px; width: 280px; margin-top: 10px; z-index: 10; }
     .btn-guide-disabled {
@@ -250,19 +226,16 @@
     .footer-val { color: var(--text-main); font-weight: bold; }
     .modal {
       display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.85); z-index: 10000; justify-content: center;
-      align-items: center; padding: 12px;
+      background: rgba(0,0,0,0.85); z-index: 10000; justify-content: center; align-items: center; padding: 12px;
     }
     .modal-box {
-      background: #1e293b; padding: 20px; border-radius: 8px; width: 560px;
-      max-width: 100%; max-height: 90vh; overflow-y: auto;
+      background: #1e293b; padding: 20px; border-radius: 8px; width: 580px; max-width: 100%; max-height: 90vh; overflow-y: auto;
     }
     .admin-section { margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid #334155; }
     .admin-section h3 { margin-top: 0; font-size: 0.95rem; color: var(--accent-blue); }
     .input-group { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
     input[type="text"], input[type="email"], input[type="password"], select, input[type="file"] {
-      background: #0f172a; border: 1px solid #475569; color: white;
-      padding: 9px 12px; border-radius: 6px; font-size: 0.9rem; width: 100%;
+      background: #0f172a; border: 1px solid #475569; color: white; padding: 9px 12px; border-radius: 6px; font-size: 0.9rem; width: 100%;
     }
     .btn {
       background: var(--accent-blue); color: #0f172a; border: none; padding: 8px 14px;
@@ -273,24 +246,31 @@
     .btn-danger { background: #ef4444; color: white; }
     .toolbar-btns { display: flex; gap: 8px; margin-bottom: 10px; }
     .domain-group-box {
-      background: #0f172a; border: 1px solid #334155; border-radius: 6px;
-      margin-bottom: 10px; padding: 8px 12px;
+      background: #0f172a; border: 1px solid #334155; border-radius: 6px; margin-bottom: 10px; padding: 8px 12px;
     }
     .domain-group-header {
       display: flex; justify-content: space-between; align-items: center;
-      font-weight: bold; color: var(--accent-blue); font-size: 0.85rem;
-      margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid #1e293b;
+      font-weight: bold; color: var(--accent-blue); font-size: 0.85rem; margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid #1e293b;
     }
     .domain-group-items { display: flex; flex-direction: column; gap: 5px; padding-left: 4px; }
     .class-tag {
       background: #0f172a; border: 1px solid #334155; padding: 10px 12px; border-radius: 6px;
-      display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;
-      flex-wrap: wrap; gap: 8px;
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;
     }
     .student-row {
       display: flex; justify-content: space-between; align-items: center;
       padding: 8px 10px; border-bottom: 1px solid #1e293b; font-size: 0.85rem; flex-wrap: wrap; gap: 8px;
     }
+    .editor-item {
+      background: #0f172a; border: 1px solid #334155; padding: 8px 12px; border-radius: 6px;
+      display: flex; align-items: center; gap: 10px; cursor: grab; user-select: none;
+    }
+    .editor-item:active { cursor: grabbing; }
+    .editor-item.sortable-ghost { opacity: 0.35; background: #1e293b; border: 1px dashed var(--accent-blue); }
+    .editor-handle { color: var(--text-muted); cursor: grab; font-size: 1.1rem; }
+    .editor-lvl { font-weight: bold; color: var(--accent-blue); min-width: 60px; font-size: 0.8rem; }
+    .editor-text { flex: 1; font-size: 0.85rem; color: var(--text-main); }
+    .editor-id { font-size: 0.7rem; color: var(--text-muted); }
     .tutorial-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 11000; }
     .tutorial-box {
       position: fixed; background: #0f172a; border: 2px solid var(--accent-blue);
@@ -302,8 +282,7 @@
     .tutorial-nav { display: flex; justify-content: space-between; align-items: center; }
     .highlight-target {
       position: relative !important; z-index: 11500 !important;
-      box-shadow: 0 0 0 4px var(--accent-blue), 0 0 20px var(--accent-blue) !important;
-      border-radius: 6px;
+      box-shadow: 0 0 0 4px var(--accent-blue), 0 0 20px var(--accent-blue) !important; border-radius: 6px;
     }
     @media (max-width: 768px) {
       header { padding: 10px 15px; }
@@ -315,7 +294,7 @@
       .honeycomb-grid { gap: 25px; padding-bottom: 90px; }
       .cluster-mesh { padding: 10px 0 90px 0; }
       .cluster-col { width: 70px; margin-right: -16px; }
-      .cluster-col:nth-child(even) { transform: translateY(32px); }
+      .cluster-col:nth-child(even) { transform: translateY(-32px); }
       .cluster-col .hex-container { width: 70px; height: 60.6px; }
       .cluster-col .hex-text { font-size: 0.42rem; max-width: 55px; }
       .cluster-col .hex-icon { width: 12px; height: 12px; }
@@ -326,6 +305,10 @@
   <header>
     <h1>MAKER SKILL TREE</h1>
     <div class="header-btns">
+      <select id="userLangSelect" class="view-filter-select" onchange="handleLanguageChange(this.value)">
+        <option value="da">🇩🇰 Dansk</option>
+        <option value="en">🇬🇧 English</option>
+      </select>
       <select id="userViewFilterSelect" class="view-filter-select" onchange="handleViewFilterChange(this.value)">
         <option value="MAKER_DEFAULT">🛠️ Maker Skills (Standard)</option>
         <option value="ALL">🌐 Vis Alt (Alle moduler)</option>
@@ -522,7 +505,7 @@
       </div>
       <div class="admin-section">
         <h3>3. Opdater Kompetencer (CSV)</h3>
-        <p style="font-size: 0.8rem; color: var(--text-muted); margin:0 0 10px 0;">Format: Kategori, Kategori_Titel, Underkategori, ID, Niveau, SVG_Ikon, Kort_Beskrivelse, Kompetence</p>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin:0 0 10px 0;">Format: Sprog, Kategori, Kategori_Titel, Underkategori, ID, Niveau, SVG_Ikon, Kort_Beskrivelse, Kompetence</p>
         <div style="display:flex; gap:10px;">
           <input type="file" id="csvFileInput" accept=".csv">
           <button class="btn" onclick="handleFileUpload()">Upload</button>
@@ -536,11 +519,37 @@
         </div>
         <div id="adminCategoryList" style="max-height:240px; overflow-y:auto;"></div>
       </div>
-      <div class="admin-section" style="border-bottom:none;">
+      <div class="admin-section">
         <h3>5. Data-styring</h3>
         <button class="btn btn-danger" onclick="clearAllData()">Ryd Lokal Cache</button>
       </div>
-      <div style="text-align: right;">
+      
+      <!-- 6. KOMPETENCE-EDITOR -->
+      <div class="admin-section" style="border-bottom:none;">
+        <h3>6. Kompetence-Editor (Drag & Drop)</h3>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin:0 0 10px 0;">
+          Vælg sprog og kategori for at omrokere niveauer eller tilføje nye mål.
+        </p>
+        <div style="display:flex; gap:10px; margin-bottom:12px; flex-wrap:wrap;">
+          <select id="editorLangSelect" style="width:auto; flex:1;" onchange="handleEditorFilterChange()">
+            <option value="da">🇩🇰 Dansk (da)</option>
+            <option value="en">🇬🇧 English (en)</option>
+          </select>
+          <select id="editorCatSelect" style="width:auto; flex:2;" onchange="loadEditorCategorySkills()">
+            <option value="">-- Vælg en kategori --</option>
+          </select>
+        </div>
+        <div id="editorSkillList" style="display:flex; flex-direction:column; gap:8px; margin-bottom:12px; min-height:50px;">
+          <span style="font-size:0.8rem; color:var(--text-muted);">Vælg en kategori foroven for at se mål.</span>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="btn btn-secondary" style="font-size:0.75rem;" onclick="addNewSkillToEditor()">➕ Tilføj Mål</button>
+          <button class="btn btn-secondary" style="font-size:0.75rem;" onclick="exportEditorCategoryCSV()">⬇️ Hent CSV</button>
+          <button class="btn" style="font-size:0.75rem; margin-left:auto;" onclick="pushEditorToSupabase()">💾 Skub til Supabase</button>
+        </div>
+      </div>
+
+      <div style="text-align: right; margin-top: 15px;">
         <button class="btn" onclick="closeAdmin()">Luk</button>
       </div>
     </div>
@@ -640,12 +649,22 @@
     let currentUserName = "Gæst";
     let currentUserClass = "Intet hold";
     let userEnrolledClasses = [];
+    let currentLang = localStorage.getItem('ms_language') || 'da';
     let selectedViewFilter = localStorage.getItem('ms_selectedViewFilter') || 'MAKER_DEFAULT';
     let manualSubCatExpanded = {};
     let isSignUpMode = false;
     let editingClassId = null;
     let activeEnlargedSkill = null;
     let activeInspectionClassCategories = null;
+
+    let editorSortableInstance = null;
+    let activeEditorSkills = [];
+
+    function handleLanguageChange(newLang) {
+      currentLang = newLang;
+      localStorage.setItem('ms_language', newLang);
+      renderApp();
+    }
 
     function generate5LetterCode() {
       const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -681,6 +700,7 @@
       const lines = text.trim().split(/\r?\n/);
       if (lines.length < 2) return;
       const header = parseCSVLine(lines[0]).map(h => h.toLowerCase().trim());
+      const langIdx = header.indexOf('sprog');
       const catIdx = header.indexOf('kategori');
       const catTitleIdx = header.indexOf('kategori_titel');
       const subCatIdx = header.indexOf('underkategori');
@@ -698,9 +718,11 @@
         const category = (catIdx >= 0 ? values[catIdx] : values[0]) || '';
         const id = (idIdx >= 0 ? values[idIdx] : values[3]) || '';
         if (!id) continue;
+        const langVal = (langIdx >= 0 ? values[langIdx] : 'da') || 'da';
         const rawCatTitle = catTitleIdx >= 0 ? values[catTitleIdx] : '';
         const catTitle = (rawCatTitle && rawCatTitle !== '#') ? rawCatTitle.trim() : '#';
         rowsToUpsert.push({
+          lang: langVal.trim().toLowerCase(),
           domain: DOMAIN_MAP[category.trim()] || '💻 Software',
           category: category.trim(),
           category_title: catTitle,
@@ -715,12 +737,12 @@
 
       if (supabaseClient) {
         try {
-          const { error } = await supabaseClient.from('skills').upsert(rowsToUpsert, { onConflict: 'id' });
+          const { error } = await supabaseClient.from('skills').upsert(rowsToUpsert, { onConflict: 'id, lang' });
           if (error) throw error;
           const { data: allData, error: fetchErr } = await supabaseClient.from('skills').select('*').order('level', { ascending: true });
           if (!fetchErr && allData) {
             allSkills = allData.map(s => ({
-              cat: s.category, catTitle: s.category_title || '#', subCat: s.subcategory || '',
+              lang: s.lang || 'da', cat: s.category, catTitle: s.category_title || '#', subCat: s.subcategory || '',
               id: s.id, level: s.level, svg: sanitizeIcon(s.svg_icon), shortDesc: s.short_desc, fullDesc: s.full_desc
             }));
             localStorage.setItem('ms_allSkills', JSON.stringify(allSkills));
@@ -730,10 +752,10 @@
           if (showAlert) alert('Fejl ved Supabase-synkronisering: ' + err.message);
         }
       } else {
-        const existingMap = new Map(allSkills.map(s => [s.id, s]));
+        const existingMap = new Map(allSkills.map(s => [`${s.id}_${s.lang||'da'}`, s]));
         rowsToUpsert.forEach(r => {
-          existingMap.set(r.id, {
-            cat: r.category, catTitle: r.category_title, subCat: r.subcategory,
+          existingMap.set(`${r.id}_${r.lang}`, {
+            lang: r.lang, cat: r.category, catTitle: r.category_title, subCat: r.subcategory,
             id: r.id, level: r.level, svg: r.svg_icon, shortDesc: r.short_desc, fullDesc: r.full_desc
           });
         });
@@ -780,6 +802,9 @@
     }
 
     async function initData() {
+      const langSel = document.getElementById('userLangSelect');
+      if (langSel) langSel.value = currentLang;
+
       const localCachedSkills = JSON.parse(localStorage.getItem('ms_allSkills'));
       if (localCachedSkills && localCachedSkills.length > 0) allSkills = localCachedSkills;
       if (!supabaseClient) {
@@ -807,7 +832,7 @@
         const { data: skillsData, error: skillsError } = await supabaseClient.from('skills').select('*').order('level', { ascending: true });
         if (!skillsError && skillsData && skillsData.length > 0) {
           allSkills = skillsData.map(s => ({
-            cat: s.category, catTitle: s.category_title || '#', subCat: s.subcategory || '',
+            lang: s.lang || 'da', cat: s.category, catTitle: s.category_title || '#', subCat: s.subcategory || '',
             id: s.id, level: s.level, svg: sanitizeIcon(s.svg_icon), shortDesc: s.short_desc, fullDesc: s.full_desc
           }));
           localStorage.setItem('ms_allSkills', JSON.stringify(allSkills));
@@ -932,7 +957,7 @@
     function closeAuthModal() { document.getElementById('authModal').style.display = 'none'; }
     function openTeamModal() { renderTeamModal(); document.getElementById('teamModal').style.display = 'flex'; }
     function closeTeamModal() { document.getElementById('teamModal').style.display = 'none'; }
-    function openAdmin() { renderAdmin(); document.getElementById('adminModal').style.display = 'flex'; }
+    function openAdmin() { populateEditorCategories(); renderAdmin(); document.getElementById('adminModal').style.display = 'flex'; }
     function closeAdmin() { document.getElementById('adminModal').style.display = 'none'; renderApp(); }
 
     function toggleAuthMode() {
@@ -1234,6 +1259,158 @@
       renderAdmin(); closeClassProgressView(); closeClassCategoriesView(); await fetchUserClass(); renderApp();
     }
 
+    /* KOMPETENCE-EDITOR METODER */
+    function populateEditorCategories() {
+      const select = document.getElementById('editorCatSelect');
+      if (!select) return;
+      const cats = [...new Set(allSkills.map(s => s.cat))];
+      select.innerHTML = '<option value="">-- Vælg en kategori --</option>' +
+        cats.map(c => `<option value="${c}">${c}</option>`).join('');
+    }
+
+    function handleEditorFilterChange() {
+      loadEditorCategorySkills();
+    }
+
+    function loadEditorCategorySkills() {
+      const cat = document.getElementById('editorCatSelect').value;
+      const lang = document.getElementById('editorLangSelect').value;
+      const container = document.getElementById('editorSkillList');
+
+      if (!cat) {
+        container.innerHTML = '<span style="font-size:0.8rem; color:var(--text-muted);">Vælg en kategori foroven for at se mål.</span>';
+        return;
+      }
+
+      activeEditorSkills = allSkills
+        .filter(s => s.cat === cat && (s.lang || 'da') === lang)
+        .sort((a, b) => a.level - b.level);
+
+      if (activeEditorSkills.length === 0) {
+        activeEditorSkills = allSkills
+          .filter(s => s.cat === cat && (s.lang || 'da') === 'da')
+          .sort((a, b) => a.level - b.level)
+          .map(s => ({ ...s, lang: lang, shortDesc: `${s.shortDesc} (${lang})`, fullDesc: `${s.fullDesc}` }));
+      }
+
+      renderEditorList();
+    }
+
+    function renderEditorList() {
+      const container = document.getElementById('editorSkillList');
+      container.innerHTML = '';
+
+      activeEditorSkills.forEach((s, idx) => {
+        s.level = idx + 1;
+        const el = document.createElement('div');
+        el.className = 'editor-item';
+        el.dataset.id = s.id;
+        el.innerHTML = `
+          <span class="editor-handle">☰</span>
+          <span class="editor-lvl">Niveau ${s.level}</span>
+          <div class="editor-text">
+            <strong>${s.shortDesc}</strong>
+            <div class="editor-id">${s.id}</div>
+          </div>
+          <button class="btn btn-secondary" style="padding:2px 6px; font-size:0.75rem;" onclick="editSingleSkill('${s.id}')">✏️</button>
+          <button class="btn btn-danger" style="padding:2px 6px; font-size:0.75rem;" onclick="removeSingleSkill('${s.id}')">✕</button>
+        `;
+        container.appendChild(el);
+      });
+
+      if (editorSortableInstance) editorSortableInstance.destroy();
+      editorSortableInstance = new Sortable(container, {
+        handle: '.editor-handle',
+        animation: 150,
+        onEnd: () => {
+          const newOrderIds = Array.from(container.children).map(c => c.dataset.id);
+          activeEditorSkills.sort((a, b) => newOrderIds.indexOf(a.id) - newOrderIds.indexOf(b.id));
+          renderEditorList();
+        }
+      });
+    }
+
+    function addNewSkillToEditor() {
+      const cat = document.getElementById('editorCatSelect').value;
+      const lang = document.getElementById('editorLangSelect').value;
+      if (!cat) return alert('Vælg en kategori først.');
+
+      const id = prompt('Indtast unikt ID (f.eks. NY_KOMPETENCE):');
+      if (!id) return;
+      const title = prompt('Kort titel:') || id;
+      const desc = prompt('Kompetencebeskrivelse:') || '';
+
+      activeEditorSkills.push({
+        cat: cat,
+        lang: lang,
+        catTitle: '#',
+        subCat: '',
+        id: id.trim(),
+        level: activeEditorSkills.length + 1,
+        svg: 'folder',
+        shortDesc: title.trim(),
+        fullDesc: desc.trim()
+      });
+      renderEditorList();
+    }
+
+    function editSingleSkill(skillId) {
+      const s = activeEditorSkills.find(item => item.id === skillId);
+      if (!s) return;
+      const newTitle = prompt('Kort titel:', s.shortDesc);
+      if (newTitle !== null) s.shortDesc = newTitle;
+      const newDesc = prompt('Kompetencebeskrivelse:', s.fullDesc);
+      if (newDesc !== null) s.fullDesc = newDesc;
+      renderEditorList();
+    }
+
+    function removeSingleSkill(skillId) {
+      if (!confirm('Vil du fjerne dette mål fra listen?')) return;
+      activeEditorSkills = activeEditorSkills.filter(s => s.id !== skillId);
+      renderEditorList();
+    }
+
+    async function pushEditorToSupabase() {
+      if (!activeEditorSkills || activeEditorSkills.length === 0) return alert('Ingen kompetencer at gemme.');
+      if (!supabaseClient) return alert('Supabase er ikke forbundet.');
+
+      const payload = activeEditorSkills.map(s => ({
+        id: s.id,
+        lang: s.lang || 'da',
+        category: s.cat,
+        category_title: s.catTitle || '#',
+        subcategory: s.subCat || '',
+        level: s.level,
+        svg_icon: s.svg || 'folder',
+        short_desc: s.shortDesc,
+        full_desc: s.fullDesc,
+        domain: DOMAIN_MAP[s.cat] || '💻 Software'
+      }));
+
+      const { error } = await supabaseClient.from('skills').upsert(payload, { onConflict: 'id, lang' });
+      if (error) {
+        alert('Fejl ved opdatering: ' + error.message);
+      } else {
+        alert(`Succes! ${payload.length} mål blev opdateret og synkroniseret.`);
+        await initData();
+      }
+    }
+
+    function exportEditorCategoryCSV() {
+      if (!activeEditorSkills || activeEditorSkills.length === 0) return alert('Ingen data at hente.');
+      let csvContent = "Sprog,Kategori,Kategori_Titel,Underkategori,ID,Niveau,SVG_Ikon,Kort_Beskrivelse,Kompetence\n";
+      activeEditorSkills.forEach(s => {
+        csvContent += `${s.lang || 'da'},${s.cat},${s.catTitle || '#'},${s.subCat || ''},${s.id},${s.level},${s.svg || 'folder'},"${s.shortDesc}","${s.fullDesc}"\n`;
+      });
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.setAttribute('download', `${activeEditorSkills[0].cat}_export.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
     function spawnFloatingEmojis(x, y, category) {
       const list = ['⭐', '✨', '🚀', '🎯', '💡', '🔥', '⚙️'];
       for (let i = 0; i < 5; i++) {
@@ -1395,6 +1572,7 @@
       const mesh = document.createElement('div');
       mesh.className = 'cluster-mesh';
       presentCats.forEach(cat => {
+        // Vendt sortering b.level - a.level for at have niveau 1 nederst
         const catSkills = skillsList.filter(s => s.cat === cat).sort((a, b) => b.level - a.level);
         const colEl = document.createElement('div');
         colEl.className = 'cluster-col';
@@ -1525,7 +1703,9 @@
       }
       emptyState.style.display = 'none';
 
-      let availableSkills = allSkills.filter(s => !hiddenCats.includes(s.cat));
+      // Filtrering på sprog og synlighed
+      let availableSkills = allSkills.filter(s => (s.lang || 'da') === currentLang && !hiddenCats.includes(s.cat));
+
       if (selectedViewFilter === 'MAKER_DEFAULT') {
         availableSkills = availableSkills.filter(s => MAKER_DEFAULT_DOMAINS.includes(DOMAIN_MAP[s.cat] || '💻 Software'));
       } else if (selectedViewFilter.startsWith('DOMAIN:')) {
