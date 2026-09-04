@@ -472,7 +472,7 @@
         <label style="font-size:0.8rem; color:var(--text-muted);" data-i18n="auth_lbl_pass">Kodeord:</label>
         <input type="password" id="authPassword" placeholder="••••••••">
       </div>
-      <div style="margin-top:15px; display:flex; gap:10px; justify-content:flex-end;">
+      <div style="margin-top:15px; display:flex; gap:10px; justify-flex-end;">
         <button class="btn btn-secondary" onclick="closeAuthModal()" data-i18n="btn_cancel">Annuller</button>
         <button class="btn" id="authSubmitBtn" onclick="handleAuthAction()" data-i18n="btn_login">Log ind</button>
       </div>
@@ -749,6 +749,34 @@
     const DOMAIN_ORDER_EN = [
       '💻 Software', '⚙️ Machines', '🔌 Hardware', '🤝 Culture',
       '👥 Community & Network', '🎓 Pedagogy & Facilitation', '💼 Business & Workshop', '✨ Maker Faire & Culture'
+    ];
+
+    // Fast kategori-rækkefølge på tværs af sprog:
+    const CATEGORY_ORDER = [
+      // Software
+      'Filhåndtering', 'File Management',
+      'Vektorgrafik', 'Vector Graphics',
+      'Rastergrafik', 'Raster Graphics',
+      '3D-Modellering', '3D Modeling',
+
+      // Maskiner / Machines
+      'CO2 Laserskæring', 'CO2 Laser Cutting',
+      'Laserskæring', 'Laser Cutting',
+      '3D-Printning', '3D Printing',
+      'Folieskæring', 'Vinyl Cutting',
+      'Digitalt Broderi', 'Digital Embroidery',
+      'Materialekendskab', 'Materials Knowledge',
+
+      // Hardware
+      'Elektronik', 'Electronics',
+      'Microcontroller', 'Microcontrollers',
+
+      // Kultur / Culture
+      'Værkstedskultur', 'Shop Culture',
+      'Netværk & Fællesskab', 'Network & Community',
+      'Pædagogik & Praksis', 'Pedagogy & Practice',
+      'Entreprenørskab', 'Entrepreneurship',
+      'Kultur & Oplevelse', 'Culture & Experience'
     ];
 
     // Standardvisningen indeholder udelukkende de 4 oprindelige makerspace-domæner:
@@ -1843,7 +1871,15 @@
     function renderClusterMeshIntoContainer(container, skillsList, progressMap, isReadOnly = false) {
       container.className = 'honeycomb-cluster-wrap';
       container.innerHTML = '';
-      const presentCats = [...new Set(skillsList.map(s => s.cat))];
+      const presentCats = [...new Set(skillsList.map(s => s.cat))].sort((a, b) => {
+        const idxA = CATEGORY_ORDER.indexOf(a);
+        const idxB = CATEGORY_ORDER.indexOf(b);
+        if (idxA === -1 && idxB === -1) return a.localeCompare(b);
+        if (idxA === -1) return 1;
+        if (idxB === -1) return -1;
+        return idxA - idxB;
+      });
+
       const legend = document.createElement('div');
       legend.className = 'cluster-legend';
       presentCats.forEach(cat => {
@@ -1889,7 +1925,16 @@
         domainSection.appendChild(domainHeader);
         const domainColumns = document.createElement('div');
         domainColumns.className = 'domain-columns';
-        const domainCategories = [...new Set(domainSkills.map(s => s.cat))];
+
+        // Sortering af kategorier efter CATEGORY_ORDER
+        const domainCategories = [...new Set(domainSkills.map(s => s.cat))].sort((a, b) => {
+          const idxA = CATEGORY_ORDER.indexOf(a);
+          const idxB = CATEGORY_ORDER.indexOf(b);
+          if (idxA === -1 && idxB === -1) return a.localeCompare(b);
+          if (idxA === -1) return 1;
+          if (idxB === -1) return -1;
+          return idxA - idxB;
+        });
 
         domainCategories.forEach(catName => {
           const catSkills = domainSkills.filter(s => s.cat === catName).sort((a,b) => a.level - b.level);
