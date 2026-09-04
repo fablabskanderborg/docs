@@ -719,7 +719,7 @@
       document.getElementById('footerUserClass').innerText = (currentUserClass === 'Intet hold' ? t('no_team') : currentUserClass);
     }
 
-    /* TOSPROGET DOMAIN MAP (DÆKKER BÅDE DA OG EN) */
+    /* TOSPROGET DOMAIN MAP (SEPARATE DOMÆNER FOR STUDIETUR) */
     const DOMAIN_MAP = {
       'Filhåndtering': '💻 Software', 'File Management': '💻 Software',
       'Vektorgrafik': '💻 Software', 'Vector Graphics': '💻 Software',
@@ -734,14 +734,24 @@
       'Elektronik': '🔌 Hardware', 'Electronics': '🔌 Hardware',
       'Microcontroller': '🔌 Hardware', 'Microcontrollers': '🔌 Hardware',
       'Værkstedskultur': '🤝 Kultur', 'Shop Culture': '🤝 Culture',
-      'Netværk & Fællesskab': '🤝 Kultur', 'Network & Community': '🤝 Culture',
-      'Pædagogik & Praksis': '🤝 Kultur', 'Pedagogy & Practice': '🤝 Culture',
-      'Entreprenørskab': '🤝 Kultur', 'Entrepreneurship': '🤝 Culture',
-      'Kultur & Oplevelse': '🤝 Kultur', 'Culture & Experience': '🤝 Culture'
+      
+      // Særskilte domæner for studietur:
+      'Netværk & Fællesskab': '👥 Fællesskab & Netværk', 'Network & Community': '👥 Community & Network',
+      'Pædagogik & Praksis': '🎓 Didaktik & Facilitering', 'Pedagogy & Practice': '🎓 Pedagogy & Facilitation',
+      'Entreprenørskab': '💼 Forretning & Værksted', 'Entrepreneurship': '💼 Business & Workshop',
+      'Kultur & Oplevelse': '✨ Maker Faire & Kultur', 'Culture & Experience': '✨ Maker Faire & Culture'
     };
 
-    const DOMAIN_ORDER_DA = ['💻 Software', '⚙️ Maskiner', '🔌 Hardware', '🤝 Kultur'];
-    const DOMAIN_ORDER_EN = ['💻 Software', '⚙️ Machines', '🔌 Hardware', '🤝 Culture'];
+    const DOMAIN_ORDER_DA = [
+      '💻 Software', '⚙️ Maskiner', '🔌 Hardware', '🤝 Kultur',
+      '👥 Fællesskab & Netværk', '🎓 Didaktik & Facilitering', '💼 Forretning & Værksted', '✨ Maker Faire & Kultur'
+    ];
+    const DOMAIN_ORDER_EN = [
+      '💻 Software', '⚙️ Machines', '🔌 Hardware', '🤝 Culture',
+      '👥 Community & Network', '🎓 Pedagogy & Facilitation', '💼 Business & Workshop', '✨ Maker Faire & Culture'
+    ];
+
+    // Standardvisningen indeholder udelukkende de 4 oprindelige makerspace-domæner:
     const MAKER_DEFAULT_DOMAINS_DA = ['💻 Software', '⚙️ Maskiner', '🔌 Hardware', '🤝 Kultur'];
     const MAKER_DEFAULT_DOMAINS_EN = ['💻 Software', '⚙️ Machines', '🔌 Hardware', '🤝 Culture'];
 
