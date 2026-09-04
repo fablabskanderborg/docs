@@ -229,7 +229,8 @@
       background: rgba(0,0,0,0.85); z-index: 10000; justify-content: center; align-items: center; padding: 12px;
     }
     .modal-box {
-      background: #1e293b; padding: 20px; border-radius: 8px; width: 580px; max-width: 100%; max-height: 90vh; overflow-y: auto;
+      background: #1e293b; padding: 24px; border-radius: 10px; width: 92vw; max-width: 1100px;
+      max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 40px rgba(0,0,0,0.8);
     }
     .admin-section { margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid #334155; }
     .admin-section h3 { margin-top: 0; font-size: 0.95rem; color: var(--accent-blue); }
@@ -262,15 +263,26 @@
       padding: 8px 10px; border-bottom: 1px solid #1e293b; font-size: 0.85rem; flex-wrap: wrap; gap: 8px;
     }
     .editor-item {
-      background: #0f172a; border: 1px solid #334155; padding: 8px 12px; border-radius: 6px;
-      display: flex; align-items: center; gap: 10px; cursor: grab; user-select: none;
+      background: #0f172a; border: 1px solid #334155; padding: 12px; border-radius: 8px;
+      display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px;
     }
-    .editor-item:active { cursor: grabbing; }
     .editor-item.sortable-ghost { opacity: 0.35; background: #1e293b; border: 1px dashed var(--accent-blue); }
-    .editor-handle { color: var(--text-muted); cursor: grab; font-size: 1.1rem; }
-    .editor-lvl { font-weight: bold; color: var(--accent-blue); min-width: 60px; font-size: 0.8rem; }
-    .editor-text { flex: 1; font-size: 0.85rem; color: var(--text-main); }
-    .editor-id { font-size: 0.7rem; color: var(--text-muted); }
+    .editor-item-header {
+      display: flex; align-items: center; gap: 10px; padding-bottom: 6px; border-bottom: 1px solid #1e293b;
+    }
+    .editor-handle { color: var(--text-muted); cursor: grab; font-size: 1.2rem; }
+    .editor-handle:active { cursor: grabbing; }
+    .editor-grid {
+      display: grid; grid-template-columns: 140px 180px 1fr 1fr; gap: 8px;
+    }
+    .editor-grid input, .editor-grid textarea {
+      background: #162032; border: 1px solid #334155; color: var(--text-main);
+      padding: 6px 8px; border-radius: 4px; font-size: 0.80rem; width: 100%;
+    }
+    .editor-grid textarea { resize: vertical; min-height: 34px; height: 34px; font-family: inherit; }
+    @media (max-width: 900px) {
+      .editor-grid { grid-template-columns: 1fr; }
+    }
     .tutorial-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 11000; }
     .tutorial-box {
       position: fixed; background: #0f172a; border: 2px solid var(--accent-blue);
@@ -372,7 +384,7 @@
         </div>
       </div>
       <div class="enlarged-actions">
-        <div class="btn-guide-disabled" onclick="event.stopPropagation();">
+        <div class="btn-guide-disabled" id="enlargedGuideBtn">
           <i data-lucide="file-text" style="width: 16px; height: 16px;"></i> Vejledning (Kommer snart)
         </div>
         <button class="btn-toggle-completion" id="enlargedCheckBtn" onclick="confirmSkillCompletion(event)">
@@ -505,7 +517,7 @@
       </div>
       <div class="admin-section">
         <h3>3. Opdater Kompetencer (CSV)</h3>
-        <p style="font-size: 0.8rem; color: var(--text-muted); margin:0 0 10px 0;">Format: Sprog, Kategori, Kategori_Titel, Underkategori, ID, Niveau, SVG_Ikon, Kort_Beskrivelse, Kompetence</p>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin:0 0 10px 0;">Format: Sprog, Kategori, Kategori_Titel, Underkategori, ID, Niveau, SVG_Ikon, Kort_Beskrivelse, Kompetence, Vejledning</p>
         <div style="display:flex; gap:10px;">
           <input type="file" id="csvFileInput" accept=".csv">
           <button class="btn" onclick="handleFileUpload()">Upload</button>
@@ -528,7 +540,7 @@
       <div class="admin-section" style="border-bottom:none;">
         <h3>6. Kompetence-Editor (Drag & Drop)</h3>
         <p style="font-size: 0.8rem; color: var(--text-muted); margin:0 0 10px 0;">
-          Vælg sprog og kategori for at omrokere niveauer eller tilføje nye mål.
+          Vælg sprog og kategori for at omrokere niveauer, rette tekster eller tilføje vejlednings-links.
         </p>
         <div style="display:flex; gap:10px; margin-bottom:12px; flex-wrap:wrap;">
           <select id="editorLangSelect" style="width:auto; flex:1;" onchange="handleEditorFilterChange()">
@@ -709,6 +721,7 @@
       const iconIdx = header.indexOf('svg_ikon');
       const shortDescIdx = header.indexOf('kort_beskrivelse');
       const descIdx = header.indexOf('kompetence');
+      const guideIdx = header.indexOf('vejledning');
       const rowsToUpsert = [];
 
       for (let i = 1; i < lines.length; i++) {
@@ -731,7 +744,8 @@
           level: parseInt((lvlIdx >= 0 ? values[lvlIdx] : values[4]), 10) || 1,
           svg_icon: sanitizeIcon(iconIdx >= 0 ? values[iconIdx] : values[5]),
           short_desc: ((shortDescIdx >= 0 ? values[shortDescIdx] : values[6]) || '').trim(),
-          full_desc: ((descIdx >= 0 ? values[descIdx] : values[7]) || '').replace(/^"|"$/g, '').trim()
+          full_desc: ((descIdx >= 0 ? values[descIdx] : values[7]) || '').replace(/^"|"$/g, '').trim(),
+          guide_url: guideIdx >= 0 ? (values[guideIdx] || null) : null
         });
       }
 
@@ -743,7 +757,8 @@
           if (!fetchErr && allData) {
             allSkills = allData.map(s => ({
               lang: s.lang || 'da', cat: s.category, catTitle: s.category_title || '#', subCat: s.subcategory || '',
-              id: s.id, level: s.level, svg: sanitizeIcon(s.svg_icon), shortDesc: s.short_desc, fullDesc: s.full_desc
+              id: s.id, level: s.level, svg: sanitizeIcon(s.svg_icon), shortDesc: s.short_desc, fullDesc: s.full_desc,
+              guideUrl: s.guide_url || null
             }));
             localStorage.setItem('ms_allSkills', JSON.stringify(allSkills));
           }
@@ -756,7 +771,8 @@
         rowsToUpsert.forEach(r => {
           existingMap.set(`${r.id}_${r.lang}`, {
             lang: r.lang, cat: r.category, catTitle: r.category_title, subCat: r.subcategory,
-            id: r.id, level: r.level, svg: r.svg_icon, shortDesc: r.short_desc, fullDesc: r.full_desc
+            id: r.id, level: r.level, svg: r.svg_icon, shortDesc: r.short_desc, fullDesc: r.full_desc,
+            guideUrl: r.guide_url || null
           });
         });
         allSkills = Array.from(existingMap.values());
@@ -833,7 +849,8 @@
         if (!skillsError && skillsData && skillsData.length > 0) {
           allSkills = skillsData.map(s => ({
             lang: s.lang || 'da', cat: s.category, catTitle: s.category_title || '#', subCat: s.subcategory || '',
-            id: s.id, level: s.level, svg: sanitizeIcon(s.svg_icon), shortDesc: s.short_desc, fullDesc: s.full_desc
+            id: s.id, level: s.level, svg: sanitizeIcon(s.svg_icon), shortDesc: s.short_desc, fullDesc: s.full_desc,
+            guideUrl: s.guide_url || null
           }));
           localStorage.setItem('ms_allSkills', JSON.stringify(allSkills));
         }
@@ -1306,14 +1323,30 @@
         el.className = 'editor-item';
         el.dataset.id = s.id;
         el.innerHTML = `
-          <span class="editor-handle">☰</span>
-          <span class="editor-lvl">Niveau ${s.level}</span>
-          <div class="editor-text">
-            <strong>${s.shortDesc}</strong>
-            <div class="editor-id">${s.id}</div>
+          <div class="editor-item-header">
+            <span class="editor-handle" title="Træk for at omrokere niveau">☰</span>
+            <strong style="color:var(--accent-blue); font-size:0.85rem;">Niveau ${s.level}</strong>
+            <span style="font-size:0.75rem; color:var(--text-muted); margin-left:auto;">ID: <code>${s.id}</code></span>
+            <button class="btn btn-danger" style="padding:2px 8px; font-size:0.75rem;" onclick="removeSingleSkill('${s.id}')">✕ Fjern</button>
           </div>
-          <button class="btn btn-secondary" style="padding:2px 6px; font-size:0.75rem;" onclick="editSingleSkill('${s.id}')">✏️</button>
-          <button class="btn btn-danger" style="padding:2px 6px; font-size:0.75rem;" onclick="removeSingleSkill('${s.id}')">✕</button>
+          <div class="editor-grid">
+            <div>
+              <label style="font-size:0.68rem; color:var(--text-muted); display:block;">Underkategori:</label>
+              <input type="text" value="${s.subCat || ''}" placeholder="Underkategori" oninput="updateSkillField('${s.id}', 'subCat', this.value)">
+            </div>
+            <div>
+              <label style="font-size:0.68rem; color:var(--text-muted); display:block;">Kort Titel:</label>
+              <input type="text" value="${s.shortDesc || ''}" placeholder="Kort titel" oninput="updateSkillField('${s.id}', 'shortDesc', this.value)">
+            </div>
+            <div>
+              <label style="font-size:0.68rem; color:var(--text-muted); display:block;">Kompetencebeskrivelse:</label>
+              <textarea placeholder="Fuld beskrivelse..." oninput="updateSkillField('${s.id}', 'fullDesc', this.value)">${s.fullDesc || ''}</textarea>
+            </div>
+            <div>
+              <label style="font-size:0.68rem; color:var(--text-muted); display:block;">Vejledning (Link til video, pdf, jpg m.m.):</label>
+              <input type="text" value="${s.guideUrl || ''}" placeholder="https://..." oninput="updateSkillField('${s.id}', 'guideUrl', this.value)">
+            </div>
+          </div>
         `;
         container.appendChild(el);
       });
@@ -1330,37 +1363,32 @@
       });
     }
 
+    function updateSkillField(skillId, field, value) {
+      const s = activeEditorSkills.find(item => item.id === skillId);
+      if (s) s[field] = value;
+    }
+
     function addNewSkillToEditor() {
       const cat = document.getElementById('editorCatSelect').value;
       const lang = document.getElementById('editorLangSelect').value;
       if (!cat) return alert('Vælg en kategori først.');
 
-      const id = prompt('Indtast unikt ID (f.eks. NY_KOMPETENCE):');
-      if (!id) return;
-      const title = prompt('Kort titel:') || id;
-      const desc = prompt('Kompetencebeskrivelse:') || '';
+      const fallbackSubCat = activeEditorSkills.length > 0 ? activeEditorSkills[activeEditorSkills.length - 1].subCat : '';
+      const fallbackSvg = activeEditorSkills.length > 0 ? activeEditorSkills[activeEditorSkills.length - 1].svg : 'folder';
+      const newId = `${cat.substring(0, 3).toUpperCase()}_${Date.now().toString().slice(-4)}`;
 
       activeEditorSkills.push({
         cat: cat,
         lang: lang,
         catTitle: '#',
-        subCat: '',
-        id: id.trim(),
+        subCat: fallbackSubCat,
+        id: newId,
         level: activeEditorSkills.length + 1,
-        svg: 'folder',
-        shortDesc: title.trim(),
-        fullDesc: desc.trim()
+        svg: fallbackSvg,
+        shortDesc: 'Nyt mål',
+        fullDesc: '',
+        guideUrl: ''
       });
-      renderEditorList();
-    }
-
-    function editSingleSkill(skillId) {
-      const s = activeEditorSkills.find(item => item.id === skillId);
-      if (!s) return;
-      const newTitle = prompt('Kort titel:', s.shortDesc);
-      if (newTitle !== null) s.shortDesc = newTitle;
-      const newDesc = prompt('Kompetencebeskrivelse:', s.fullDesc);
-      if (newDesc !== null) s.fullDesc = newDesc;
       renderEditorList();
     }
 
@@ -1374,33 +1402,50 @@
       if (!activeEditorSkills || activeEditorSkills.length === 0) return alert('Ingen kompetencer at gemme.');
       if (!supabaseClient) return alert('Supabase er ikke forbundet.');
 
+      const fallbackSubCat = activeEditorSkills.find(s => s.subCat && s.subCat.trim() !== '')?.subCat || 'Generelt';
+
       const payload = activeEditorSkills.map(s => ({
         id: s.id,
         lang: s.lang || 'da',
         category: s.cat,
         category_title: s.catTitle || '#',
-        subcategory: s.subCat || '',
+        subcategory: (s.subCat && s.subCat.trim() !== '') ? s.subCat : fallbackSubCat,
         level: s.level,
         svg_icon: s.svg || 'folder',
         short_desc: s.shortDesc,
         full_desc: s.fullDesc,
+        guide_url: s.guideUrl || null,
         domain: DOMAIN_MAP[s.cat] || '💻 Software'
       }));
 
-      const { error } = await supabaseClient.from('skills').upsert(payload, { onConflict: 'id, lang' });
+      const { error } = await supabaseClient
+        .from('skills')
+        .upsert(payload, { onConflict: 'id, lang' });
+
       if (error) {
         alert('Fejl ved opdatering: ' + error.message);
       } else {
         alert(`Succes! ${payload.length} mål blev opdateret og synkroniseret.`);
-        await initData();
+        payload.forEach(p => {
+          const idx = allSkills.findIndex(item => item.id === p.id && (item.lang || 'da') === p.lang);
+          const mapped = {
+            lang: p.lang, cat: p.category, catTitle: p.category_title, subCat: p.subcategory,
+            id: p.id, level: p.level, svg: p.svg_icon, shortDesc: p.short_desc, fullDesc: p.full_desc,
+            guideUrl: p.guide_url
+          };
+          if (idx >= 0) allSkills[idx] = mapped;
+          else allSkills.push(mapped);
+        });
+        localStorage.setItem('ms_allSkills', JSON.stringify(allSkills));
+        renderApp();
       }
     }
 
     function exportEditorCategoryCSV() {
       if (!activeEditorSkills || activeEditorSkills.length === 0) return alert('Ingen data at hente.');
-      let csvContent = "Sprog,Kategori,Kategori_Titel,Underkategori,ID,Niveau,SVG_Ikon,Kort_Beskrivelse,Kompetence\n";
+      let csvContent = "Sprog,Kategori,Kategori_Titel,Underkategori,ID,Niveau,SVG_Ikon,Kort_Beskrivelse,Kompetence,Vejledning\n";
       activeEditorSkills.forEach(s => {
-        csvContent += `${s.lang || 'da'},${s.cat},${s.catTitle || '#'},${s.subCat || ''},${s.id},${s.level},${s.svg || 'folder'},"${s.shortDesc}","${s.fullDesc}"\n`;
+        csvContent += `${s.lang || 'da'},${s.cat},${s.catTitle || '#'},${s.subCat || ''},${s.id},${s.level},${s.svg || 'folder'},"${s.shortDesc}","${s.fullDesc}","${s.guideUrl || ''}"\n`;
       });
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
@@ -1454,6 +1499,7 @@
       const rewardText = document.getElementById('enlargedRewardText');
       const checkBtn = document.getElementById('enlargedCheckBtn');
       const checkBtnText = document.getElementById('enlargedCheckBtnText');
+      const guideBtn = document.getElementById('enlargedGuideBtn');
 
       title.innerText = skill.shortDesc;
       meta.innerText = `${skill.cat} • Niveau ${skill.level}`;
@@ -1464,6 +1510,20 @@
         rewardWrap.style.display = 'flex';
         rewardText.innerText = `Låser op for: ${skill.catTitle}`;
       } else rewardWrap.style.display = 'none';
+
+      if (guideBtn) {
+        if (skill.guideUrl && skill.guideUrl.trim() !== '') {
+          guideBtn.className = 'btn';
+          guideBtn.style.cssText = 'width:100%; padding:8px; font-size:0.80rem; cursor:pointer; background:var(--card-bg); border:1px solid var(--accent-blue); color:var(--accent-blue); display:flex; align-items:center; justify-content:center; gap:6px; text-decoration:none;';
+          guideBtn.innerHTML = '<i data-lucide="external-link" style="width:16px; height:16px;"></i> Åbn Vejledning';
+          guideBtn.onclick = (e) => { e.stopPropagation(); window.open(skill.guideUrl, '_blank'); };
+        } else {
+          guideBtn.className = 'btn-guide-disabled';
+          guideBtn.style.cssText = '';
+          guideBtn.innerHTML = '<i data-lucide="file-text" style="width: 16px; height: 16px;"></i> Vejledning (Kommer snart)';
+          guideBtn.onclick = (e) => e.stopPropagation();
+        }
+      }
 
       if (isReadOnly) checkBtn.style.display = 'none';
       else {
@@ -1572,7 +1632,6 @@
       const mesh = document.createElement('div');
       mesh.className = 'cluster-mesh';
       presentCats.forEach(cat => {
-        // Vendt sortering b.level - a.level for at have niveau 1 nederst
         const catSkills = skillsList.filter(s => s.cat === cat).sort((a, b) => b.level - a.level);
         const colEl = document.createElement('div');
         colEl.className = 'cluster-col';
@@ -1626,8 +1685,8 @@
           `;
           col.appendChild(catHex);
 
-          const subCatNames = [...new Set(catSkills.map(s => s.subCat).filter(sc => sc !== ''))];
-          if (subCatNames.length === 0) {
+          const subCatNames = [...new Set(catSkills.map(s => s.subCat || 'Generelt'))];
+          if (subCatNames.length === 1 && subCatNames[0] === 'Generelt') {
             const firstFourSkills = catSkills.filter(s => s.level <= 4);
             const firstFourCompleted = firstFourSkills.filter(s => progressMap[s.id]).length;
             const isFirstFourDone = (firstFourCompleted === firstFourSkills.length && firstFourSkills.length > 0);
@@ -1640,7 +1699,7 @@
             let allPrevCompleted = true;
             subCatNames.forEach((scName) => {
               if (!allPrevCompleted) return;
-              const scSkills = catSkills.filter(s => s.subCat === scName).sort((a,b) => a.level - b.level);
+              const scSkills = catSkills.filter(s => (s.subCat || 'Generelt') === scName).sort((a,b) => a.level - b.level);
               const scCompletedCount = scSkills.filter(s => progressMap[s.id]).length;
               const isScCompleted = (scCompletedCount === scSkills.length && scSkills.length > 0);
               const subCatKey = `${catName}_${scName}`;
@@ -1703,7 +1762,6 @@
       }
       emptyState.style.display = 'none';
 
-      // Filtrering på sprog og synlighed
       let availableSkills = allSkills.filter(s => (s.lang || 'da') === currentLang && !hiddenCats.includes(s.cat));
 
       if (selectedViewFilter === 'MAKER_DEFAULT') {
