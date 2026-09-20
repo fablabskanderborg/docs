@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="da" class="h-full bg-slate-950 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Roll20 Light - Virtuelt Rollespilsbord</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    /* Brugerdefineret rullebjælke og animationer */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+    .grid-bg-dungeon {
+      background-color: #1a1614;
+      background-image: 
+        radial-gradient(#2d2522 15%, transparent 16%),
+        linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px);
+      background-size: 40px 40px, 40px 40px, 40px 40px;
+    }
+
+    .grid-bg-forest {
+      background-color: #0f1c15;
+      background-image: 
+        radial-gradient(#1a3325 15%, transparent 16%),
+        linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255,255,255,0.04) 1px, transparent 1px);
+      background-size: 40px 40px, 40px 40px, 40px 40px;
+    }
+
+    .grid-bg-parchment {
+      background-color: #2b251d;
+      background-image: 
+        linear-gradient(to right, rgba(212, 185, 150, 0.08) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(212, 185, 150, 0.08) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+
+    .token-pulse {
+      animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+    }
+    @keyframes pulse-ring {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+  </style>
+</head>
+<body class="h-full flex flex-col select-none overflow-hidden font-sans">
+
+  <header class="bg-slate-900 border-b border-slate-800 px-4 py-2 flex items-center justify-between z-30 shadow-md shrink-0">
+    <div class="flex items-center gap-3">
+      <div class="p-2 bg-rose-600/20 text-rose-400 border border-rose-500/30 rounded-lg flex items-center justify-center">
+        <i data-lucide="dices" class="w-5 h-5"></i>
+      </div>
+      <div>
+        <h1 class="font-bold text-sm md:text-base tracking-wide text-slate-100 flex items-center gap-2">
+          Roll20 Light <span class="text-xs font-medium px-2 py-0.5 rounded bg-rose-950 text-rose-400 border border-rose-800">D&D 5E</span>
+        </h1>
+        <p class="text-xs text-slate-400">Kampagne: Dragens Forbandelse</p>
+      </div>
+    </div>
+
+    <!-- Hovedværktøjslinje -->
+    <div class="flex items-center gap-1 bg-slate-950/70 p-1 rounded-xl border border-slate-800">
+      <button id="tool-select" onclick="setTool('select')" class="tool-btn active p-2 rounded-lg text-slate-200 hover:bg-slate-800 hover:text-white transition" title="Vælg & Flyt Tokens">
+        <i data-lucide="mouse-pointer" class="w-4 h-4"></i>
+      </button>
+      <button id="tool-pan" onclick="setTool('pan')" class="tool-btn p-2 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition" title="Træk / Panorer kort">
+        <i data-lucide="hand" class="w-4 h-4"></i>
+      </button>
+      <button id="tool-ruler" onclick="setTool('ruler')" class="tool-btn p-2 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition" title="Målebånd (Afstand)">
+        <i data-lucide="ruler" class="w-4 h-4"></i>
+      </button>
+      <button id="tool-draw" onclick="setTool('draw')" class="tool-btn p-2 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition" title="Tegn på kort">
+        <i data-lucide="pencil" class="w-4 h-4"></i>
+      </button>
+      <div class="h-4 w-px bg-slate-800 mx-1"></div>
+      <button onclick="clearDrawings()" class="p-2 rounded-lg text-rose-400 hover:bg-rose-950/50 transition" title="Ryd tegninger">
+        <i data-lucide="trash-2" class="w-4 h-4"></i>
+      </button>
+    </div>
+
+    <!-- Knapper til sidepaneler & modals -->
+    <div class="flex items-center gap-2">
+      <button onclick="toggleSheetModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-600/20 text-amber-300 border border-amber-600/40 hover:bg-amber-600/30 transition">
+        <i data-lucide="user" class="w-4 h-4"></i>
+        <span>Karakterark</span>
+      </button>
+      <button onclick="toggleVideoPanel()" id="btn-toggle-video" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-indigo-600/20 text-indigo-300 border border-indigo-600/40 hover:bg-indigo-600/30 transition">
+        <i data-lucide="video" class="w-4 h-4"></i>
+        <span>Video & Lyd</span>
+      </button>
+      <button onclick="toggleChatPanel()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 text-slate-200 hover:bg-slate-700 transition">
+        <i data-lucide="message-square" class="w-4 h-4"></i>
+        <span class="hidden sm:inline">Log</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="flex-1 flex relative overflow-hidden">
+    
+    <!-- Venstre værktøjspanel / Token palette -->
+    <aside class="w-16 bg-slate-900 border-r border-slate-800 flex flex-col items-center py-3 gap-3 z-20 shrink-0">
+      <div class="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Tokens</div>
+      
+      <!-- Hurtig token tilføjelse -->
+      <button onclick="spawnToken('player')" class="w-10 h-10 rounded-full bg-blue-600 hover:bg-blue-500 flex items-center justify-center text-white font-bold shadow-lg shadow-blue-900/40 border-2 border-blue-300 transition" title="Tilføj Spiller Token">
+        H
+      </button>
+      <button onclick="spawnToken('monster')" class="w-10 h-10 rounded-full bg-rose-600 hover:bg-rose-500 flex items-center justify-center text-white font-bold shadow-lg shadow-rose-900/40 border-2 border-rose-300 transition" title="Tilføj Monster Token (Goblin)">
+        M
+      </button>
+      <button onclick="spawnToken('boss')" class="w-10 h-10 rounded-full bg-amber-600 hover:bg-amber-500 flex items-center justify-center text-white font-bold shadow-lg shadow-amber-900/40 border-2 border-amber-300 transition" title="Tilføj Drage/Boss">
+        D
+      </button>
+
+      <div class="w-8 h-px bg-slate-800 my-1"></div>
+
+      <!-- Kort tema skifter -->
+      <div class="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Kort</div>
+      <button onclick="setMapTheme('dungeon')" class="w-9 h-9 rounded-lg bg-stone-800 hover:border-stone-400 border border-stone-700 text-stone-300 flex items-center justify-center text-xs" title="Fangekælder">
+        <i data-lucide="shield" class="w-4 h-4"></i>
+      </button>
+      <button onclick="setMapTheme('forest')" class="w-9 h-9 rounded-lg bg-emerald-950 hover:border-emerald-400 border border-emerald-800 text-emerald-300 flex items-center justify-center text-xs" title="Skov">
+        <i data-lucide="trees" class="w-4 h-4"></i>
+      </button>
+      <button onclick="setMapTheme('parchment')" class="w-9 h-9 rounded-lg bg-amber-950 hover:border-amber-400 border border-amber-800 text-amber-200 flex items-center justify-center text-xs" title="Pergament">
+        <i data-lucide="map" class="w-4 h-4"></i>
+      </button>
+
+      <!-- Zoom kontroller -->
+      <div class="mt-auto flex flex-col gap-1 items-center">
+        <button onclick="zoomMap(1.15)" class="w-8 h-8 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center" title="Zoom ind">
+          <i data-lucide="zoom-in" class="w-4 h-4"></i>
+        </button>
+        <button onclick="resetZoom()" class="text-[10px] text-slate-400 hover:text-white" title="Nulstil zoom">100%</button>
+        <button onclick="zoomMap(0.85)" class="w-8 h-8 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center" title="Zoom ud">
+          <i data-lucide="zoom-out" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </aside>
+
+    <main id="viewport" class="flex-1 relative overflow-hidden bg-slate-950 cursor-default">
+      
+      <!-- Transformation Container for Map & Tokens -->
+      <div id="map-plane" class="absolute top-0 left-0 w-[3000px] h-[3000px] grid-bg-dungeon transition-none origin-top-left">
+        <!-- SVG Overlæg til tegning og opmåling -->
+        <svg id="svg-layer" class="absolute inset-0 w-full h-full pointer-events-none z-10">
+          <g id="drawings-group"></g>
+          <g id="ruler-group"></g>
+        </svg>
+
+        <!-- Token Container -->
+        <div id="tokens-layer" class="absolute inset-0 z-20"></div>
+      </div>
+
+      <!-- Kort information overlay -->
+      <div class="absolute bottom-4 left-4 bg-slate-900/80 backdrop-blur-md px-3 py-1.5 rounded-lg border border-slate-800 text-xs text-slate-400 pointer-events-none flex items-center gap-3">
+        <span>Gitter: <strong class="text-slate-200">1 tern = 5 fod (~1,5m)</strong></span>
+        <span>Aktivt værktøj: <strong id="lbl-active-tool" class="text-rose-400 capitalize">Vælg</strong></span>
+      </div>
+
+      <!-- Hurtig Terningebjælke (Bund) -->
+      <div class="absolute bottom-4 right-4 z-20 flex items-center gap-1.5 bg-slate-900/90 backdrop-blur-md p-2 rounded-2xl border border-slate-800 shadow-xl">
+        <button onclick="quickRoll(4)" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-rose-600 hover:text-white text-xs font-semibold text-slate-300 transition">d4</button>
+        <button onclick="quickRoll(6)" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-rose-600 hover:text-white text-xs font-semibold text-slate-300 transition">d6</button>
+        <button onclick="quickRoll(8)" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-rose-600 hover:text-white text-xs font-semibold text-slate-300 transition">d8</button>
+        <button onclick="quickRoll(10)" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-rose-600 hover:text-white text-xs font-semibold text-slate-300 transition">d10</button>
+        <button onclick="quickRoll(12)" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-rose-600 hover:text-white text-xs font-semibold text-slate-300 transition">d12</button>
+        <button onclick="quickRoll(20)" class="px-3 py-1.5 rounded-xl bg-rose-600/30 border border-rose-500/50 hover:bg-rose-600 text-rose-200 hover:text-white text-xs font-bold transition">d20</button>
+        <button onclick="quickRoll(100)" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-rose-600 hover:text-white text-xs font-semibold text-slate-300 transition">d100</button>
+      </div>
+
+      <!-- Flydende Videopanel (Webcam / Samtale) -->
+      <div id="video-panel" class="absolute top-4 left-4 z-20 bg-slate-900/95 border border-slate-800 rounded-2xl shadow-2xl p-3 w-72 backdrop-blur-md transition-all">
+        <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+          <div class="flex items-center gap-2 text-xs font-semibold text-slate-300">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+            <span>Spiller Video / Lyd</span>
+          </div>
+          <button onclick="toggleVideoPanel()" class="text-slate-400 hover:text-slate-200">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <!-- Video grids -->
+        <div class="grid grid-cols-2 gap-2 mt-2">
+          <!-- Lokal spiller webcam -->
+          <div class="relative bg-slate-950 rounded-xl overflow-hidden aspect-video border border-slate-800 flex items-center justify-center">
+            <video id="local-video" autoplay muted playsinline class="w-full h-full object-cover hidden"></video>
+            <div id="video-placeholder" class="flex flex-col items-center justify-center text-slate-500">
+              <i data-lucide="camera-off" class="w-5 h-5 mb-1"></i>
+              <span class="text-[10px]">Kamera slået fra</span>
+            </div>
+            <span class="absolute bottom-1 left-1.5 text-[9px] bg-slate-900/80 px-1 rounded text-slate-300">Dig (Spilleder)</span>
+          </div>
+
+          <!-- Mock Fjernspiller 1 -->
+          <div class="relative bg-slate-950 rounded-xl overflow-hidden aspect-video border border-slate-800 flex items-center justify-center">
+            <div class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center font-bold text-xs text-white">
+              KV
+            </div>
+            <span class="absolute bottom-1 left-1.5 text-[9px] bg-slate-900/80 px-1 rounded text-slate-300">Kasper (Kriger)</span>
+            <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-emerald-500" title="Online & Lytter"></span>
+          </div>
+
+          <!-- Mock Fjernspiller 2 -->
+          <div class="relative bg-slate-950 rounded-xl overflow-hidden aspect-video border border-slate-800 flex items-center justify-center">
+            <div class="w-8 h-8 rounded-full bg-emerald-700 flex items-center justify-center font-bold text-xs text-white">
+              SM
+            </div>
+            <span class="absolute bottom-1 left-1.5 text-[9px] bg-slate-900/80 px-1 rounded text-slate-300">Sara (Troldkvinde)</span>
+            <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-emerald-500" title="Online"></span>
+          </div>
+
+          <!-- Mock Fjernspiller 3 -->
+          <div class="relative bg-slate-950 rounded-xl overflow-hidden aspect-video border border-slate-800 flex items-center justify-center">
+            <div class="w-8 h-8 rounded-full bg-amber-600 flex items-center justify-center font-bold text-xs text-white">
+              TB
+            </div>
+            <span class="absolute bottom-1 left-1.5 text-[9px] bg-slate-900/80 px-1 rounded text-slate-300">Troels (Skjald)</span>
+            <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-slate-600" title="Muted"></span>
+          </div>
+        </div>
+
+        <!-- WebRTC enhedsstyring -->
+        <div class="flex items-center justify-between mt-3 pt-2 border-t border-slate-800/80">
+          <button id="btn-cam" onclick="toggleWebcam()" class="flex-1 mr-1 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-medium text-slate-200 flex items-center justify-center gap-1.5">
+            <i data-lucide="video" class="w-3.5 h-3.5"></i>
+            <span id="txt-cam">Start Kamera</span>
+          </button>
+          <button id="btn-mic" onclick="toggleMic()" class="flex-1 ml-1 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-medium text-slate-200 flex items-center justify-center gap-1.5">
+            <i data-lucide="mic" class="w-3.5 h-3.5"></i>
+            <span id="txt-mic">Slå mikrofon til</span>
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <aside id="chat-sidebar" class="w-80 bg-slate-900 border-l border-slate-800 flex flex-col z-20 transition-all duration-300">
+      <div class="p-3 border-b border-slate-800 flex items-center justify-between">
+        <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+          <i data-lucide="scroll" class="w-4 h-4 text-rose-400"></i>
+          Spillog & Terningeslag
+        </h2>
+        <button onclick="clearChatLog()" class="text-xs text-slate-500 hover:text-rose-400" title="Ryd log">
+          <i data-lucide="eraser" class="w-3.5 h-3.5"></i>
+        </button>
+      </div>
+
+      <!-- Chat Feed -->
+      <div id="chat-messages" class="flex-1 p-3 overflow-y-auto space-y-3 text-xs">
+        <!-- Velkomstbesked -->
+        <div class="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/80">
+          <div class="flex items-center justify-between text-[10px] text-slate-500 mb-1">
+            <span class="font-bold text-rose-400">System</span>
+            <span>Lige nu</span>
+          </div>
+          <p class="text-slate-300">Velkommen til spilsessionen! Rul terninger direkte via knapperne eller skriv fx <code class="bg-slate-800 px-1 rounded text-amber-300">/r 2d6+3</code>.</p>
+        </div>
+      </div>
+
+      <!-- Inputformular til chat & terninger -->
+      <div class="p-3 bg-slate-950/70 border-t border-slate-800">
+        <form id="chat-form" onsubmit="handleChatSubmit(event)" class="space-y-2">
+          <div class="flex items-center gap-2">
+            <select id="chat-as" class="bg-slate-900 border border-slate-800 text-[11px] text-slate-300 rounded-lg px-2 py-1 focus:outline-none focus:border-rose-500">
+              <option value="GM">Spilleder (GM)</option>
+              <option value="Helden">Hjalte Ravneøje</option>
+              <option value="OOC">OOC (Uden for spil)</option>
+            </select>
+            <span class="text-[10px] text-slate-500">/r for terninger</span>
+          </div>
+          <div class="flex gap-2">
+            <input id="chat-input" type="text" placeholder="Besked eller /r 1d20+5..." class="flex-1 bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-rose-500">
+            <button type="submit" class="bg-rose-600 hover:bg-rose-500 text-white px-3 py-2 rounded-lg flex items-center justify-center transition">
+              <i data-lucide="send" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        </form>
+      </div>
+    </aside>
+  </div>
+
+  <div id="sheet-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+      <!-- Sheet Top -->
+      <div class="px-6 py-4 bg-slate-950/90 border-b border-slate-800 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 font-bold">
+            HR
+          </div>
+          <div>
+            <input id="sheet-name" type="text" value="Hjalte Ravneøje" class="bg-transparent font-bold text-slate-100 text-base focus:outline-none border-b border-transparent focus:border-amber-500">
+            <p class="text-xs text-slate-400">Niveau 3 Ranger / Spejder (D&D 5e)</p>
+          </div>
+        </div>
+        <button onclick="toggleSheetModal()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Sheet Indhold med Rullepanel -->
+      <div class="p-6 overflow-y-auto space-y-6">
+        <!-- Vigtige Stats: HP, AC, Initiative -->
+        <div class="grid grid-cols-3 gap-3">
+          <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800 text-center">
+            <span class="text-[10px] text-slate-400 uppercase font-semibold">Livspoint (HP)</span>
+            <div class="flex items-center justify-center gap-1 mt-1">
+              <input id="char-hp-cur" type="number" value="28" class="w-12 text-center bg-slate-900 border border-slate-700 rounded text-emerald-400 font-bold text-lg">
+              <span class="text-slate-500">/</span>
+              <input id="char-hp-max" type="number" value="28" class="w-12 text-center bg-slate-900 border border-slate-700 rounded text-slate-400 font-bold text-lg">
+            </div>
+          </div>
+          <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800 text-center">
+            <span class="text-[10px] text-slate-400 uppercase font-semibold">Rustningsklasse (AC)</span>
+            <div class="mt-1 text-xl font-black text-amber-400">15</div>
+          </div>
+          <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800 text-center">
+            <span class="text-[10px] text-slate-400 uppercase font-semibold">Initiativ</span>
+            <div class="mt-1">
+              <button onclick="rollStat('Initiativ', 3)" class="px-3 py-0.5 rounded bg-slate-800 hover:bg-amber-600 hover:text-white text-slate-200 text-sm font-bold border border-slate-700 transition">
+                +3 🎲
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Evne-egenskaber (Ability Scores) -->
+        <div>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Evne-Egenskaber (Klik for at slå)</h3>
+          <div class="grid grid-cols-6 gap-2 text-center">
+            <!-- STR -->
+            <button onclick="rollStat('Styrke', 1)" class="bg-slate-950/60 hover:bg-amber-600/20 p-2.5 rounded-xl border border-slate-800 hover:border-amber-500/50 transition flex flex-col items-center">
+              <span class="text-[10px] font-bold text-slate-400">STR</span>
+              <span class="text-base font-black text-slate-100">12</span>
+              <span class="text-xs font-bold text-amber-400">+1</span>
+            </button>
+            <!-- DEX -->
+            <button onclick="rollStat('Behændighed', 3)" class="bg-slate-950/60 hover:bg-amber-600/20 p-2.5 rounded-xl border border-slate-800 hover:border-amber-500/50 transition flex flex-col items-center">
+              <span class="text-[10px] font-bold text-slate-400">DEX</span>
+              <span class="text-base font-black text-slate-100">16</span>
+              <span class="text-xs font-bold text-amber-400">+3</span>
+            </button>
+            <!-- CON -->
+            <button onclick="rollStat('Konstitution', 2)" class="bg-slate-950/60 hover:bg-amber-600/20 p-2.5 rounded-xl border border-slate-800 hover:border-amber-500/50 transition flex flex-col items-center">
+              <span class="text-[10px] font-bold text-slate-400">CON</span>
+              <span class="text-base font-black text-slate-100">14</span>
+              <span class="text-xs font-bold text-amber-400">+2</span>
+            </button>
+            <!-- INT -->
+            <button onclick="rollStat('Intelligens', 0)" class="bg-slate-950/60 hover:bg-amber-600/20 p-2.5 rounded-xl border border-slate-800 hover:border-amber-500/50 transition flex flex-col items-center">
+              <span class="text-[10px] font-bold text-slate-400">INT</span>
+              <span class="text-base font-black text-slate-100">10</span>
+              <span class="text-xs font-bold text-amber-400">+0</span>
+            </button>
+            <!-- WIS -->
+            <button onclick="rollStat('Visdom', 2)" class="bg-slate-950/60 hover:bg-amber-600/20 p-2.5 rounded-xl border border-slate-800 hover:border-amber-500/50 transition flex flex-col items-center">
+              <span class="text-[10px] font-bold text-slate-400">WIS</span>
+              <span class="text-base font-black text-slate-100">15</span>
+              <span class="text-xs font-bold text-amber-400">+2</span>
+            </button>
+            <!-- CHA -->
+            <button onclick="rollStat('Karisma', -1)" class="bg-slate-950/60 hover:bg-amber-600/20 p-2.5 rounded-xl border border-slate-800 hover:border-amber-500/50 transition flex flex-col items-center">
+              <span class="text-[10px] font-bold text-slate-400">CHA</span>
+              <span class="text-base font-black text-slate-100">8</span>
+              <span class="text-xs font-bold text-rose-400">-1</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Våben & Angreb -->
+        <div>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Våben & Angreb</h3>
+          <div class="space-y-2">
+            <div class="flex items-center justify-between p-2.5 bg-slate-950/60 border border-slate-800 rounded-xl">
+              <div>
+                <div class="font-bold text-xs text-slate-200">Langbue (Langdistance)</div>
+                <div class="text-[11px] text-slate-400">Rækkevidde 150/600 fod • 1d8 + 3 stikskade</div>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <button onclick="rollAttack('Langbue', 5, '1d8+3', 'stikskade')" class="px-2.5 py-1 bg-amber-600/30 hover:bg-amber-600 border border-amber-500/40 text-amber-200 hover:text-white rounded-lg text-xs font-semibold transition">
+                  Angreb (+5)
+                </button>
+                <button onclick="rollDamage('Langbue Skade', 8, 3)" class="px-2.5 py-1 bg-rose-600/30 hover:bg-rose-600 border border-rose-500/40 text-rose-200 hover:text-white rounded-lg text-xs font-semibold transition">
+                  Skade (1d8+3)
+                </button>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between p-2.5 bg-slate-950/60 border border-slate-800 rounded-xl">
+              <div>
+                <div class="font-bold text-xs text-slate-200">Kortsværd (Nærkamp)</div>
+                <div class="text-[11px] text-slate-400">Finesse • 1d6 + 3 skæreskade</div>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <button onclick="rollAttack('Kortsværd', 5, '1d6+3', 'hugskade')" class="px-2.5 py-1 bg-amber-600/30 hover:bg-amber-600 border border-amber-500/40 text-amber-200 hover:text-white rounded-lg text-xs font-semibold transition">
+                  Angreb (+5)
+                </button>
+                <button onclick="rollDamage('Kortsværd Skade', 6, 3)" class="px-2.5 py-1 bg-rose-600/30 hover:bg-rose-600 border border-rose-500/40 text-rose-200 hover:text-white rounded-lg text-xs font-semibold transition">
+                  Skade (1d6+3)
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Noter & Udstyr -->
+        <div>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Udstyr & Magiske Genstande</h3>
+          <textarea class="w-full h-20 bg-slate-950/60 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-300 focus:outline-none focus:border-amber-500" placeholder="Skriv udstyr, eliksirer og magiske genstande her...">- Rejsesæt med sovepose og fakler (5x)
+- 2x Helbredende Eliksirer (2d4+2 HP)
+- Gammelt kort over Dragespiret fundet i ruinerne</textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* Global Application State */
+    const state = {
+      tool: 'select', // select, pan, ruler, draw
+      zoom: 1,
+      pan: { x: -300, y: -200 },
+      isDraggingMap: false,
+      dragStart: { x: 0, y: 0 },
+      tokens: [
+        { id: 't1', name: 'Hjalte', type: 'player', x: 520, y: 360, size: 40, color: '#2563eb', hp: '28/28' },
+        { id: 't2', name: 'Goblin 1', type: 'monster', x: 680, y: 360, size: 40, color: '#dc2626', hp: '7/7' },
+        { id: 't3', name: 'Goblin 2', type: 'monster', x: 680, y: 440, size: 40, color: '#dc2626', hp: '7/7' },
+        { id: 't4', name: 'Drageunge', type: 'boss', x: 800, y: 400, size: 80, color: '#d97706', hp: '65/65' }
+      ],
+      selectedTokenId: null,
+      isDraggingToken: false,
+      tokenDragOffset: { x: 0, y: 0 },
+      
+      // Målebånd (Ruler) tilstand
+      rulerStart: null,
+      rulerCurrent: null,
+
+      // Tegnetilstand
+      isDrawing: false,
+      currentDrawPath: []
+    };
+
+    /* DOM Element referencer */
+    const viewport = document.getElementById('viewport');
+    const mapPlane = document.getElementById('map-plane');
+    const tokensLayer = document.getElementById('tokens-layer');
+    const rulerGroup = document.getElementById('ruler-group');
+    const drawingsGroup = document.getElementById('drawings-group');
+    const chatMessages = document.getElementById('chat-messages');
+
+    function updateMapTransform() {
+      mapPlane.style.transform = `translate(${state.pan.x}px, ${state.pan.y}px) scale(${state.zoom})`;
+    }
+
+    function zoomMap(factor) {
+      const oldZoom = state.zoom;
+      state.zoom = Math.min(Math.max(state.zoom * factor, 0.4), 2.5);
+      
+      // Zoom mod midten af viewporten
+      const rect = viewport.getBoundingClientRect();
+      const cx = rect.width / 2;
+      const cy = rect.height / 2;
+      state.pan.x = cx - (cx - state.pan.x) * (state.zoom / oldZoom);
+      state.pan.y = cy - (cy - state.pan.y) * (state.zoom / oldZoom);
+      
+      updateMapTransform();
+    }
+
+    function resetZoom() {
+      state.zoom = 1;
+      updateMapTransform();
+    }
+
+    function setTool(toolName) {
+      state.tool = toolName;
+      document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('bg-slate-800', 'text-white'));
+      const activeBtn = document.getElementById(`tool-${toolName}`);
+      if (activeBtn) activeBtn.classList.add('bg-slate-800', 'text-white');
+      
+      const labels = {
+        select: 'Vælg & Flyt',
+        pan: 'Panorer',
+        ruler: 'Målebånd (5 fod)',
+        draw: 'Tegn'
+      };
+      document.getElementById('lbl-active-tool').innerText = labels[toolName] || toolName;
+
+      // Opdater cursor-stil
+      if (toolName === 'pan') viewport.style.cursor = 'grab';
+      else if (toolName === 'ruler') viewport.style.cursor = 'crosshair';
+      else if (toolName === 'draw') viewport.style.cursor = 'crosshair';
+      else viewport.style.cursor = 'default';
+    }
+
+    function setMapTheme(theme) {
+      mapPlane.className = `absolute top-0 left-0 w-[3000px] h-[3000px] grid-bg-${theme} transition-none origin-top-left`;
+    }
+
+    /* Konverter museposition til koordinater på kortplanet */
+    function getMapCoords(e) {
+      const rect = viewport.getBoundingClientRect();
+      const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+      const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+      const vx = clientX - rect.left;
+      const vy = clientY - rect.top;
+      return {
+        x: (vx - state.pan.x) / state.zoom,
+        y: (vy - state.pan.y) / state.zoom
+      };
+    }
+
+    function renderTokens() {
+      tokensLayer.innerHTML = '';
+      state.tokens.forEach(token => {
+        const el = document.createElement('div');
+        el.id = `token-${token.id}`;
+        el.className = `absolute select-none flex flex-col items-center justify-center cursor-grab rounded-full font-bold shadow-lg transition-shadow duration-150 ${
+          state.selectedTokenId === token.id ? 'ring-4 ring-amber-400' : 'hover:ring-2 hover:ring-white/80'
+        }`;
+        
+        el.style.width = `${token.size}px`;
+        el.style.height = `${token.size}px`;
+        el.style.left = `${token.x}px`;
+        el.style.top = `${token.y}px`;
+        el.style.backgroundColor = token.color;
+        el.style.color = '#ffffff';
+        el.style.border = '2px solid rgba(255,255,255,0.7)';
+
+        // Initialer / Token ikon
+        el.innerHTML = `
+          <span class="text-xs pointer-events-none drop-shadow-md">${token.name.substring(0, 2).toUpperCase()}</span>
+          <div class="absolute -top-5 left-1/2 -translate-x-1/2 bg-slate-900/90 text-slate-200 border border-slate-700 px-1.5 py-0.2 rounded text-[9px] whitespace-nowrap pointer-events-none shadow">
+            ${token.name} (${token.hp})
+          </div>
+        `;
+
+        // Token begivenheder
+        el.addEventListener('mousedown', (e) => {
+          if (state.tool !== 'select') return;
+          e.stopPropagation();
+          state.selectedTokenId = token.id;
+          state.isDraggingToken = true;
+          const coords = getMapCoords(e);
+          state.tokenDragOffset = {
+            x: coords.x - token.x,
+            y: coords.y - token.y
+          };
+          renderTokens();
+        });
+
+        tokensLayer.appendChild(el);
+      });
+    }
+
+    function spawnToken(type) {
+      const centerX = (-state.pan.x + viewport.clientWidth / 2) / state.zoom;
+      const centerY = (-state.pan.y + viewport.clientHeight / 2) / state.zoom;
+      
+      const snapX = Math.round(centerX / 40) * 40;
+      const snapY = Math.round(centerY / 40) * 40;
+
+      let newToken;
+      if (type === 'player') {
+        newToken = {
+          id: 't_' + Date.now(),
+          name: 'Spiller ' + (state.tokens.filter(t => t.type==='player').length + 1),
+          type: 'player',
+          x: snapX,
+          y: snapY,
+          size: 40,
+          color: '#3b82f6',
+          hp: '20/20'
+        };
+      } else if (type === 'monster') {
+        newToken = {
+          id: 't_' + Date.now(),
+          name: 'Ork ' + (state.tokens.filter(t => t.type==='monster').length + 1),
+          type: 'monster',
+          x: snapX,
+          y: snapY,
+          size: 40,
+          color: '#ef4444',
+          hp: '15/15'
+        };
+      } else {
+        newToken = {
+          id: 't_' + Date.now(),
+          name: 'Boss Drage',
+          type: 'boss',
+          x: snapX,
+          y: snapY,
+          size: 80,
+          color: '#b45309',
+          hp: '120/120'
+        };
+      }
+
+      state.tokens.push(newToken);
+      renderTokens();
+      appendChatMessage('System', `Nyt token placeret på kortet: <strong>${newToken.name}</strong>`);
+    }
+
+    viewport.addEventListener('mousedown', (e) => {
+      const coords = getMapCoords(e);
+
+      if (state.tool === 'pan' || e.button === 1 || (e.button === 0 && e.shiftKey)) {
+        state.isDraggingMap = true;
+        state.dragStart = { x: e.clientX - state.pan.x, y: e.clientY - state.pan.y };
+        viewport.style.cursor = 'grabbing';
+      } else if (state.tool === 'ruler') {
+        state.rulerStart = coords;
+        state.rulerCurrent = coords;
+      } else if (state.tool === 'draw') {
+        state.isDrawing = true;
+        state.currentDrawPath = [coords];
+      } else if (state.tool === 'select') {
+        state.selectedTokenId = null;
+        renderTokens();
+      }
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      // Panorering af kort
+      if (state.isDraggingMap) {
+        state.pan.x = e.clientX - state.dragStart.x;
+        state.pan.y = e.clientY - state.dragStart.y;
+        updateMapTransform();
+        return;
+      }
+
+      const coords = getMapCoords(e);
+
+      // Træk token
+      if (state.isDraggingToken && state.selectedTokenId) {
+        const token = state.tokens.find(t => t.id === state.selectedTokenId);
+        if (token) {
+          token.x = coords.x - state.tokenDragOffset.x;
+          token.y = coords.y - state.tokenDragOffset.y;
+          
+          const el = document.getElementById(`token-${token.id}`);
+          if (el) {
+            el.style.left = `${token.x}px`;
+            el.style.top = `${token.y}px`;
+          }
+        }
+        return;
+      }
+
+      // Målebånd
+      if (state.tool === 'ruler' && state.rulerStart) {
+        state.rulerCurrent = coords;
+        drawRuler();
+        return;
+      }
+
+      // Frihåndstegning
+      if (state.tool === 'draw' && state.isDrawing) {
+        state.currentDrawPath.push(coords);
+        renderCurrentDrawing();
+      }
+    });
+
+    window.addEventListener('mouseup', (e) => {
+      if (state.isDraggingMap) {
+        state.isDraggingMap = false;
+        viewport.style.cursor = state.tool === 'pan' ? 'grab' : 'default';
+      }
+
+      if (state.isDraggingToken && state.selectedTokenId) {
+        // Gitter-snapping (40px pr. tern)
+        const token = state.tokens.find(t => t.id === state.selectedTokenId);
+        if (token) {
+          token.x = Math.round(token.x / 40) * 40;
+          token.y = Math.round(token.y / 40) * 40;
+          renderTokens();
+        }
+        state.isDraggingToken = false;
+      }
+
+      if (state.tool === 'ruler' && state.rulerStart) {
+        state.rulerStart = null;
+        state.rulerCurrent = null;
+        rulerGroup.innerHTML = '';
+      }
+
+      if (state.tool === 'draw' && state.isDrawing) {
+        state.isDrawing = false;
+        commitDrawing();
+      }
+    });
+
+    // Zoom via musehjul
+    viewport.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
+      zoomMap(zoomFactor);
+    }, { passive: false });
+
+    function drawRuler() {
+      if (!state.rulerStart || !state.rulerCurrent) return;
+
+      const dx = state.rulerCurrent.x - state.rulerStart.x;
+      const dy = state.rulerCurrent.y - state.rulerStart.y;
+      const pixelDistance = Math.hypot(dx, dy);
+      
+      // 40 pixels = 5 feet (1 D&D gitter-tern)
+      const feet = Math.round((pixelDistance / 40) * 5);
+
+      rulerGroup.innerHTML = `
+        <line x1="${state.rulerStart.x}" y1="${state.rulerStart.y}" 
+              x2="${state.rulerCurrent.x}" y2="${state.rulerCurrent.y}" 
+              stroke="#fbbf24" stroke-width="3" stroke-dasharray="6,4" />
+        <circle cx="${state.rulerStart.x}" cy="${state.rulerStart.y}" r="4" fill="#fbbf24" />
+        <circle cx="${state.rulerCurrent.x}" cy="${state.rulerCurrent.y}" r="4" fill="#fbbf24" />
+        <g transform="translate(${(state.rulerStart.x + state.rulerCurrent.x) / 2}, ${(state.rulerStart.y + state.rulerCurrent.y) / 2 - 12})">
+          <rect x="-35" y="-12" width="70" height="20" rx="4" fill="#0f172a" stroke="#fbbf24" stroke-width="1.5" />
+          <text x="0" y="2" fill="#fbbf24" font-size="11" font-weight="bold" text-anchor="middle" dominant-baseline="middle">
+            ${feet} fod
+          </text>
+        </g>
+      `;
+    }
+
+    function renderCurrentDrawing() {
+      if (state.currentDrawPath.length < 2) return;
+      
+      let d = `M ${state.currentDrawPath[0].x} ${state.currentDrawPath[0].y}`;
+      for (let i = 1; i < state.currentDrawPath.length; i++) {
+        d += ` L ${state.currentDrawPath[i].x} ${state.currentDrawPath[i].y}`;
+      }
+
+      let activePathEl = document.getElementById('active-drawing-path');
+      if (!activePathEl) {
+        activePathEl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        activePathEl.setAttribute('id', 'active-drawing-path');
+        activePathEl.setAttribute('stroke', '#ef4444');
+        activePathEl.setAttribute('stroke-width', '4');
+        activePathEl.setAttribute('stroke-linecap', 'round');
+        activePathEl.setAttribute('stroke-linejoin', 'round');
+        activePathEl.setAttribute('fill', 'none');
+        drawingsGroup.appendChild(activePathEl);
+      }
+      activePathEl.setAttribute('d', d);
+    }
+
+    function commitDrawing() {
+      const activePathEl = document.getElementById('active-drawing-path');
+      if (activePathEl) {
+        activePathEl.removeAttribute('id');
+      }
+      state.currentDrawPath = [];
+    }
+
+    function clearDrawings() {
+      drawingsGroup.innerHTML = '';
+      appendChatMessage('System', 'Alle tegninger på kortet blev slettet.');
+    }
+
+    function rollDice(sides) {
+      return Math.floor(Math.random() * sides) + 1;
+    }
+
+    function appendChatMessage(sender, htmlContent, isRoll = false) {
+      const msg = document.createElement('div');
+      msg.className = `p-2.5 rounded-xl border ${
+        isRoll 
+          ? 'bg-rose-950/20 border-rose-900/40 text-slate-100' 
+          : 'bg-slate-950/60 border-slate-800/80 text-slate-300'
+      }`;
+      
+      const time = new Date().toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' });
+      msg.innerHTML = `
+        <div class="flex items-center justify-between text-[10px] text-slate-500 mb-1">
+          <span class="font-bold ${sender === 'GM' ? 'text-amber-400' : sender === 'System' ? 'text-rose-400' : 'text-blue-400'}">${sender}</span>
+          <span>${time}</span>
+        </div>
+        <div class="text-xs leading-relaxed">${htmlContent}</div>
+      `;
+
+      chatMessages.appendChild(msg);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function quickRoll(sides) {
+      const val = rollDice(sides);
+      const isCrit = sides === 20 && val === 20;
+      const isFail = sides === 20 && val === 1;
+      
+      let extraClass = '';
+      let critBadge = '';
+      if (isCrit) {
+        extraClass = 'text-emerald-400 font-extrabold';
+        critBadge = '<span class="ml-1 text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-700 px-1 rounded">KRITISK SUCCES!</span>';
+      } else if (isFail) {
+        extraClass = 'text-rose-500 font-extrabold';
+        critBadge = '<span class="ml-1 text-[10px] bg-rose-950 text-rose-300 border border-rose-700 px-1 rounded">KRITISK FIASKO!</span>';
+      }
+
+      appendChatMessage('Spilleder', `
+        Slår <strong class="text-rose-400">d${sides}</strong>: 
+        <span class="text-sm font-bold bg-slate-900 px-2 py-0.5 rounded border border-slate-700 ${extraClass}">${val}</span>
+        ${critBadge}
+      `, true);
+    }
+
+    function handleChatSubmit(e) {
+      e.preventDefault();
+      const input = document.getElementById('chat-input');
+      const sender = document.getElementById('chat-as').value;
+      const rawText = input.value.trim();
+      if (!rawText) return;
+
+      if (rawText.startsWith('/r ') || rawText.startsWith('/roll ')) {
+        const formula = rawText.replace(/^\/(r|roll)\s+/, '');
+        parseAndRollFormula(sender, formula);
+      } else {
+        appendChatMessage(sender, rawText);
+      }
+
+      input.value = '';
+    }
+
+    function parseAndRollFormula(sender, formula) {
+      // RegEx til at håndtere format som 2d6+4, 1d20-1 osv.
+      const match = formula.match(/^(\d+)d(\d+)(?:\s*([+-])\s*(\d+))?$/i);
+      if (!match) {
+        appendChatMessage('System', `Ugyldig terningeformel "<code>${formula}</code>". Brug f.eks: <code>1d20</code> eller <code>2d6+3</code>`);
+        return;
+      }
+
+      const count = parseInt(match[1]);
+      const sides = parseInt(match[2]);
+      const sign = match[3] || '+';
+      const mod = match[4] ? parseInt(match[4]) : 0;
+
+      if (count > 50) {
+        appendChatMessage('System', 'Maks 50 terninger ad gangen!');
+        return;
+      }
+
+      let rolls = [];
+      let sum = 0;
+      for (let i = 0; i < count; i++) {
+        const r = rollDice(sides);
+        rolls.push(r);
+        sum += r;
+      }
+
+      const finalTotal = sign === '+' ? sum + mod : sum - mod;
+      const modString = mod !== 0 ? ` ${sign} ${mod}` : '';
+
+      appendChatMessage(sender, `
+        Kaster <strong>${formula}</strong>:
+        <div class="mt-1 flex items-center gap-2 flex-wrap">
+          <span class="text-slate-400">[${rolls.join(', ')}]${modString}</span>
+          <span>=</span>
+          <span class="text-base font-black text-rose-400 bg-slate-900 px-2.5 py-0.5 rounded border border-slate-700">${finalTotal}</span>
+        </div>
+      `, true);
+    }
+
+    /* Karakterarks terningeslag */
+    function rollStat(statName, mod) {
+      const d20 = rollDice(20);
+      const total = d20 + mod;
+      const sign = mod >= 0 ? '+' : '';
+      appendChatMessage('Hjalte Ravneøje', `
+        Evnetjek: <strong>${statName}</strong> (d20 ${sign}${mod})<br>
+        Resultat: <strong>${total}</strong> (Kast: ${d20} ${sign}${mod})
+      `, true);
+    }
+
+    function rollAttack(weaponName, attackMod, dmgFormula, dmgType) {
+      const d20 = rollDice(20);
+      const total = d20 + attackMod;
+      appendChatMessage('Hjalte Ravneøje', `
+        Angreb med <strong>${weaponName}</strong>:<br>
+        Rul mod AC: <span class="text-sm font-bold text-amber-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-700">${total}</span> 
+        (d20: ${d20} + ${attackMod})
+      `, true);
+    }
+
+    function rollDamage(title, sides, mod) {
+      const roll = rollDice(sides);
+      const total = roll + mod;
+      appendChatMessage('Hjalte Ravneøje', `
+        Skaderulle (<strong>${title}</strong>):<br>
+        Skade: <span class="text-sm font-black text-rose-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-700">${total}</span> 
+        (1d${sides}: ${roll} + ${mod})
+      `, true);
+    }
+
+    function clearChatLog() {
+      chatMessages.innerHTML = '';
+      appendChatMessage('System', 'Chatlog ryddet.');
+    }
+
+    let localStream = null;
+    let isMicMuted = true;
+    let isCamActive = false;
+
+    async function toggleWebcam() {
+      const videoEl = document.getElementById('local-video');
+      const placeholder = document.getElementById('video-placeholder');
+      const btnCam = document.getElementById('txt-cam');
+
+      if (isCamActive) {
+        // Sluk kamera
+        if (localStream) {
+          localStream.getVideoTracks().forEach(track => track.stop());
+        }
+        isCamActive = false;
+        videoEl.classList.add('hidden');
+        placeholder.classList.remove('hidden');
+        btnCam.innerText = 'Start Kamera';
+        appendChatMessage('System', 'Webcam slukket.');
+      } else {
+        // Tænd kamera
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: !isMicMuted });
+          localStream = stream;
+          videoEl.srcObject = stream;
+          videoEl.classList.remove('hidden');
+          placeholder.classList.add('hidden');
+          isCamActive = true;
+          btnCam.innerText = 'Stop Kamera';
+          appendChatMessage('System', 'Webcam forbundet succesfuldt.');
+        } catch (err) {
+          appendChatMessage('System', '<span class="text-rose-400">Kunne ikke få adgang til kamera. Kontroller rettigheder i browseren.</span>');
+        }
+      }
+      lucide.createIcons();
+    }
+
+    async function toggleMic() {
+      const btnMic = document.getElementById('txt-mic');
+      isMicMuted = !isMicMuted;
+
+      if (!isMicMuted) {
+        btnMic.innerText = 'Mute mikrofon';
+        appendChatMessage('System', 'Mikrofon aktiveret.');
+      } else {
+        btnMic.innerText = 'Slå mikrofon til';
+        appendChatMessage('System', 'Mikrofon slået fra (muted).');
+      }
+
+      if (localStream) {
+        localStream.getAudioTracks().forEach(track => {
+          track.enabled = !isMicMuted;
+        });
+      }
+    }
+
+    /* UI Skiftere for paneler og modals */
+    function toggleVideoPanel() {
+      const panel = document.getElementById('video-panel');
+      panel.classList.toggle('hidden');
+    }
+
+    function toggleChatPanel() {
+      const chat = document.getElementById('chat-sidebar');
+      chat.classList.toggle('hidden');
+    }
+
+    function toggleSheetModal() {
+      const modal = document.getElementById('sheet-modal');
+      if (modal.classList.contains('hidden')) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      } else {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+    }
+
+    window.onload = function() {
+      updateMapTransform();
+      renderTokens();
+      lucide.createIcons();
+    };
+  </script>
+</body>
+</html>
