@@ -1,0 +1,1737 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-[#050807] text-[#00ff66]">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AN/UYK-70 TACTICAL DISPLAY // STAR WARS FFG VTT</title>
+  
+  <!-- Retro Monospace & Military CRT Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&family=Orbitron:wght@600;900&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS & Supabase JS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <style>
+    /* CSS Phosphor CRT & Cassette Futurism Tokens */
+    :root {
+      --phosphor-green: #00ff66;
+      --phosphor-glow: rgba(0, 255, 102, 0.45);
+      --imperial-red: #ff3333;
+      --alert-amber: #ff9900;
+      --cyber-blue: #33ccff;
+      --crt-bg: #050807;
+      --terminal-dim: #0a2416;
+    }
+
+    body {
+      font-family: 'Share Tech Mono', monospace;
+      background-color: var(--crt-bg);
+      color: var(--phosphor-green);
+      text-shadow: 0 0 4px var(--phosphor-glow);
+    }
+
+    .font-vt323 { font-family: 'VT323', monospace; }
+    .font-orbitron { font-family: 'Orbitron', sans-serif; }
+
+    /* CRT Scanline and Vignette Curvature Overlays */
+    .crt-screen {
+      position: relative;
+      overflow: hidden;
+    }
+    .crt-screen::before {
+      content: " ";
+      display: block;
+      position: absolute;
+      top: 0; left: 0; bottom: 0; right: 0;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.35) 50%),
+                  linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+      z-index: 40;
+      background-size: 100% 3px, 6px 100%;
+      pointer-events: none;
+    }
+    .crt-screen::after {
+      content: " ";
+      display: block;
+      position: absolute;
+      top: 0; left: 0; bottom: 0; right: 0;
+      box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.85);
+      z-index: 41;
+      pointer-events: none;
+    }
+
+    /* Phosphor Vector Boxes & Borders */
+    .tactical-border {
+      border: 1px solid var(--phosphor-green);
+      box-shadow: 0 0 6px rgba(0, 255, 102, 0.3), inset 0 0 6px rgba(0, 255, 102, 0.15);
+    }
+    .tactical-border-amber {
+      border: 1px solid var(--alert-amber);
+      box-shadow: 0 0 6px rgba(255, 153, 0, 0.3), inset 0 0 6px rgba(255, 153, 0, 0.15);
+    }
+    .tactical-border-red {
+      border: 1px solid var(--imperial-red);
+      box-shadow: 0 0 6px rgba(255, 51, 51, 0.3), inset 0 0 6px rgba(255, 51, 51, 0.15);
+    }
+
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: #030a06; }
+    ::-webkit-scrollbar-thumb { background: #00ff66; border-radius: 0px; }
+    ::-webkit-scrollbar-thumb:hover { background: #ff9900; }
+
+    /* Vector Dice badges */
+    .dice-pill {
+      clip-path: polygon(15% 0%, 85% 0%, 100% 15%, 100% 85%, 85% 100%, 15% 100%, 0% 85%, 0% 15%);
+      transition: all 0.15s ease-in-out;
+    }
+    .dice-pill:hover {
+      filter: brightness(1.3);
+      transform: scale(1.05);
+    }
+
+    @keyframes phosphor-flicker {
+      0% { opacity: 0.98; }
+      50% { opacity: 1; }
+      52% { opacity: 0.94; }
+      54% { opacity: 1; }
+      100% { opacity: 0.99; }
+    }
+    .flicker { animation: phosphor-flicker 0.12s infinite; }
+  </style>
+</head>
+<body class="h-full flex flex-col crt-screen select-none overflow-hidden text-xs md:text-sm">
+
+
+  <!-- TOP HEADER / MILITARY READOUT -->
+  <header class="bg-[#030906] border-b border-[#00ff66] px-4 py-2 flex items-center justify-between z-30 shrink-0">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 tactical-border flex items-center justify-center font-orbitron font-bold text-base text-[#00ff66] bg-[#00ff66]/10">
+        ⊕
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="font-orbitron font-bold tracking-widest text-[#00ff66] text-sm md:text-base">TAC-COMM // IMPERIAL NET</span>
+          <span class="text-[10px] px-1.5 py-0.2 bg-[#00ff66]/20 border border-[#00ff66] text-[#00ff66] font-mono">SEC-CLEARANCE: AUREK-1</span>
+        </div>
+        <div class="text-[10px] text-[#00ff66]/70 flex items-center gap-2">
+          <span>SYS.TACTICAL.77.B</span> • 
+          <span id="header-connection-status" class="text-[#ff9900]">LINK: STANDALONE MODE</span> • 
+          <span id="header-destiny-summary">DESTINY: 3L / 2D</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active View Selector Tabs -->
+    <div class="flex items-center gap-1 bg-[#020504] p-1 border border-[#00ff66]/60">
+      <button onclick="switchTab('map')" id="tab-btn-map" class="px-3 py-1 font-bold tracking-wider bg-[#00ff66] text-[#050807] transition">
+        [1] TACTICAL GRID
+      </button>
+      <button onclick="switchTab('sheet')" id="tab-btn-sheet" class="px-3 py-1 font-bold tracking-wider text-[#00ff66] hover:bg-[#00ff66]/20 transition">
+        [2] DATAPAD (SHEET)
+      </button>
+      <button onclick="switchTab('dice')" id="tab-btn-dice" class="px-3 py-1 font-bold tracking-wider text-[#00ff66] hover:bg-[#00ff66]/20 transition">
+        [3] NARRATIVE ROLLER
+      </button>
+      <button onclick="switchTab('comms')" id="tab-btn-comms" class="px-3 py-1 font-bold tracking-wider text-[#00ff66] hover:bg-[#00ff66]/20 transition">
+        [4] HOLONET VIDEO
+      </button>
+    </div>
+
+    <!-- Right Controls: Supabase Config & Audio Beep Toggle -->
+    <div class="flex items-center gap-2">
+      <button onclick="toggleAudioFx()" id="btn-audio-toggle" class="px-2.5 py-1 tactical-border text-[10px] text-[#00ff66] hover:bg-[#00ff66]/20" title="Toggle Terminal Audio Synthesis">
+        AUDIO: <span id="audio-status-text">ON</span>
+      </button>
+      <button onclick="openConfigModal()" class="px-2.5 py-1 tactical-border-amber text-[10px] text-[#ff9900] hover:bg-[#ff9900]/20 flex items-center gap-1">
+        <span>⚡ NET-UPLINK</span>
+      </button>
+    </div>
+  </header>
+
+
+  <div class="flex-1 flex overflow-hidden relative">
+
+    <!-- ==================== VIEW 1: TACTICAL VECTOR WIREFRAME MAP ==================== -->
+    <section id="view-map" class="flex-1 flex flex-col relative bg-[#020604]">
+      <!-- Map Sub-Toolbar -->
+      <div class="bg-[#030906] border-b border-[#00ff66]/40 px-3 py-1.5 flex items-center justify-between z-20 text-[11px]">
+        <div class="flex items-center gap-2">
+          <span class="text-[#ff9900]">GRID MODE:</span>
+          <button onclick="setGridType('square')" id="btn-grid-sq" class="px-2 py-0.5 border border-[#00ff66] bg-[#00ff66]/20 text-[#00ff66]">SQUARE</button>
+          <button onclick="setGridType('hex')" id="btn-grid-hex" class="px-2 py-0.5 border border-[#00ff66]/40 text-[#00ff66]/60 hover:text-[#00ff66]">HEXAGONAL</button>
+          <span class="mx-1 text-[#00ff66]/30">|</span>
+          <span class="text-[#ff9900]">PRESET:</span>
+          <select id="map-preset-select" onchange="changeMapPreset(this.value)" class="bg-[#050d08] border border-[#00ff66] text-[#00ff66] px-1.5 py-0.5 outline-none text-[11px]">
+            <option value="starship">CORVETTE INTERIOR (WIREFRAME)</option>
+            <option value="trench">DEATH STAR TRENCH SECTOR</option>
+            <option value="hangar">OUTPOST BESPIN HANGAR 7</option>
+            <option value="blank">BLANK TACTICAL MATRIX</option>
+          </select>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button onclick="spawnMapToken('tk')" class="px-2 py-0.5 border border-[#ff3333] text-[#ff3333] hover:bg-[#ff3333]/20">+ STORMTRPR</button>
+          <button onclick="spawnMapToken('pc')" class="px-2 py-0.5 border border-[#00ff66] text-[#00ff66] hover:bg-[#00ff66]/20">+ MY TOKEN</button>
+          <button onclick="spawnMapToken('droid')" class="px-2 py-0.5 border border-[#ff9900] text-[#ff9900] hover:bg-[#ff9900]/20">+ ASTROMECH</button>
+          <button onclick="clearMapTokens()" class="px-2 py-0.5 border border-[#ff3333]/60 text-[#ff3333] hover:bg-[#ff3333]/30">CLR TOKENS</button>
+          <button onclick="resetMapView()" class="px-2 py-0.5 border border-[#00ff66]/60 text-[#00ff66]">RESET VIEW</button>
+        </div>
+      </div>
+
+      <!-- Vector Canvas Area -->
+      <div class="flex-1 relative overflow-hidden">
+        <canvas id="tactical-canvas" class="w-full h-full block cursor-crosshair"></canvas>
+        
+        <!-- Retro Star Wars HUD Reticle Overlays -->
+        <div class="absolute top-3 left-3 pointer-events-none p-2 border border-[#00ff66]/30 bg-[#030a06]/80 text-[10px] font-mono leading-tight">
+          <div class="text-[#00ff66] font-bold">RADAR-LINK: TR-884</div>
+          <div class="text-[#00ff66]/70">RANGE BRACKET: <span id="hud-range-bracket">ENGAGED / SHORT</span></div>
+          <div class="text-[#00ff66]/70">ACTIVE CONTACTS: <span id="hud-token-count">3</span></div>
+          <div class="text-[#ff9900] mt-1">[DRAG TO MOVE • RIGHT-CLICK TO PING]</div>
+        </div>
+
+        <div class="absolute bottom-3 left-3 pointer-events-none text-[10px] text-[#00ff66]/60 font-mono">
+          SECTOR-9 // TACTICAL OSCILLOSCOPE MONITOR // AZIMUTH: 142.8°
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ==================== VIEW 2: STAR WARS FFG DATAPAD ==================== -->
+    <section id="view-sheet" class="flex-1 hidden flex-col bg-[#030906] overflow-y-auto p-4 space-y-4">
+      <!-- Character Bio Header -->
+      <div class="tactical-border p-3 bg-[#05110a] grid grid-cols-1 md:grid-cols-4 gap-3 items-center">
+        <div class="md:col-span-2">
+          <label class="text-[10px] text-[#00ff66]/60 uppercase tracking-widest block">OPERATIVE CALLSIGN / NAME</label>
+          <input id="char-name" type="text" value="Zane Vance" onchange="syncCharSheet()" class="w-full bg-[#020503] border border-[#00ff66] text-[#00ff66] px-2 py-1 font-bold text-base outline-none focus:border-[#ff9900]">
+        </div>
+        <div>
+          <label class="text-[10px] text-[#00ff66]/60 uppercase tracking-widest block">CAREER / SPECIALIZATION</label>
+          <input id="char-career" type="text" value="Smuggler / Scoundrel" onchange="syncCharSheet()" class="w-full bg-[#020503] border border-[#00ff66] text-[#00ff66] px-2 py-1 text-xs outline-none">
+        </div>
+        <div>
+          <label class="text-[10px] text-[#00ff66]/60 uppercase tracking-widest block">SPECIES / HOMELAND</label>
+          <input id="char-species" type="text" value="Corellian Human" onchange="syncCharSheet()" class="w-full bg-[#020503] border border-[#00ff66] text-[#00ff66] px-2 py-1 text-xs outline-none">
+        </div>
+      </div>
+
+      <!-- Vital Thresholds: Wounds, Strain, Soak, Defense -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <!-- Wounds -->
+        <div class="tactical-border-red p-2.5 bg-[#140606] text-center">
+          <div class="text-[10px] font-bold text-[#ff3333] tracking-wider uppercase">WOUNDS (CURRENT / THRESHOLD)</div>
+          <div class="flex items-center justify-center gap-1.5 mt-1">
+            <input id="stat-wounds-cur" type="number" value="3" onchange="syncCharSheet()" class="w-14 bg-[#050807] border border-[#ff3333] text-center text-lg font-bold text-[#ff3333] outline-none">
+            <span class="text-[#ff3333] text-lg font-bold">/</span>
+            <input id="stat-wounds-max" type="number" value="14" onchange="syncCharSheet()" class="w-14 bg-[#050807] border border-[#ff3333]/50 text-center text-lg font-bold text-[#ff3333]/70 outline-none">
+          </div>
+        </div>
+        <!-- Strain -->
+        <div class="tactical-border-amber p-2.5 bg-[#170e04] text-center">
+          <div class="text-[10px] font-bold text-[#ff9900] tracking-wider uppercase">STRAIN (CURRENT / THRESHOLD)</div>
+          <div class="flex items-center justify-center gap-1.5 mt-1">
+            <input id="stat-strain-cur" type="number" value="2" onchange="syncCharSheet()" class="w-14 bg-[#050807] border border-[#ff9900] text-center text-lg font-bold text-[#ff9900] outline-none">
+            <span class="text-[#ff9900] text-lg font-bold">/</span>
+            <input id="stat-strain-max" type="number" value="13" onchange="syncCharSheet()" class="w-14 bg-[#050807] border border-[#ff9900]/50 text-center text-lg font-bold text-[#ff9900]/70 outline-none">
+          </div>
+        </div>
+        <!-- Soak -->
+        <div class="tactical-border p-2.5 bg-[#04140b] text-center">
+          <div class="text-[10px] font-bold text-[#00ff66] tracking-wider uppercase">SOAK VALUE</div>
+          <input id="stat-soak" type="number" value="4" onchange="syncCharSheet()" class="w-14 mx-auto mt-1 bg-[#050807] border border-[#00ff66] text-center text-lg font-bold text-[#00ff66] outline-none block">
+        </div>
+        <!-- Defense -->
+        <div class="tactical-border p-2.5 bg-[#04140b] text-center">
+          <div class="text-[10px] font-bold text-[#00ff66] tracking-wider uppercase">DEFENSE (RANGED / MELEE)</div>
+          <div class="flex items-center justify-center gap-2 mt-1">
+            <input id="stat-def-ranged" type="number" value="1" onchange="syncCharSheet()" class="w-12 bg-[#050807] border border-[#00ff66] text-center text-lg font-bold text-[#00ff66] outline-none" title="Ranged Defense">
+            <span class="text-[#00ff66] text-lg font-bold">/</span>
+            <input id="stat-def-melee" type="number" value="1" onchange="syncCharSheet()" class="w-12 bg-[#050807] border border-[#00ff66] text-center text-lg font-bold text-[#00ff66] outline-none" title="Melee Defense">
+          </div>
+        </div>
+      </div>
+
+      <!-- The 6 Core Characteristics -->
+      <div class="tactical-border p-3 bg-[#05110a]">
+        <div class="text-[11px] font-bold uppercase tracking-widest text-[#00ff66] mb-2 flex items-center justify-between">
+          <span>// CORE CHARACTERISTICS (CLICK RATING TO ROLL RAW STAT)</span>
+          <span class="text-[10px] text-[#ff9900]">FFG GENESYS ENGINE</span>
+        </div>
+        <div class="grid grid-cols-6 gap-2 text-center">
+          <div class="tactical-border p-2 bg-[#030906] cursor-pointer hover:bg-[#00ff66]/10" onclick="rollRawCharacteristic('BRAWN')">
+            <div class="text-[10px] text-[#00ff66]/70 uppercase">BRAWN</div>
+            <input id="char-brawn" type="number" value="2" min="1" max="6" onchange="updateSkillPools(); syncCharSheet();" class="w-full text-center text-xl font-black bg-transparent text-[#00ff66] outline-none" onclick="event.stopPropagation()">
+          </div>
+          <div class="tactical-border p-2 bg-[#030906] cursor-pointer hover:bg-[#00ff66]/10" onclick="rollRawCharacteristic('AGILITY')">
+            <div class="text-[10px] text-[#00ff66]/70 uppercase">AGILITY</div>
+            <input id="char-agility" type="number" value="4" min="1" max="6" onchange="updateSkillPools(); syncCharSheet();" class="w-full text-center text-xl font-black bg-transparent text-[#00ff66] outline-none" onclick="event.stopPropagation()">
+          </div>
+          <div class="tactical-border p-2 bg-[#030906] cursor-pointer hover:bg-[#00ff66]/10" onclick="rollRawCharacteristic('INTELLECT')">
+            <div class="text-[10px] text-[#00ff66]/70 uppercase">INTELLECT</div>
+            <input id="char-intellect" type="number" value="2" min="1" max="6" onchange="updateSkillPools(); syncCharSheet();" class="w-full text-center text-xl font-black bg-transparent text-[#00ff66] outline-none" onclick="event.stopPropagation()">
+          </div>
+          <div class="tactical-border p-2 bg-[#030906] cursor-pointer hover:bg-[#00ff66]/10" onclick="rollRawCharacteristic('CUNNING')">
+            <div class="text-[10px] text-[#00ff66]/70 uppercase">CUNNING</div>
+            <input id="char-cunning" type="number" value="3" min="1" max="6" onchange="updateSkillPools(); syncCharSheet();" class="w-full text-center text-xl font-black bg-transparent text-[#00ff66] outline-none" onclick="event.stopPropagation()">
+          </div>
+          <div class="tactical-border p-2 bg-[#030906] cursor-pointer hover:bg-[#00ff66]/10" onclick="rollRawCharacteristic('WILLPOWER')">
+            <div class="text-[10px] text-[#00ff66]/70 uppercase">WILLPOWER</div>
+            <input id="char-willpower" type="number" value="2" min="1" max="6" onchange="updateSkillPools(); syncCharSheet();" class="w-full text-center text-xl font-black bg-transparent text-[#00ff66] outline-none" onclick="event.stopPropagation()">
+          </div>
+          <div class="tactical-border p-2 bg-[#030906] cursor-pointer hover:bg-[#00ff66]/10" onclick="rollRawCharacteristic('PRESENCE')">
+            <div class="text-[10px] text-[#00ff66]/70 uppercase">PRESENCE</div>
+            <input id="char-presence" type="number" value="3" min="1" max="6" onchange="updateSkillPools(); syncCharSheet();" class="w-full text-center text-xl font-black bg-transparent text-[#00ff66] outline-none" onclick="event.stopPropagation()">
+          </div>
+        </div>
+      </div>
+
+      <!-- Skills Matrix (Auto-computes Green Ability & Yellow Proficiency) -->
+      <div class="tactical-border p-3 bg-[#05110a]">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-[11px] font-bold uppercase tracking-widest text-[#00ff66]">// TRAINED SKILLS & AUTOMATIC POOL GENERATOR</span>
+          <span class="text-[10px] text-[#00ff66]/70">CLICK SKILL BUTTON TO EXECUTE NARRATIVE CHECK</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2" id="skills-container">
+          <!-- Populated dynamically with official FFG skill formula -->
+        </div>
+      </div>
+
+      <!-- Weapons & Equipment Vector Table -->
+      <div class="tactical-border p-3 bg-[#05110a]">
+        <div class="text-[11px] font-bold uppercase tracking-widest text-[#00ff66] mb-2 flex items-center justify-between">
+          <span>// ARSENAL & WEAPON ARRAYS</span>
+          <button onclick="addWeaponRow()" class="text-[10px] border border-[#00ff66] px-2 py-0.5 hover:bg-[#00ff66]/20">+ ADD WEAPON</button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-[11px] border-collapse" id="weapons-table">
+            <thead>
+              <tr class="border-b border-[#00ff66]/40 text-[#00ff66]/60">
+                <th class="p-1">WEAPON MODEL</th>
+                <th class="p-1">SKILL</th>
+                <th class="p-1">DMG</th>
+                <th class="p-1">CRIT</th>
+                <th class="p-1">RANGE</th>
+                <th class="p-1">SPECIAL QUALITIES</th>
+                <th class="p-1 text-right">ACTION</th>
+              </tr>
+            </thead>
+            <tbody id="weapons-tbody">
+              <tr class="border-b border-[#00ff66]/20">
+                <td class="p-1 font-bold text-[#00ff66]">Modified DL-44 Heavy Blaster</td>
+                <td class="p-1">Ranged (Light)</td>
+                <td class="p-1 text-[#ff9900]">7</td>
+                <td class="p-1 text-[#ff3333]">3</td>
+                <td class="p-1">Medium</td>
+                <td class="p-1 text-[#00ff66]/70">Stun Setting, Custom Grip (+1 Boost)</td>
+                <td class="p-1 text-right">
+                  <button onclick="rollWeaponAttack('DL-44 Blaster', 'Ranged (Light)', 7, 3, 1, 0)" class="px-2 py-0.5 border border-[#ff9900] text-[#ff9900] hover:bg-[#ff9900]/20 font-bold">
+                    FIRE ⚡
+                  </button>
+                </td>
+              </tr>
+              <tr class="border-b border-[#00ff66]/20">
+                <td class="p-1 font-bold text-[#00ff66]">Vibroknife</td>
+                <td class="p-1">Melee</td>
+                <td class="p-1 text-[#ff9900]">+1</td>
+                <td class="p-1 text-[#ff3333]">2</td>
+                <td class="p-1">Engaged</td>
+                <td class="p-1 text-[#00ff66]/70">Pierce 2, Vicious 1</td>
+                <td class="p-1 text-right">
+                  <button onclick="rollWeaponAttack('Vibroknife', 'Melee', 3, 2, 0, 0)" class="px-2 py-0.5 border border-[#ff9900] text-[#ff9900] hover:bg-[#ff9900]/20 font-bold">
+                    STRIKE ⚡
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ==================== VIEW 3: NARRATIVE DICE ROLLER & POOL BUILDER ==================== -->
+    <section id="view-dice" class="flex-1 hidden flex-col bg-[#030a06] p-4 overflow-y-auto space-y-4">
+      <div class="tactical-border p-3 bg-[#05110a]">
+        <div class="text-xs font-bold uppercase tracking-widest text-[#00ff66] mb-3 flex items-center justify-between">
+          <span>// FFG GENESYS NARRATIVE DICE POOL BUILDER</span>
+          <span class="text-[10px] text-[#ff9900]">SUCCESS • TRIUMPH • ADVANTAGE • DESPAIR</span>
+        </div>
+
+        <!-- Dice Selector Buttons with Custom Colors -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
+          <!-- Ability d8 (Green) -->
+          <div class="tactical-border p-2 text-center bg-[#052b14] flex flex-col items-center justify-between">
+            <span class="text-[10px] font-bold text-[#00ff66]">ABILITY [d8]</span>
+            <div class="w-8 h-8 rounded bg-[#00aa44] border border-[#00ff66] flex items-center justify-center font-black text-black my-1 text-base shadow-[0_0_8px_rgba(0,255,102,0.6)]">
+              A
+            </div>
+            <div class="flex items-center gap-1">
+              <button onclick="modifyDicePool('ability', -1)" class="w-5 h-5 border border-[#00ff66] text-[#00ff66] hover:bg-[#00ff66]/30">-</button>
+              <span id="pool-ability-count" class="w-5 text-center font-bold text-sm text-[#00ff66]">0</span>
+              <button onclick="modifyDicePool('ability', 1)" class="w-5 h-5 border border-[#00ff66] text-[#00ff66] hover:bg-[#00ff66]/30">+</button>
+            </div>
+          </div>
+
+          <!-- Proficiency d12 (Yellow) -->
+          <div class="tactical-border-amber p-2 text-center bg-[#291f03] flex flex-col items-center justify-between">
+            <span class="text-[10px] font-bold text-[#ffcc00]">PROFICIENCY [d12]</span>
+            <div class="w-8 h-8 rounded bg-[#e6b800] border border-[#ffcc00] flex items-center justify-center font-black text-black my-1 text-base shadow-[0_0_8px_rgba(255,204,0,0.6)]">
+              P
+            </div>
+            <div class="flex items-center gap-1">
+              <button onclick="modifyDicePool('proficiency', -1)" class="w-5 h-5 border border-[#ffcc00] text-[#ffcc00] hover:bg-[#ffcc00]/30">-</button>
+              <span id="pool-proficiency-count" class="w-5 text-center font-bold text-sm text-[#ffcc00]">0</span>
+              <button onclick="modifyDicePool('proficiency', 1)" class="w-5 h-5 border border-[#ffcc00] text-[#ffcc00] hover:bg-[#ffcc00]/30">+</button>
+            </div>
+          </div>
+
+          <!-- Difficulty d8 (Purple) -->
+          <div class="border border-[#b84dff] p-2 text-center bg-[#1e0730] flex flex-col items-center justify-between shadow-[0_0_6px_rgba(184,77,255,0.3)]">
+            <span class="text-[10px] font-bold text-[#b84dff]">DIFFICULTY [d8]</span>
+            <div class="w-8 h-8 rounded bg-[#8a14cc] border border-[#b84dff] flex items-center justify-center font-black text-white my-1 text-base shadow-[0_0_8px_rgba(184,77,255,0.6)]">
+              D
+            </div>
+            <div class="flex items-center gap-1">
+              <button onclick="modifyDicePool('difficulty', -1)" class="w-5 h-5 border border-[#b84dff] text-[#b84dff] hover:bg-[#b84dff]/30">-</button>
+              <span id="pool-difficulty-count" class="w-5 text-center font-bold text-sm text-[#b84dff]">0</span>
+              <button onclick="modifyDicePool('difficulty', 1)" class="w-5 h-5 border border-[#b84dff] text-[#b84dff] hover:bg-[#b84dff]/30">+</button>
+            </div>
+          </div>
+
+          <!-- Challenge d12 (Red) -->
+          <div class="tactical-border-red p-2 text-center bg-[#2d0505] flex flex-col items-center justify-between">
+            <span class="text-[10px] font-bold text-[#ff3333]">CHALLENGE [d12]</span>
+            <div class="w-8 h-8 rounded bg-[#b30000] border border-[#ff3333] flex items-center justify-center font-black text-white my-1 text-base shadow-[0_0_8px_rgba(255,51,51,0.6)]">
+              C
+            </div>
+            <div class="flex items-center gap-1">
+              <button onclick="modifyDicePool('challenge', -1)" class="w-5 h-5 border border-[#ff3333] text-[#ff3333] hover:bg-[#ff3333]/30">-</button>
+              <span id="pool-challenge-count" class="w-5 text-center font-bold text-sm text-[#ff3333]">0</span>
+              <button onclick="modifyDicePool('challenge', 1)" class="w-5 h-5 border border-[#ff3333] text-[#ff3333] hover:bg-[#ff3333]/30">+</button>
+            </div>
+          </div>
+
+          <!-- Boost d6 (Blue) -->
+          <div class="border border-[#33ccff] p-2 text-center bg-[#052433] flex flex-col items-center justify-between shadow-[0_0_6px_rgba(51,204,255,0.3)]">
+            <span class="text-[10px] font-bold text-[#33ccff]">BOOST [d6]</span>
+            <div class="w-8 h-8 rounded bg-[#0099cc] border border-[#33ccff] flex items-center justify-center font-black text-black my-1 text-base shadow-[0_0_8px_rgba(51,204,255,0.6)]">
+              B
+            </div>
+            <div class="flex items-center gap-1">
+              <button onclick="modifyDicePool('boost', -1)" class="w-5 h-5 border border-[#33ccff] text-[#33ccff] hover:bg-[#33ccff]/30">-</button>
+              <span id="pool-boost-count" class="w-5 text-center font-bold text-sm text-[#33ccff]">0</span>
+              <button onclick="modifyDicePool('boost', 1)" class="w-5 h-5 border border-[#33ccff] text-[#33ccff] hover:bg-[#33ccff]/30">+</button>
+            </div>
+          </div>
+
+          <!-- Setback d6 (Black) -->
+          <div class="border border-[#777777] p-2 text-center bg-[#171717] flex flex-col items-center justify-between shadow-[0_0_6px_rgba(150,150,150,0.3)]">
+            <span class="text-[10px] font-bold text-[#bbbbbb]">SETBACK [d6]</span>
+            <div class="w-8 h-8 rounded bg-[#2a2a2a] border border-[#777777] flex items-center justify-center font-black text-[#ff3333] my-1 text-base shadow-[0_0_8px_rgba(100,100,100,0.6)]">
+              S
+            </div>
+            <div class="flex items-center gap-1">
+              <button onclick="modifyDicePool('setback', -1)" class="w-5 h-5 border border-[#777777] text-[#bbbbbb] hover:bg-[#777777]/30">-</button>
+              <span id="pool-setback-count" class="w-5 text-center font-bold text-sm text-[#bbbbbb]">0</span>
+              <button onclick="modifyDicePool('setback', 1)" class="w-5 h-5 border border-[#777777] text-[#bbbbbb] hover:bg-[#777777]/30">+</button>
+            </div>
+          </div>
+
+          <!-- Force / Destiny d12 (White) -->
+          <div class="border border-[#ffffff] p-2 text-center bg-[#262626] flex flex-col items-center justify-between shadow-[0_0_6px_rgba(255,255,255,0.4)]">
+            <span class="text-[10px] font-bold text-white">FORCE [d12]</span>
+            <div class="w-8 h-8 rounded bg-[#eaeaea] border border-[#ffffff] flex items-center justify-center font-black text-black my-1 text-base shadow-[0_0_8px_rgba(255,255,255,0.8)]">
+              F
+            </div>
+            <div class="flex items-center gap-1">
+              <button onclick="modifyDicePool('force', -1)" class="w-5 h-5 border border-white text-white hover:bg-white/30">-</button>
+              <span id="pool-force-count" class="w-5 text-center font-bold text-sm text-white">0</span>
+              <button onclick="modifyDicePool('force', 1)" class="w-5 h-5 border border-white text-white hover:bg-white/30">+</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pool Actions: Roll & Clear & Destiny Flip -->
+        <div class="mt-4 flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-[#00ff66]/30">
+          <div class="flex items-center gap-2">
+            <button onclick="executePoolRoll()" class="px-5 py-2 font-orbitron font-black text-sm bg-[#00ff66] text-[#050807] hover:bg-[#ff9900] hover:text-black tracking-widest transition shadow-[0_0_12px_rgba(0,255,102,0.8)]">
+              ROLL ASSEMBLED POOL 🎲
+            </button>
+            <button onclick="clearDicePool()" class="px-3 py-2 border border-[#ff3333] text-[#ff3333] hover:bg-[#ff3333]/20 text-xs">
+              CLEAR POOL
+            </button>
+          </div>
+
+          <!-- Destiny Tracker -->
+          <div class="flex items-center gap-2 text-xs bg-[#020604] px-3 py-1.5 border border-[#00ff66]/60">
+            <span class="text-[10px] text-[#00ff66]/70 uppercase">DESTINY POOL:</span>
+            <span id="destiny-light-display" class="text-[#33ccff] font-bold font-mono">3 LIGHT</span>
+            <button onclick="flipDestiny('toDark')" class="px-1.5 py-0.5 border border-[#33ccff] text-[10px] text-[#33ccff] hover:bg-[#33ccff]/20">USE LIGHT ➔</button>
+            <span class="text-[#00ff66]/30">|</span>
+            <span id="destiny-dark-display" class="text-[#ff3333] font-bold font-mono">2 DARK</span>
+            <button onclick="flipDestiny('toLight')" class="px-1.5 py-0.5 border border-[#ff3333] text-[10px] text-[#ff3333] hover:bg-[#ff3333]/20">➔ USE DARK</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Standard Checks -->
+      <div class="tactical-border p-3 bg-[#05110a]">
+        <div class="text-[11px] font-bold uppercase tracking-widest text-[#00ff66] mb-2">// QUICK STANDARD COMBAT & CHECKS</div>
+        <div class="flex flex-wrap gap-2">
+          <button onclick="setQuickPool(2, 1, 1, 0, 0, 0, 0, 'Average Check (2 Diff)')" class="px-2.5 py-1 border border-[#00ff66] text-xs hover:bg-[#00ff66]/20">
+            AVERAGE SKILL (2A + 1P vs 2D)
+          </button>
+          <button onclick="setQuickPool(1, 2, 2, 1, 1, 0, 0, 'Hard Attack vs Adversary')" class="px-2.5 py-1 border border-[#ff9900] text-[#ff9900] text-xs hover:bg-[#ff9900]/20">
+            HARD ATTACK (1A + 2P + 1B vs 2D + 1C)
+          </button>
+          <button onclick="setQuickPool(0, 0, 0, 0, 0, 0, 2, 'Force Power Check (2 Force)')" class="px-2.5 py-1 border border-white text-white text-xs hover:bg-white/20">
+            FORCE COMMUNION (2 FORCE DICE)
+          </button>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ==================== VIEW 4: HOLONET VIDEO / AUDIO SURVEILLANCE ==================== -->
+    <section id="view-comms" class="flex-1 hidden flex-col bg-[#020503] p-4 overflow-y-auto space-y-4">
+      <div class="tactical-border p-3 bg-[#030906] flex items-center justify-between">
+        <div>
+          <span class="font-orbitron font-bold text-sm tracking-wider text-[#00ff66]">HOLONET TRANSCEIVER // SECURITY MONITOR</span>
+          <p class="text-[10px] text-[#00ff66]/70">MILITARY ENCRYPTION: ACTIVE • WEBRTC DIRECT STREAM INTERFACE</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="btn-cam-toggle" onclick="toggleWebcam()" class="px-3 py-1 tactical-border text-xs text-[#00ff66] hover:bg-[#00ff66]/20">
+            [+] ENGAGE CAMERA
+          </button>
+          <button id="btn-mic-toggle" onclick="toggleMicrophone()" class="px-3 py-1 tactical-border-amber text-xs text-[#ff9900] hover:bg-[#ff9900]/20">
+            [+] MIC: MUTED
+          </button>
+        </div>
+      </div>
+
+      <!-- Video Screen Grids with Scanline Security Monitors -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <!-- Local User Surveillance Monitor -->
+        <div class="tactical-border p-2 bg-[#000000] relative flex flex-col">
+          <div class="flex items-center justify-between text-[10px] text-[#00ff66] border-b border-[#00ff66]/30 pb-1 mb-1">
+            <span>FEED 01: [LOCAL OPERATIVE]</span>
+            <span id="cam-status-badge" class="text-[#ff3333]">OFFLINE</span>
+          </div>
+          <div class="relative bg-[#050d08] aspect-video flex items-center justify-center overflow-hidden border border-[#00ff66]/40">
+            <video id="local-video" autoplay muted playsinline class="w-full h-full object-cover hidden"></video>
+            <div id="local-video-placeholder" class="flex flex-col items-center justify-center text-center p-3 text-[#00ff66]/50">
+              <div class="w-10 h-10 border border-dashed border-[#00ff66] flex items-center justify-center text-lg mb-1">⊗</div>
+              <span class="text-[10px] tracking-wider">SENSOR FEED STANDBY</span>
+            </div>
+            <div class="absolute bottom-1 left-1 bg-black/80 px-1 text-[9px] text-[#00ff66] font-mono">
+              CALLSIGN: <span id="callsign-display">ZANE VANCE</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Remote Peer 1 (Simulated / P2P ready) -->
+        <div class="tactical-border p-2 bg-[#000000] relative flex flex-col">
+          <div class="flex items-center justify-between text-[10px] text-[#00ff66] border-b border-[#00ff66]/30 pb-1 mb-1">
+            <span>FEED 02: [CORUSCANT UPLINK]</span>
+            <span class="text-[#00ff66]">ACTIVE</span>
+          </div>
+          <div class="relative bg-[#050d08] aspect-video flex items-center justify-center overflow-hidden border border-[#00ff66]/40">
+            <div class="flex flex-col items-center justify-center text-center p-3 text-[#00ff66]">
+              <div class="w-12 h-12 rounded-full border-2 border-[#00ff66] flex items-center justify-center font-bold text-base mb-1">
+                K-2
+              </div>
+              <span class="text-[11px] font-bold">K2-SO // SECURITY DROID</span>
+              <span class="text-[9px] text-[#00ff66]/60">ENCRYPTION: 256-BIT // AUDIO ONLY</span>
+            </div>
+            <div class="absolute bottom-1 left-1 bg-black/80 px-1 text-[9px] text-[#00ff66] font-mono">
+              STATUS: LISTENING
+            </div>
+          </div>
+        </div>
+
+        <!-- Remote Peer 2 -->
+        <div class="tactical-border p-2 bg-[#000000] relative flex flex-col">
+          <div class="flex items-center justify-between text-[10px] text-[#00ff66] border-b border-[#00ff66]/30 pb-1 mb-1">
+            <span>FEED 03: [GAMEMASTER TERMINAL]</span>
+            <span class="text-[#ff9900]">STANDBY</span>
+          </div>
+          <div class="relative bg-[#050d08] aspect-video flex items-center justify-center overflow-hidden border border-[#00ff66]/40">
+            <div class="flex flex-col items-center justify-center text-center p-3 text-[#ff9900]">
+              <div class="w-12 h-12 rounded-full border-2 border-[#ff9900] flex items-center justify-center font-bold text-base mb-1">
+                GM
+              </div>
+              <span class="text-[11px] font-bold">SECTOR DISPATCH</span>
+              <span class="text-[9px] text-[#ff9900]/70">AWAITING TRANSMISSION</span>
+            </div>
+            <div class="absolute bottom-1 left-1 bg-black/80 px-1 text-[9px] text-[#ff9900] font-mono">
+              TRANSPONDER: GM-01
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ==================== RIGHT SIDEBAR: REALTIME TERMINAL LOG ==================== -->
+    <aside class="w-80 md:w-96 bg-[#020704] border-l border-[#00ff66] flex flex-col z-20 shrink-0">
+      <div class="p-2.5 border-b border-[#00ff66] bg-[#040e08] flex items-center justify-between">
+        <div class="flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-[#00ff66] animate-pulse"></span>
+          <span class="font-orbitron font-bold text-xs tracking-wider text-[#00ff66]">TERMINAL LOG // REEDOUT</span>
+        </div>
+        <button onclick="clearTerminalLog()" class="text-[10px] text-[#00ff66]/60 hover:text-[#ff3333]" title="Flush Log Memory">[FLUSH]</button>
+      </div>
+
+      <!-- Feed area -->
+      <div id="terminal-feed" class="flex-1 p-3 overflow-y-auto space-y-3 text-xs font-mono">
+        <div class="border-l-2 border-[#00ff66] pl-2 py-0.5 bg-[#030c07]/60">
+          <div class="text-[9px] text-[#00ff66]/50">[00:00:01] SYS.INITIALIZE</div>
+          <p class="text-[#00ff66]">AN/UYK-70 System Online. Star Wars FFG Narrative Engine Ready. Connect Supabase via <strong class="text-[#ff9900]">[NET-UPLINK]</strong> to enable live multiplayer.</p>
+        </div>
+      </div>
+
+      <!-- Terminal Input Form -->
+      <div class="p-2.5 border-t border-[#00ff66] bg-[#030906]">
+        <form onsubmit="handleTerminalSubmit(event)" class="flex gap-1.5">
+          <input id="term-input" type="text" placeholder="Transmit comms or roll..." class="flex-1 bg-[#010402] border border-[#00ff66] text-[#00ff66] px-2 py-1 text-xs outline-none focus:border-[#ff9900]">
+          <button type="submit" class="bg-[#00ff66] text-black font-bold px-3 py-1 text-xs hover:bg-[#ff9900] transition">SEND</button>
+        </form>
+      </div>
+    </aside>
+  </div>
+
+
+  <!-- SUPABASE & MULTIPLAYER CONFIGURATION MODAL -->
+  <div id="modal-config" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="tactical-border bg-[#030c07] p-5 max-w-lg w-full space-y-4 shadow-[0_0_20px_rgba(0,255,102,0.4)]">
+      <div class="flex items-center justify-between border-b border-[#00ff66] pb-2">
+        <h3 class="font-orbitron font-bold text-sm tracking-widest text-[#00ff66]">
+          ⚡ SUPABASE MULTIPLAYER UPLINK CONFIGURATION
+        </h3>
+        <button onclick="closeConfigModal()" class="text-[#ff3333] hover:text-white font-bold">[X]</button>
+      </div>
+
+      <p class="text-xs text-[#00ff66]/80 leading-relaxed">
+        Connect your Supabase project to activate instant real-time synchronization of Character Sheets, Map Tokens, and Narrative Dice across all players in the room.
+      </p>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block text-[10px] text-[#ff9900] uppercase font-bold mb-1">SUPABASE URL</label>
+          <input id="cfg-supabase-url" type="text" placeholder="https://your-project.supabase.co" class="w-full bg-[#010502] border border-[#00ff66] text-[#00ff66] px-2.5 py-1.5 outline-none">
+        </div>
+        <div>
+          <label class="block text-[10px] text-[#ff9900] uppercase font-bold mb-1">SUPABASE ANON KEY</label>
+          <input id="cfg-supabase-key" type="password" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6Ik..." class="w-full bg-[#010502] border border-[#00ff66] text-[#00ff66] px-2.5 py-1.5 outline-none">
+        </div>
+        <div>
+          <label class="block text-[10px] text-[#ff9900] uppercase font-bold mb-1">MULTIPLAYER ROOM / SESSION ID</label>
+          <input id="cfg-room-id" type="text" value="sector-outer-rim" class="w-full bg-[#010502] border border-[#00ff66] text-[#00ff66] px-2.5 py-1.5 font-bold outline-none">
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between pt-3 border-t border-[#00ff66]/40">
+        <button onclick="disconnectSupabase()" class="px-3 py-1.5 border border-[#ff3333] text-[#ff3333] hover:bg-[#ff3333]/20 text-xs">
+          DISCONNECT / LOCAL MODE
+        </button>
+        <button onclick="saveAndConnectSupabase()" class="px-4 py-1.5 bg-[#00ff66] text-black font-orbitron font-bold text-xs hover:bg-[#ff9900] transition">
+          CONNECT REALTIME CHANNEL
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <script>
+    /* ==========================================================================
+       1. VINTAGE RETRO AUDIO SYNTHESIS (Web Audio API)
+       ========================================================================== */
+    let audioCtx = null;
+    let audioEnabled = true;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    function playTerminalBeep(freq = 880, duration = 0.06, type = 'square') {
+      if (!audioEnabled) return;
+      try {
+        initAudio();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    function playDiceRollSound() {
+      if (!audioEnabled) return;
+      for (let i = 0; i < 4; i++) {
+        setTimeout(() => {
+          playTerminalBeep(400 + Math.random() * 800, 0.04, 'sawtooth');
+        }, i * 40);
+      }
+    }
+
+    function toggleAudioFx() {
+      audioEnabled = !audioEnabled;
+      document.getElementById('audio-status-text').innerText = audioEnabled ? 'ON' : 'OFF';
+      playTerminalBeep(1200, 0.08);
+    }
+
+    /* ==========================================================================
+       2. OFFICIAL STAR WARS FFG / GENESYS DICE LOGIC
+       ========================================================================== */
+    // Symbols: S = Success, A = Advantage, T = Triumph, F = Failure, Th = Threat, D = Despair, L = Light, Dk = Dark
+    const FFG_DICE_TABLES = {
+      ability: [ // d8 (Green)
+        {},
+        { S: 1 },
+        { S: 1 },
+        { S: 2 },
+        { A: 1 },
+        { A: 1 },
+        { S: 1, A: 1 },
+        { A: 2 }
+      ],
+      proficiency: [ // d12 (Yellow)
+        {},
+        { S: 1 },
+        { S: 1 },
+        { S: 2 },
+        { S: 2 },
+        { A: 1 },
+        { S: 1, A: 1 },
+        { S: 1, A: 1 },
+        { S: 1, A: 1 },
+        { A: 2 },
+        { A: 2 },
+        { T: 1 } // Triumph (counts as 1 Success + 1 Triumph)
+      ],
+      difficulty: [ // d8 (Purple)
+        {},
+        { F: 1 },
+        { F: 2 },
+        { Th: 1 },
+        { Th: 1 },
+        { Th: 1 },
+        { Th: 2 },
+        { F: 1, Th: 1 }
+      ],
+      challenge: [ // d12 (Red)
+        {},
+        { F: 1 },
+        { F: 1 },
+        { F: 2 },
+        { F: 2 },
+        { Th: 1 },
+        { Th: 1 },
+        { F: 1, Th: 1 },
+        { F: 1, Th: 1 },
+        { Th: 2 },
+        { Th: 2 },
+        { D: 1 } // Despair (counts as 1 Failure + 1 Despair)
+      ],
+      boost: [ // d6 (Blue)
+        {},
+        {},
+        { S: 1 },
+        { S: 1, A: 1 },
+        { A: 2 },
+        { A: 1 }
+      ],
+      setback: [ // d6 (Black)
+        {},
+        {},
+        { F: 1 },
+        { F: 1 },
+        { Th: 1 },
+        { Th: 1 }
+      ],
+      force: [ // d12 (White)
+        { Dk: 1 },
+        { Dk: 1 },
+        { Dk: 1 },
+        { Dk: 1 },
+        { Dk: 1 },
+        { Dk: 1 },
+        { Dk: 2 },
+        { L: 1 },
+        { L: 1 },
+        { L: 2 },
+        { L: 2 },
+        { L: 2 }
+      ]
+    };
+
+    // Current Dice Pool State
+    const activeDicePool = {
+      ability: 0,
+      proficiency: 0,
+      difficulty: 0,
+      challenge: 0,
+      boost: 0,
+      setback: 0,
+      force: 0
+    };
+
+    // Destiny pool
+    const destinyState = {
+      light: 3,
+      dark: 2
+    };
+
+    function modifyDicePool(type, delta) {
+      activeDicePool[type] = Math.max(0, (activeDicePool[type] || 0) + delta);
+      document.getElementById(`pool-${type}-count`).innerText = activeDicePool[type];
+      playTerminalBeep(700 + activeDicePool[type] * 50, 0.04);
+    }
+
+    function clearDicePool() {
+      for (const k in activeDicePool) {
+        activeDicePool[k] = 0;
+        document.getElementById(`pool-${k}-count`).innerText = 0;
+      }
+      playTerminalBeep(300, 0.08);
+    }
+
+    function setQuickPool(ability, prof, diff, chal, boost, setback, force, title) {
+      activeDicePool.ability = ability;
+      activeDicePool.proficiency = prof;
+      activeDicePool.difficulty = diff;
+      activeDicePool.challenge = chal;
+      activeDicePool.boost = boost;
+      activeDicePool.setback = setback;
+      activeDicePool.force = force;
+
+      for (const k in activeDicePool) {
+        const el = document.getElementById(`pool-${k}-count`);
+        if (el) el.innerText = activeDicePool[k];
+      }
+      executePoolRoll(title);
+    }
+
+    function executePoolRoll(customTitle = 'Custom Dice Pool') {
+      playDiceRollSound();
+
+      let totalSuccess = 0;
+      let totalAdvantage = 0;
+      let totalFailure = 0;
+      let totalThreat = 0;
+      let totalTriumph = 0;
+      let totalDespair = 0;
+      let totalLight = 0;
+      let totalDark = 0;
+
+      const diceIconsBreakdown = [];
+
+      for (const [diceType, count] of Object.entries(activeDicePool)) {
+        const table = FFG_DICE_TABLES[diceType];
+        for (let i = 0; i < count; i++) {
+          const rollIndex = Math.floor(Math.random() * table.length);
+          const face = table[rollIndex];
+
+          if (face.S) totalSuccess += face.S;
+          if (face.A) totalAdvantage += face.A;
+          if (face.T) {
+            totalTriumph += face.T;
+            totalSuccess += face.T; // Triumphs provide 1 success
+          }
+          if (face.F) totalFailure += face.F;
+          if (face.Th) totalThreat += face.Th;
+          if (face.D) {
+            totalDespair += face.D;
+            totalFailure += face.D; // Despairs provide 1 failure
+          }
+          if (face.L) totalLight += face.L;
+          if (face.Dk) totalDark += face.Dk;
+
+          diceIconsBreakdown.push(formatDiceFace(diceType, face));
+        }
+      }
+
+      // Net calculations
+      const netSuccess = totalSuccess - totalFailure;
+      const netAdvantage = totalAdvantage - totalThreat;
+
+      const rollPayload = {
+        title: customTitle,
+        sender: document.getElementById('char-name').value || 'Operative',
+        timestamp: new Date().toLocaleTimeString(),
+        netSuccess,
+        netAdvantage,
+        totalTriumph,
+        totalDespair,
+        totalLight,
+        totalDark,
+        diceIcons: diceIconsBreakdown
+      };
+
+      appendRollToTerminal(rollPayload);
+      broadcastPayload('DICE_ROLL', rollPayload);
+    }
+
+    function formatDiceFace(type, face) {
+      let label = Object.entries(face).map(([k, v]) => `${v}${k}`).join(' ') || 'Blank';
+      return `<span class="px-1 py-0.2 border border-current text-[10px] font-bold ${getDiceColorClass(type)}">${type.substr(0,1).toUpperCase()}: ${label}</span>`;
+    }
+
+    function getDiceColorClass(type) {
+      switch (type) {
+        case 'ability': return 'text-[#00ff66] border-[#00ff66]';
+        case 'proficiency': return 'text-[#ffcc00] border-[#ffcc00]';
+        case 'difficulty': return 'text-[#b84dff] border-[#b84dff]';
+        case 'challenge': return 'text-[#ff3333] border-[#ff3333]';
+        case 'boost': return 'text-[#33ccff] border-[#33ccff]';
+        case 'setback': return 'text-[#aaaaaa] border-[#777777]';
+        case 'force': return 'text-[#ffffff] border-white';
+        default: return 'text-[#00ff66]';
+      }
+    }
+
+    function appendRollToTerminal(roll) {
+      const feed = document.getElementById('terminal-feed');
+      const div = document.createElement('div');
+      div.className = 'border-l-2 border-[#00ff66] pl-2 py-1 bg-[#030c07] space-y-1';
+
+      // Success/Failure outcome banner
+      const isSuccess = roll.netSuccess > 0;
+      const outcomeText = isSuccess 
+        ? `<span class="text-[#00ff66] font-bold">SUCCES (${roll.netSuccess})</span>` 
+        : `<span class="text-[#ff3333] font-bold">FAILURE (${Math.abs(roll.netSuccess)})</span>`;
+
+      // Advantage / Threat banner
+      let advText = '';
+      if (roll.netAdvantage > 0) advText = ` • <span class="text-[#33ccff] font-bold">${roll.netAdvantage} ADVANTAGE</span>`;
+      else if (roll.netAdvantage < 0) advText = ` • <span class="text-[#ff9900] font-bold">${Math.abs(roll.netAdvantage)} THREAT</span>`;
+
+      // Triumph / Despair
+      let triDesText = '';
+      if (roll.totalTriumph > 0) triDesText += ` • <span class="text-[#ffcc00] font-black animate-pulse">TRIUMPH x${roll.totalTriumph}</span>`;
+      if (roll.totalDespair > 0) triDesText += ` • <span class="text-[#ff3333] font-black animate-pulse">DESPAIR x${roll.totalDespair}</span>`;
+
+      // Force points
+      let forceText = '';
+      if (roll.totalLight > 0 || roll.totalDark > 0) {
+        forceText = ` • <span class="text-white">FORCE: ${roll.totalLight}L / ${roll.totalDark}D</span>`;
+      }
+
+      div.innerHTML = `
+        <div class="flex items-center justify-between text-[9px] text-[#00ff66]/60">
+          <span>[${roll.timestamp}] <strong>${roll.sender}</strong> // ${roll.title}</span>
+        </div>
+        <div class="text-xs">
+          RESULT: ${outcomeText}${advText}${triDesText}${forceText}
+        </div>
+        <div class="flex flex-wrap gap-1 pt-1 opacity-85">
+          ${roll.diceIcons.join('')}
+        </div>
+      `;
+
+      feed.appendChild(div);
+      feed.scrollTop = feed.scrollHeight;
+    }
+
+    function flipDestiny(direction) {
+      if (direction === 'toDark' && destinyState.light > 0) {
+        destinyState.light--;
+        destinyState.dark++;
+      } else if (direction === 'toLight' && destinyState.dark > 0) {
+        destinyState.dark--;
+        destinyState.light++;
+      }
+      updateDestinyDisplay();
+      playTerminalBeep(900, 0.1);
+      broadcastPayload('DESTINY_UPDATE', destinyState);
+    }
+
+    function updateDestinyDisplay() {
+      document.getElementById('destiny-light-display').innerText = `${destinyState.light} LIGHT`;
+      document.getElementById('destiny-dark-display').innerText = `${destinyState.dark} DARK`;
+      document.getElementById('header-destiny-summary').innerText = `DESTINY: ${destinyState.light}L / ${destinyState.dark}D`;
+    }
+
+
+    /* ==========================================================================
+       3. STAR WARS FFG SKILLS MATRIX & CHARACTER SYSTEM
+       ========================================================================== */
+    const FFG_SKILLS = [
+      { name: 'Astrogation', stat: 'intellect' },
+      { name: 'Athletics', stat: 'brawn' },
+      { name: 'Charm', stat: 'presence' },
+      { name: 'Coercion', stat: 'willpower' },
+      { name: 'Computers', stat: 'intellect' },
+      { name: 'Cool', stat: 'presence' },
+      { name: 'Coordination', stat: 'agility' },
+      { name: 'Deception', stat: 'cunning' },
+      { name: 'Discipline', stat: 'willpower' },
+      { name: 'Leadership', stat: 'presence' },
+      { name: 'Mechanics', stat: 'intellect' },
+      { name: 'Meditation', stat: 'willpower' },
+      { name: 'Medicine', stat: 'intellect' },
+      { name: 'Negotiation', stat: 'presence' },
+      { name: 'Perception', stat: 'cunning' },
+      { name: 'Piloting (Planetary)', stat: 'agility' },
+      { name: 'Piloting (Space)', stat: 'agility' },
+      { name: 'Resilience', stat: 'brawn' },
+      { name: 'Skulduggery', stat: 'cunning' },
+      { name: 'Stealth', stat: 'agility' },
+      { name: 'Streetwise', stat: 'cunning' },
+      { name: 'Survival', stat: 'cunning' },
+      { name: 'Vigilance', stat: 'willpower' },
+      // Combat Skills
+      { name: 'Brawl', stat: 'brawn' },
+      { name: 'Gunnery', stat: 'agility' },
+      { name: 'Lightsaber', stat: 'brawn' },
+      { name: 'Melee', stat: 'brawn' },
+      { name: 'Ranged (Light)', stat: 'agility' },
+      { name: 'Ranged (Heavy)', stat: 'agility' }
+    ];
+
+    // Character skill ranks memory
+    const skillRanks = {
+      'Ranged (Light)': 2,
+      'Piloting (Space)': 2,
+      'Skulduggery': 2,
+      'Streetwise': 1,
+      'Perception': 1,
+      'Cool': 1
+    };
+
+    function renderSkills() {
+      const container = document.getElementById('skills-container');
+      container.innerHTML = '';
+
+      FFG_SKILLS.forEach(sk => {
+        const rank = skillRanks[sk.name] || 0;
+        const charVal = parseInt(document.getElementById(`char-${sk.stat}`)?.value || 2);
+        
+        // FFG Formula: Proficiency (Yellow) = min(Stat, Rank)
+        // Ability (Green) = abs(Stat - Rank)
+        const yellow = Math.min(charVal, rank);
+        const green = Math.max(charVal, rank) - yellow;
+
+        const el = document.createElement('div');
+        el.className = 'border border-[#00ff66]/30 bg-[#020503] p-1.5 flex items-center justify-between hover:border-[#00ff66] transition';
+        el.innerHTML = `
+          <div>
+            <span class="font-bold text-[11px] text-[#00ff66]">${sk.name}</span>
+            <span class="text-[9px] text-[#00ff66]/50 block uppercase">${sk.stat.substr(0,3)} • RANK: ${rank}</span>
+          </div>
+          <div class="flex items-center gap-1">
+            <span class="text-[10px] text-[#00ff66] font-bold" title="${green} Ability, ${yellow} Proficiency">
+              <span class="text-[#00ff66]">${green}A</span> + <span class="text-[#ffcc00]">${yellow}P</span>
+            </span>
+            <button onclick="rollSkill('${sk.name}', ${green}, ${yellow})" class="px-1.5 py-0.5 tactical-border text-[10px] text-[#00ff66] hover:bg-[#00ff66]/30 font-mono">
+              ROLL ➔
+            </button>
+          </div>
+        `;
+        container.appendChild(el);
+      });
+    }
+
+    function updateSkillPools() {
+      renderSkills();
+    }
+
+    function rollSkill(skillName, greenAbility, yellowProf) {
+      activeDicePool.ability = greenAbility;
+      activeDicePool.proficiency = yellowProf;
+      activeDicePool.difficulty = 2; // default average 2 difficulty
+      activeDicePool.challenge = 0;
+      activeDicePool.boost = 0;
+      activeDicePool.setback = 0;
+      activeDicePool.force = 0;
+
+      for (const k in activeDicePool) {
+        const el = document.getElementById(`pool-${k}-count`);
+        if (el) el.innerText = activeDicePool[k];
+      }
+
+      switchTab('dice');
+      executePoolRoll(`${skillName} Check (vs 2 Difficulty)`);
+    }
+
+    function rollRawCharacteristic(statName) {
+      const val = parseInt(document.getElementById(`char-${statName.toLowerCase()}`).value || 2);
+      setQuickPool(val, 0, 2, 0, 0, 0, 0, `Raw ${statName} Check (vs 2 Diff)`);
+      switchTab('dice');
+    }
+
+    function rollWeaponAttack(weaponName, skillName, baseDmg, crit, boost = 0, setback = 0) {
+      const sk = FFG_SKILLS.find(s => s.name === skillName) || { stat: 'agility' };
+      const rank = skillRanks[skillName] || 0;
+      const charVal = parseInt(document.getElementById(`char-${sk.stat}`).value || 2);
+
+      const yellow = Math.min(charVal, rank);
+      const green = Math.max(charVal, rank) - yellow;
+
+      setQuickPool(green, yellow, 2, 0, boost, setback, 0, `Attack: ${weaponName} [Base Dmg: ${baseDmg}, Crit: ${crit}]`);
+      switchTab('dice');
+    }
+
+    function addWeaponRow() {
+      const name = prompt("Enter Weapon Name (e.g., Bowcaster, Thermal Detonator):");
+      if (!name) return;
+      const tbody = document.getElementById('weapons-tbody');
+      const tr = document.createElement('tr');
+      tr.className = 'border-b border-[#00ff66]/20';
+      tr.innerHTML = `
+        <td class="p-1 font-bold text-[#00ff66]">${name}</td>
+        <td class="p-1">Ranged (Heavy)</td>
+        <td class="p-1 text-[#ff9900]">8</td>
+        <td class="p-1 text-[#ff3333]">3</td>
+        <td class="p-1">Long</td>
+        <td class="p-1 text-[#00ff66]/70">Custom Weapon</td>
+        <td class="p-1 text-right">
+          <button onclick="rollWeaponAttack('${name}', 'Ranged (Heavy)', 8, 3, 0, 0)" class="px-2 py-0.5 border border-[#ff9900] text-[#ff9900] hover:bg-[#ff9900]/20 font-bold">
+            FIRE ⚡
+          </button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+      syncCharSheet();
+    }
+
+
+    /* ==========================================================================
+       4. TACTICAL WIREFRAME OSCILLOSCOPE CANVAS (1970s VECTOR DISPLAY)
+       ========================================================================== */
+    const canvas = document.getElementById('tactical-canvas');
+    const ctx = canvas.getContext('2d');
+
+    let gridType = 'square'; // 'square' or 'hex'
+    let currentMapPreset = 'starship';
+
+    let mapPan = { x: 0, y: 0 };
+    let mapZoom = 1;
+    let isPanning = false;
+    let lastMousePos = { x: 0, y: 0 };
+
+    // Shared Tokens Array
+    let tokens = [
+      { id: 'tok-1', name: 'Zane [PC]', type: 'pc', x: 200, y: 200, radius: 18, color: '#00ff66', symbol: 'ZN' },
+      { id: 'tok-2', name: 'Stormtrooper 01', type: 'enemy', x: 380, y: 200, radius: 18, color: '#ff3333', symbol: 'TK' },
+      { id: 'tok-3', name: 'R2 Astromech', type: 'droid', x: 200, y: 260, radius: 15, color: '#ff9900', symbol: 'R2' }
+    ];
+
+    let draggedToken = null;
+    let pings = [];
+
+    function resizeCanvas() {
+      const rect = canvas.parentElement.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+      drawTacticalGrid();
+    }
+    window.addEventListener('resize', resizeCanvas);
+
+    function setGridType(type) {
+      gridType = type;
+      document.getElementById('btn-grid-sq').className = type === 'square' 
+        ? 'px-2 py-0.5 border border-[#00ff66] bg-[#00ff66]/20 text-[#00ff66]' 
+        : 'px-2 py-0.5 border border-[#00ff66]/40 text-[#00ff66]/60 hover:text-[#00ff66]';
+      document.getElementById('btn-grid-hex').className = type === 'hex' 
+        ? 'px-2 py-0.5 border border-[#00ff66] bg-[#00ff66]/20 text-[#00ff66]' 
+        : 'px-2 py-0.5 border border-[#00ff66]/40 text-[#00ff66]/60 hover:text-[#00ff66]';
+      drawTacticalGrid();
+      playTerminalBeep(920, 0.05);
+    }
+
+    function changeMapPreset(preset) {
+      currentMapPreset = preset;
+      drawTacticalGrid();
+      playTerminalBeep(750, 0.06);
+    }
+
+    function resetMapView() {
+      mapPan = { x: 0, y: 0 };
+      mapZoom = 1;
+      drawTacticalGrid();
+      playTerminalBeep(600, 0.05);
+    }
+
+    function spawnMapToken(kind) {
+      const cx = (-mapPan.x + canvas.width / 2) / mapZoom;
+      const cy = (-mapPan.y + canvas.height / 2) / mapZoom;
+      const id = 'tok-' + Date.now();
+
+      let t;
+      if (kind === 'tk') {
+        t = { id, name: 'Stormtrooper', type: 'enemy', x: cx, y: cy, radius: 18, color: '#ff3333', symbol: 'TK' };
+      } else if (kind === 'pc') {
+        const name = document.getElementById('char-name').value || 'Operative';
+        t = { id, name, type: 'pc', x: cx, y: cy, radius: 18, color: '#00ff66', symbol: name.substr(0,2).toUpperCase() };
+      } else {
+        t = { id, name: 'Astromech Droid', type: 'droid', x: cx, y: cy, radius: 15, color: '#ff9900', symbol: 'DR' };
+      }
+
+      tokens.push(t);
+      drawTacticalGrid();
+      broadcastPayload('TOKENS_UPDATE', tokens);
+      playTerminalBeep(880, 0.08);
+    }
+
+    function clearMapTokens() {
+      tokens = [];
+      drawTacticalGrid();
+      broadcastPayload('TOKENS_UPDATE', tokens);
+      playTerminalBeep(350, 0.08);
+    }
+
+    function drawTacticalGrid() {
+      if (!ctx) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      ctx.save();
+      ctx.translate(mapPan.x, mapPan.y);
+      ctx.scale(mapZoom, mapZoom);
+
+      const cellSize = 50;
+      const startX = -mapPan.x / mapZoom - 100;
+      const endX = startX + canvas.width / mapZoom + 200;
+      const startY = -mapPan.y / mapZoom - 100;
+      const endY = startY + canvas.height / mapZoom + 200;
+
+      // 1. Draw Phosphor Wireframe Grid
+      ctx.strokeStyle = 'rgba(0, 255, 102, 0.12)';
+      ctx.lineWidth = 1;
+
+      if (gridType === 'square') {
+        ctx.beginPath();
+        for (let x = Math.floor(startX / cellSize) * cellSize; x < endX; x += cellSize) {
+          ctx.moveTo(x, startY);
+          ctx.lineTo(x, endY);
+        }
+        for (let y = Math.floor(startY / cellSize) * cellSize; y < endY; y += cellSize) {
+          ctx.moveTo(startX, y);
+          ctx.lineTo(endX, y);
+        }
+        ctx.stroke();
+      } else {
+        // Hexagonal Grid
+        const r = 30;
+        const h = r * Math.sin(Math.PI / 3);
+        ctx.beginPath();
+        for (let y = startY; y < endY; y += h) {
+          for (let x = startX; x < endX; x += 3 * r) {
+            drawHex(ctx, x, y, r);
+            drawHex(ctx, x + 1.5 * r, y + h, r);
+          }
+        }
+        ctx.stroke();
+      }
+
+      // 2. Draw Wireframe Map Schematics based on Preset
+      drawPresetWireframe(ctx);
+
+      // 3. Draw Range Rings from primary PC token
+      const pcTok = tokens.find(t => t.type === 'pc');
+      if (pcTok) {
+        drawRangeBands(ctx, pcTok.x, pcTok.y);
+      }
+
+      // 4. Draw Tokens
+      tokens.forEach(tok => {
+        ctx.save();
+        ctx.shadowColor = tok.color;
+        ctx.shadowBlur = 10;
+        
+        // Circular Vector Border
+        ctx.strokeStyle = tok.color;
+        ctx.lineWidth = 2;
+        ctx.fillStyle = '#020905';
+        ctx.beginPath();
+        ctx.arc(tok.x, tok.y, tok.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // Inner Vector Crosshair / Reticle
+        ctx.beginPath();
+        ctx.moveTo(tok.x - tok.radius - 4, tok.y);
+        ctx.lineTo(tok.x + tok.radius + 4, tok.y);
+        ctx.moveTo(tok.x, tok.y - tok.radius - 4);
+        ctx.lineTo(tok.x, tok.y + tok.radius + 4);
+        ctx.strokeStyle = tok.color + '66';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // Symbol / Callsign
+        ctx.fillStyle = tok.color;
+        ctx.font = 'bold 11px "Share Tech Mono", monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(tok.symbol, tok.x, tok.y);
+
+        // Name Tag Label
+        ctx.font = '9px "Share Tech Mono", monospace';
+        ctx.fillStyle = '#00ff66';
+        ctx.fillText(`[${tok.name}]`, tok.x, tok.y - tok.radius - 8);
+
+        ctx.restore();
+      });
+
+      // 5. Tactical Pings Animation
+      pings.forEach((p, idx) => {
+        ctx.save();
+        ctx.strokeStyle = '#ff3333';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+        p.radius += 2;
+        p.life--;
+        if (p.life <= 0) pings.splice(idx, 1);
+      });
+
+      ctx.restore();
+
+      document.getElementById('hud-token-count').innerText = tokens.length;
+      if (pings.length > 0) requestAnimationFrame(drawTacticalGrid);
+    }
+
+    function drawHex(c, x, y, r) {
+      c.moveTo(x + r, y);
+      for (let i = 1; i < 6; i++) {
+        c.lineTo(x + r * Math.cos(i * Math.PI / 3), y + r * Math.sin(i * Math.PI / 3));
+      }
+      c.closePath();
+    }
+
+    function drawPresetWireframe(c) {
+      c.save();
+      c.lineWidth = 1.5;
+      c.strokeStyle = '#00ff66';
+      c.shadowColor = '#00ff66';
+      c.shadowBlur = 6;
+
+      if (currentMapPreset === 'starship') {
+        // Corvette Corridor & Bridge Schematic
+        c.strokeRect(100, 120, 500, 160);
+        c.strokeRect(220, 40, 260, 80); // upper bay
+        c.strokeRect(220, 280, 260, 80); // lower bay
+        c.beginPath();
+        c.arc(600, 200, 80, -Math.PI / 2, Math.PI / 2); // Bridge Dome
+        c.stroke();
+      } else if (currentMapPreset === 'trench') {
+        // Death Star Trench Perspective
+        c.beginPath();
+        c.moveTo(0, 100); c.lineTo(800, 100);
+        c.moveTo(0, 300); c.lineTo(800, 300);
+        for (let x = 50; x < 800; x += 120) {
+          c.strokeRect(x, 110, 80, 180);
+          c.strokeRect(x + 20, 130, 40, 40); // Turbolaser emplacements
+        }
+        c.stroke();
+      } else if (currentMapPreset === 'hangar') {
+        c.strokeRect(80, 60, 640, 320);
+        c.beginPath();
+        c.arc(400, 220, 120, 0, Math.PI * 2); // Landing Pad Ring
+        c.stroke();
+      }
+      c.restore();
+    }
+
+    function drawRangeBands(c, ox, oy) {
+      c.save();
+      c.setLineDash([4, 6]);
+      c.lineWidth = 1;
+
+      // Short: ~120px
+      c.strokeStyle = 'rgba(0, 255, 102, 0.4)';
+      c.beginPath();
+      c.arc(ox, oy, 120, 0, Math.PI * 2);
+      c.stroke();
+
+      // Medium: ~240px
+      c.strokeStyle = 'rgba(255, 153, 0, 0.35)';
+      c.beginPath();
+      c.arc(ox, oy, 240, 0, Math.PI * 2);
+      c.stroke();
+
+      // Long: ~400px
+      c.strokeStyle = 'rgba(255, 51, 51, 0.25)';
+      c.beginPath();
+      c.arc(ox, oy, 400, 0, Math.PI * 2);
+      c.stroke();
+
+      c.restore();
+    }
+
+    /* Canvas Mouse & Touch Interactivity */
+    canvas.addEventListener('mousedown', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const mx = (e.clientX - rect.left - mapPan.x) / mapZoom;
+      const my = (e.clientY - rect.top - mapPan.y) / mapZoom;
+
+      if (e.button === 2) {
+        // Right click: Trigger Tactical Radar Ping
+        pings.push({ x: mx, y: my, radius: 5, life: 25 });
+        playTerminalBeep(1100, 0.07, 'sawtooth');
+        drawTacticalGrid();
+        broadcastPayload('PING', { x: mx, y: my });
+        return;
+      }
+
+      // Check if clicking a token
+      draggedToken = tokens.slice().reverse().find(t => {
+        const dist = Math.hypot(t.x - mx, t.y - my);
+        return dist <= t.radius + 5;
+      });
+
+      if (draggedToken) {
+        playTerminalBeep(720, 0.04);
+      } else {
+        isPanning = true;
+        lastMousePos = { x: e.clientX, y: e.clientY };
+      }
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const mx = (e.clientX - rect.left - mapPan.x) / mapZoom;
+      const my = (e.clientY - rect.top - mapPan.y) / mapZoom;
+
+      if (draggedToken) {
+        draggedToken.x = mx;
+        draggedToken.y = my;
+        drawTacticalGrid();
+        return;
+      }
+
+      if (isPanning) {
+        mapPan.x += e.clientX - lastMousePos.x;
+        mapPan.y += e.clientY - lastMousePos.y;
+        lastMousePos = { x: e.clientX, y: e.clientY };
+        drawTacticalGrid();
+      }
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (draggedToken) {
+        // Snap to grid
+        draggedToken.x = Math.round(draggedToken.x / 25) * 25;
+        draggedToken.y = Math.round(draggedToken.y / 25) * 25;
+        drawTacticalGrid();
+        broadcastPayload('TOKENS_UPDATE', tokens);
+        playTerminalBeep(520, 0.04);
+        draggedToken = null;
+      }
+      isPanning = false;
+    });
+
+    canvas.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
+      mapZoom = Math.min(Math.max(mapZoom * zoomFactor, 0.4), 2.5);
+      drawTacticalGrid();
+    }, { passive: false });
+
+    canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+
+    /* ==========================================================================
+       5. SUPABASE REALTIME MULTIPLAYER INTEGRATION
+       ========================================================================== */
+    let supabaseClient = null;
+    let realtimeChannel = null;
+    let currentRoomId = 'sector-outer-rim';
+
+    function initSupabaseFromStorage() {
+      const url = localStorage.getItem('sw_supa_url');
+      const key = localStorage.getItem('sw_supa_key');
+      const room = localStorage.getItem('sw_supa_room') || 'sector-outer-rim';
+
+      document.getElementById('cfg-room-id').value = room;
+      currentRoomId = room;
+
+      if (url && key) {
+        document.getElementById('cfg-supabase-url').value = url;
+        document.getElementById('cfg-supabase-key').value = key;
+        connectToSupabase(url, key, room);
+      }
+    }
+
+    function connectToSupabase(url, key, room) {
+      try {
+        supabaseClient = window.supabase.createClient(url, key);
+        currentRoomId = room;
+
+        if (realtimeChannel) {
+          supabaseClient.removeChannel(realtimeChannel);
+        }
+
+        realtimeChannel = supabaseClient.channel(`vtt-${room}`, {
+          config: { broadcast: { self: false } }
+        });
+
+        realtimeChannel
+          .on('broadcast', { event: 'vtt_event' }, ({ payload }) => {
+            handleRemoteMultiplayerEvent(payload);
+          })
+          .subscribe((status) => {
+            if (status === 'SUBSCRIBED') {
+              document.getElementById('header-connection-status').innerText = `LINKED: [ROOM: ${room.toUpperCase()}]`;
+              document.getElementById('header-connection-status').className = 'text-[#00ff66] font-bold';
+              appendTerminalSystemMessage(`⚡ Supabase Uplink Connected: Sector Room "${room}".`);
+              playTerminalBeep(1200, 0.12);
+            }
+          });
+      } catch (err) {
+        console.error("Supabase connect error:", err);
+        appendTerminalSystemMessage(`Uplink Error: ${err.message}`);
+      }
+    }
+
+    function broadcastPayload(type, data) {
+      if (realtimeChannel) {
+        realtimeChannel.send({
+          type: 'broadcast',
+          event: 'vtt_event',
+          payload: { type, data, sender: document.getElementById('char-name').value || 'Operative' }
+        });
+      }
+    }
+
+    function handleRemoteMultiplayerEvent({ type, data, sender }) {
+      if (type === 'DICE_ROLL') {
+        appendRollToTerminal(data);
+        playDiceRollSound();
+      } else if (type === 'TOKENS_UPDATE') {
+        tokens = data;
+        drawTacticalGrid();
+      } else if (type === 'PING') {
+        pings.push({ x: data.x, y: data.y, radius: 5, life: 25 });
+        playTerminalBeep(1100, 0.08, 'sawtooth');
+        drawTacticalGrid();
+      } else if (type === 'DESTINY_UPDATE') {
+        destinyState.light = data.light;
+        destinyState.dark = data.dark;
+        updateDestinyDisplay();
+      } else if (type === 'CHAT_MSG') {
+        appendTerminalUserMessage(sender, data.text);
+      }
+    }
+
+    function saveAndConnectSupabase() {
+      const url = document.getElementById('cfg-supabase-url').value.trim();
+      const key = document.getElementById('cfg-supabase-key').value.trim();
+      const room = document.getElementById('cfg-room-id').value.trim() || 'sector-outer-rim';
+
+      if (!url || !key) {
+        alert("Please provide both Supabase URL and Anon Key.");
+        return;
+      }
+
+      localStorage.setItem('sw_supa_url', url);
+      localStorage.setItem('sw_supa_key', key);
+      localStorage.setItem('sw_supa_room', room);
+
+      connectToSupabase(url, key, room);
+      closeConfigModal();
+    }
+
+    function disconnectSupabase() {
+      if (supabaseClient && realtimeChannel) {
+        supabaseClient.removeChannel(realtimeChannel);
+      }
+      localStorage.removeItem('sw_supa_url');
+      localStorage.removeItem('sw_supa_key');
+      document.getElementById('header-connection-status').innerText = 'LINK: STANDALONE MODE';
+      document.getElementById('header-connection-status').className = 'text-[#ff9900]';
+      appendTerminalSystemMessage("Disconnected from Supabase. Reverted to local tactical terminal.");
+      closeConfigModal();
+    }
+
+    function syncCharSheet() {
+      const charData = {
+        name: document.getElementById('char-name').value,
+        career: document.getElementById('char-career').value,
+        species: document.getElementById('char-species').value,
+        woundsCur: document.getElementById('stat-wounds-cur').value,
+        woundsMax: document.getElementById('stat-wounds-max').value,
+        strainCur: document.getElementById('stat-strain-cur').value,
+        strainMax: document.getElementById('stat-strain-max').value,
+        soak: document.getElementById('stat-soak').value,
+        defRanged: document.getElementById('stat-def-ranged').value,
+        defMelee: document.getElementById('stat-def-melee').value
+      };
+      document.getElementById('callsign-display').innerText = charData.name.toUpperCase();
+      broadcastPayload('CHAR_UPDATE', charData);
+    }
+
+
+    /* ==========================================================================
+       6. SURVEILLANCE WEBRTC VIDEO & AUDIO FEEDS
+       ========================================================================== */
+    let localStream = null;
+    let isCamActive = false;
+    let isMicActive = false;
+
+    async function toggleWebcam() {
+      const videoEl = document.getElementById('local-video');
+      const placeholder = document.getElementById('local-video-placeholder');
+      const badge = document.getElementById('cam-status-badge');
+      const btn = document.getElementById('btn-cam-toggle');
+
+      if (isCamActive) {
+        if (localStream) {
+          localStream.getVideoTracks().forEach(track => track.stop());
+        }
+        isCamActive = false;
+        videoEl.classList.add('hidden');
+        placeholder.classList.remove('hidden');
+        badge.innerText = 'OFFLINE';
+        badge.className = 'text-[#ff3333]';
+        btn.innerText = '[+] ENGAGE CAMERA';
+        appendTerminalSystemMessage("Surveillance sensor video offline.");
+      } else {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: isMicActive });
+          localStream = stream;
+          videoEl.srcObject = stream;
+          videoEl.classList.remove('hidden');
+          placeholder.classList.add('hidden');
+          isCamActive = true;
+          badge.innerText = 'TRANSMITTING';
+          badge.className = 'text-[#00ff66] font-bold';
+          btn.innerText = '[-] DISABLE CAMERA';
+          appendTerminalSystemMessage("Sensor video feed engaged // 720p surveillance active.");
+          playTerminalBeep(1000, 0.1);
+        } catch (e) {
+          appendTerminalSystemMessage(`Hardware Access Denied: ${e.message}`);
+        }
+      }
+    }
+
+    async function toggleMicrophone() {
+      const btn = document.getElementById('btn-mic-toggle');
+      isMicActive = !isMicActive;
+
+      if (isMicActive) {
+        btn.innerText = '[-] MIC: LIVE';
+        btn.className = 'px-3 py-1 tactical-border text-xs text-[#00ff66] hover:bg-[#00ff66]/20 font-bold';
+        appendTerminalSystemMessage("Audio transponder activated.");
+        playTerminalBeep(880, 0.08);
+      } else {
+        btn.innerText = '[+] MIC: MUTED';
+        btn.className = 'px-3 py-1 tactical-border-amber text-xs text-[#ff9900] hover:bg-[#ff9900]/20';
+        appendTerminalSystemMessage("Audio transponder muted.");
+        playTerminalBeep(440, 0.08);
+      }
+
+      if (localStream) {
+        localStream.getAudioTracks().forEach(track => {
+          track.enabled = isMicActive;
+        });
+      }
+    }
+
+    /* ==========================================================================
+       7. TERMINAL LOG & CHAT CONTROLS
+       ========================================================================== */
+    function appendTerminalSystemMessage(text) {
+      const feed = document.getElementById('terminal-feed');
+      const div = document.createElement('div');
+      div.className = 'border-l-2 border-[#00ff66] pl-2 py-0.5 bg-[#030c07]/60';
+      const time = new Date().toLocaleTimeString();
+      div.innerHTML = `
+        <div class="text-[9px] text-[#00ff66]/50">[${time}] SYSTEM BROADCAST</div>
+        <p class="text-[#00ff66]">${text}</p>
+      `;
+      feed.appendChild(div);
+      feed.scrollTop = feed.scrollHeight;
+    }
+
+    function appendTerminalUserMessage(sender, text) {
+      const feed = document.getElementById('terminal-feed');
+      const div = document.createElement('div');
+      div.className = 'border-l-2 border-[#ff9900] pl-2 py-0.5 bg-[#0e0a03]/60';
+      const time = new Date().toLocaleTimeString();
+      div.innerHTML = `
+        <div class="text-[9px] text-[#ff9900]">[${time}] ${sender}</div>
+        <p class="text-[#ffcc00]">${text}</p>
+      `;
+      feed.appendChild(div);
+      feed.scrollTop = feed.scrollHeight;
+      playTerminalBeep(650, 0.04);
+    }
+
+    function clearTerminalLog() {
+      document.getElementById('terminal-feed').innerHTML = '';
+      appendTerminalSystemMessage("Log memory cleared.");
+    }
+
+    function handleTerminalSubmit(e) {
+      e.preventDefault();
+      const input = document.getElementById('term-input');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const myName = document.getElementById('char-name').value || 'Operative';
+      appendTerminalUserMessage(myName, text);
+      broadcastPayload('CHAT_MSG', { text });
+      input.value = '';
+    }
+
+    /* ==========================================================================
+       8. TAB NAVIGATION & MODAL CONTROLLERS
+       ========================================================================== */
+    function switchTab(tabId) {
+      ['map', 'sheet', 'dice', 'comms'].forEach(t => {
+        const view = document.getElementById(`view-${t}`);
+        const btn = document.getElementById(`tab-btn-${t}`);
+        if (t === tabId) {
+          view.classList.remove('hidden');
+          view.classList.add('flex');
+          btn.className = 'px-3 py-1 font-bold tracking-wider bg-[#00ff66] text-[#050807] transition';
+        } else {
+          view.classList.add('hidden');
+          view.classList.remove('flex');
+          btn.className = 'px-3 py-1 font-bold tracking-wider text-[#00ff66] hover:bg-[#00ff66]/20 transition';
+        }
+      });
+
+      if (tabId === 'map') {
+        setTimeout(resizeCanvas, 50);
+      }
+      playTerminalBeep(850, 0.04);
+    }
+
+    function openConfigModal() {
+      const m = document.getElementById('modal-config');
+      m.classList.remove('hidden');
+      m.classList.add('flex');
+      playTerminalBeep(900, 0.05);
+    }
+
+    function closeConfigModal() {
+      const m = document.getElementById('modal-config');
+      m.classList.add('hidden');
+      m.classList.remove('flex');
+    }
+
+    // Window Onload Initialization
+    window.onload = function() {
+      resizeCanvas();
+      renderSkills();
+      updateDestinyDisplay();
+      initSupabaseFromStorage();
+      appendTerminalSystemMessage("Vector grid monitor calibrated. Aurebesh emulator active.");
+    };
+  </script>
+</body>
+</html>
