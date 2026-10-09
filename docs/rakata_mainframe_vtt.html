@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IMPERIAL MAINFRAME // VTT - RAKATA PRIME</title>
+  <!-- Supabase CDN & Lucide Icons -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root {
+      --bg-dark: #0a0b0e;
+      --bg-panel: #11141a;
+      --bg-border: #1e2633;
+      --cyan: #00e5ff;
+      --cyan-dim: rgba(0, 229, 255, 0.15);
+      --red: #ff3b30;
+      --red-dim: rgba(255, 59, 48, 0.2);
+      --yellow: #ffd60a;
+      --green: #30d158;
+      --purple: #bf5af2;
+      --blue: #0a84ff;
+      --text-main: #e2e8f0;
+      --text-muted: #64748b;
+      --font-mono: 'Consolas', 'Courier New', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body {
+      background: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-mono);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .crt-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+      background-size: 100% 3px, 3px 100%;
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    header {
+      background: var(--bg-panel);
+      border-bottom: 2px solid var(--bg-border);
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 54px;
+      z-index: 100;
+    }
+    .hud-title { font-weight: bold; color: var(--cyan); letter-spacing: 2px; display: flex; align-items: center; gap: 8px; }
+    .hud-nav { display: flex; gap: 10px; align-items: center; }
+
+    .btn {
+      background: var(--bg-dark);
+      border: 1px solid var(--bg-border);
+      color: var(--text-main);
+      padding: 6px 12px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+    .btn:hover { border-color: var(--cyan); color: var(--cyan); box-shadow: 0 0 8px var(--cyan-dim); }
+    .btn-red { border-color: var(--red); color: var(--red); }
+    .btn-red:hover { background: var(--red-dim); }
+    .btn-active { background: var(--cyan-dim); border-color: var(--cyan); color: var(--cyan); }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: 280px 1fr 340px;
+      height: calc(100vh - 54px);
+      overflow: hidden;
+    }
+
+    .comm-sidebar {
+      background: var(--bg-panel);
+      border-right: 2px solid var(--bg-border);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 12px;
+      overflow-y: auto;
+    }
+    .video-card {
+      background: var(--bg-dark);
+      border: 1px solid var(--bg-border);
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+    .video-card.speaking { border-color: var(--cyan); box-shadow: 0 0 10px var(--cyan); }
+    .video-frame {
+      width: 100%;
+      height: 140px;
+      background: #080b11;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .video-frame video { width: 100%; height: 100%; object-fit: cover; }
+    .video-placeholder {
+      font-size: 11px;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+      text-align: center;
+    }
+    .video-badge {
+      position: absolute;
+      bottom: 4px; left: 4px;
+      background: rgba(0,0,0,0.8);
+      padding: 2px 6px;
+      font-size: 10px;
+      border-left: 2px solid var(--cyan);
+      z-index: 5;
+    }
+    .video-controls {
+      display: flex;
+      justify-content: space-around;
+      padding: 6px;
+      background: var(--bg-panel);
+      border-top: 1px solid var(--bg-border);
+    }
+
+    .viewport {
+      position: relative;
+      background: #050608;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .combat-tracker {
+      background: rgba(17, 20, 26, 0.95);
+      border-bottom: 1px solid var(--bg-border);
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-height: 48px;
+    }
+    .initiative-slots { display: flex; gap: 6px; flex-grow: 1; overflow-x: auto; }
+    .slot-pill {
+      padding: 4px 10px;
+      font-size: 11px;
+      border: 1px solid var(--bg-border);
+      border-radius: 2px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+    .slot-pill.pc { border-color: var(--cyan); background: var(--cyan-dim); color: var(--cyan); }
+    .slot-pill.npc { border-color: var(--red); background: var(--red-dim); color: var(--red); }
+    .slot-pill.active { outline: 2px solid #fff; font-weight: bold; }
+
+    .map-container {
+      position: relative;
+      flex-grow: 1;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      cursor: crosshair;
+    }
+    .map-canvas {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+    }
+    .hotspot {
+      position: absolute;
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: rgba(0, 229, 255, 0.2);
+      border: 2px solid var(--cyan);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--cyan);
+      cursor: pointer;
+      animation: pulse 2s infinite;
+      z-index: 10;
+      font-weight: bold;
+      font-size: 16px;
+    }
+    @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.15); box-shadow: 0 0 12px var(--cyan); } 100% { transform: scale(1); } }
+
+    .token {
+      position: absolute;
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      border: 2px solid var(--cyan);
+      background: #111a24;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 12px;
+      font-weight: bold;
+      cursor: grab;
+      z-index: 20;
+      box-shadow: 0 0 8px rgba(0,0,0,0.8);
+    }
+
+    .sidebar-right {
+      background: var(--bg-panel);
+      border-left: 2px solid var(--bg-border);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    .tab-bar {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border-bottom: 2px solid var(--bg-border);
+    }
+    .tab-btn {
+      padding: 10px;
+      text-align: center;
+      background: var(--bg-dark);
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+    .tab-btn.active { color: var(--cyan); background: var(--bg-panel); border-bottom: 2px solid var(--cyan); }
+    .tab-content { flex-grow: 1; overflow-y: auto; padding: 12px; display: none; }
+    .tab-content.active { display: block; }
+
+    .dice-selector { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+    .die-btn {
+      width: 34px; height: 34px;
+      border: none;
+      border-radius: 4px;
+      font-weight: bold;
+      font-size: 12px;
+      cursor: pointer;
+      color: #fff;
+    }
+    .die-ability { background: var(--green); }
+    .die-proficiency { background: var(--yellow); color: #000; }
+    .die-boost { background: var(--blue); }
+    .die-difficulty { background: var(--purple); }
+    .die-challenge { background: var(--red); }
+    .die-setback { background: #333; border: 1px solid #777; }
+    .die-force { background: #fff; color: #000; }
+
+    .roll-log-item {
+      background: var(--bg-dark);
+      border: 1px solid var(--bg-border);
+      padding: 8px;
+      margin-bottom: 8px;
+      border-radius: 3px;
+      font-size: 12px;
+    }
+    .roll-title { color: var(--cyan); font-weight: bold; margin-bottom: 4px; }
+    .roll-result { color: #fff; font-weight: bold; background: rgba(255,255,255,0.05); padding: 4px; margin-top: 4px; }
+
+    .stat-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-bottom: 12px; }
+    .stat-box { background: var(--bg-dark); border: 1px solid var(--bg-border); text-align: center; padding: 4px; }
+    .stat-val { font-size: 16px; color: var(--cyan); font-weight: bold; }
+    .stat-label { font-size: 9px; color: var(--text-muted); }
+
+    .tracker-bar { margin-bottom: 10px; }
+    .tracker-header { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px; }
+    .progress-bar { height: 8px; background: #222; border-radius: 2px; overflow: hidden; }
+    .progress-fill { height: 100%; transition: width 0.2s; }
+    .progress-is { background: linear-gradient(90deg, var(--green), var(--yellow), var(--red)); }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.85);
+      z-index: 5000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.active { display: flex; }
+    .terminal-window {
+      width: 900px;
+      height: 600px;
+      background: #080c10;
+      border: 2px solid var(--cyan);
+      box-shadow: 0 0 25px var(--cyan-dim);
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      position: relative;
+    }
+    .terminal-nav {
+      background: #0d131a;
+      border-right: 1px solid var(--bg-border);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .terminal-body {
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .matrix-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 45px);
+      gap: 8px;
+      margin: 15px 0;
+    }
+    .matrix-cell {
+      width: 45px; height: 45px;
+      background: #111a24;
+      border: 1px solid var(--cyan);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      cursor: pointer;
+      color: var(--cyan);
+    }
+    .matrix-cell.active-lane { border-color: var(--yellow); box-shadow: 0 0 6px var(--yellow); }
+    .target-sequence { display: flex; gap: 8px; margin-bottom: 12px; }
+    .target-badge { padding: 4px 8px; border: 1px dashed var(--yellow); color: var(--yellow); }
+    .target-badge.done { border-color: var(--green); color: var(--green); }
+  </style>
+</head>
+<body>
+
+  <div class="crt-overlay"></div>
+
+  <header>
+    <div class="hud-title">
+      <span style="color:var(--red);">[SEC-1]</span> IMPERIAL SILO 1 // VTT
+    </div>
+    <div class="hud-nav">
+      <span id="connStatus" style="font-size:11px; color:var(--text-muted); margin-right:10px;">STANDALONE</span>
+      <button class="btn" id="roleToggleBtn" onclick="toggleRole()">Rolle: <span id="currentRoleLabel" style="color:var(--cyan)">GM</span></button>
+      <button class="btn" onclick="openTerminalModal()">>_ Slicer Mainframe</button>
+      <button class="btn" onclick="openSceneModal()">Kort / Scene</button>
+      <button class="btn btn-red" onclick="triggerAlarm()">Alarm</button>
+    </div>
+  </header>
+
+  <div class="workspace">
+
+    <!-- Comm Video Feeds -->
+    <div class="comm-sidebar">
+      <div style="font-size:11px; color:var(--text-muted); margin-bottom:4px;">COMM NODES // STATUS</div>
+      
+      <div class="video-card">
+        <div class="video-frame">
+          <video id="videoGM" autoplay playsinline muted></video>
+          <div class="video-placeholder" id="phGM">GM // OVERSEER<br>[STANDBY FEED]</div>
+          <div class="video-badge">OVERSEER // GM</div>
+        </div>
+        <div class="video-controls">
+          <button class="btn" onclick="toggleMute('gm')">Mute</button>
+          <button class="btn btn-red" onclick="whisperNode('kethani')">W: Kethani</button>
+          <button class="btn btn-red" onclick="whisperNode('mitth')">W: Mitth</button>
+        </div>
+      </div>
+
+      <div class="video-card">
+        <div class="video-frame">
+          <video id="videoKethani" autoplay playsinline></video>
+          <div class="video-placeholder" id="phKethani">KETHANI [SLICER]<br>[STANDBY FEED]</div>
+          <div class="video-badge">IRIZI'KETH'ANI</div>
+        </div>
+        <div class="video-controls">
+          <button class="btn" onclick="toggleMute('kethani')">Mute</button>
+          <button class="btn" onclick="whisperNode('gm')">W: GM</button>
+        </div>
+      </div>
+
+      <div class="video-card">
+        <div class="video-frame">
+          <video id="videoMitth" autoplay playsinline></video>
+          <div class="video-placeholder" id="phMitth">MITTH DIPLOMAT<br>[STANDBY FEED]</div>
+          <div class="video-badge">MITTH DIPLOMAT</div>
+        </div>
+        <div class="video-controls">
+          <button class="btn" onclick="toggleMute('mitth')">Mute</button>
+          <button class="btn" onclick="whisperNode('gm')">W: GM</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Center Stage: Map Viewport -->
+    <div class="viewport">
+      <div class="combat-tracker">
+        <div style="font-size:12px; font-weight:bold; color:var(--cyan);">INITIATIV:</div>
+        <div class="initiative-slots" id="slotContainer">
+          <div class="slot-pill pc active" onclick="activateSlot(0)">1. PC SLOT</div>
+          <div class="slot-pill npc" onclick="activateSlot(1)">2. NPC SLOT</div>
+          <div class="slot-pill pc" onclick="activateSlot(2)">3. PC SLOT</div>
+          <div class="slot-pill npc" onclick="activateSlot(3)">4. NPC SLOT</div>
+        </div>
+        <button class="btn" onclick="nextCombatTurn()">Næste Tur &rarr;</button>
+        <button class="btn" onclick="rollInitiativePrompt()">+ Rul Init</button>
+      </div>
+
+      <div class="map-container" id="mapBox">
+        <canvas class="map-canvas" id="mapCanvas"></canvas>
+        <div class="hotspot" style="top: 48%; left: 50%;" title="Hovedterminal Sektion 2" onclick="openTerminalModal()">>_</div>
+        <div class="token" id="token1" style="top: 42%; left: 35%;" onmousedown="dragToken(event, this)">IK</div>
+        <div class="token" id="token2" style="top: 55%; left: 35%; border-color:var(--yellow);" onmousedown="dragToken(event, this)">MD</div>
+      </div>
+    </div>
+
+    <!-- Right Sidebar: Interactive Sheet & Roller -->
+    <div class="sidebar-right">
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="showTab('sheetTab')">ARK</button>
+        <button class="tab-btn" onclick="showTab('diceTab')">TERNINGER</button>
+        <button class="tab-btn" onclick="showTab('chatTab')">LOG</button>
+      </div>
+
+      <div class="tab-content active" id="sheetTab">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <h4 id="sheetName" style="color:var(--cyan);">Irizi’Keth’ani</h4>
+          <span style="font-size:10px; color:var(--text-muted);" id="sheetFamily">Irizi Slicer</span>
+        </div>
+
+        <div class="tracker-bar">
+          <div class="tracker-header"><span>WOUNDS: 3 / 12</span><span>STRAIN: 2 / 13</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="width: 25%; background:var(--red);"></div></div>
+        </div>
+        <div class="tracker-bar">
+          <div class="tracker-header"><span style="color:var(--green)">INFECTION STRESS (IS): 7 / 20</span><span>FASE 1</span></div>
+          <div class="progress-bar"><div class="progress-fill progress-is" style="width: 35%;"></div></div>
+        </div>
+
+        <div style="font-size:10px; color:var(--text-muted); margin-bottom:4px;">CHARACTERISTICS</div>
+        <div class="stat-row">
+          <div class="stat-box"><div class="stat-val" id="cBrw">2</div><div class="stat-label">BRW</div></div>
+          <div class="stat-box"><div class="stat-val" id="cAgi">3</div><div class="stat-label">AGI</div></div>
+          <div class="stat-box"><div class="stat-val" id="cInt">4</div><div class="stat-label">INT</div></div>
+          <div class="stat-box"><div class="stat-val" id="cCun">3</div><div class="stat-label">CUN</div></div>
+          <div class="stat-box"><div class="stat-val" id="cWil">2</div><div class="stat-label">WIL</div></div>
+          <div class="stat-box"><div class="stat-val" id="cPrs">1</div><div class="stat-label">PRS</div></div>
+        </div>
+
+        <div style="font-size:10px; color:var(--text-muted); margin-bottom:4px;">KLIK FOR AT SLÅ FÆRDIGHED</div>
+        <div style="display:flex; flex-direction:column; gap:4px; margin-bottom:12px;">
+          <button class="btn" onclick="quickRollSkill('Computers', 4, 2)">Computers [4 Int, 2 Skill] &rarr; 2G 2Y</button>
+          <button class="btn" onclick="quickRollSkill('Mechanics', 4, 1)">Mechanics [4 Int, 1 Skill] &rarr; 3G 1Y</button>
+          <button class="btn" onclick="quickRollSkill('Skulduggery', 3, 2)">Skulduggery [3 Cun, 2 Skill] &rarr; 1G 2Y</button>
+          <button class="btn" onclick="quickRollSkill('Discipline', 2, 1)">Discipline [2 Wil, 1 Skill] &rarr; 1G 1Y</button>
+        </div>
+
+        <div style="font-size:10px; color:var(--text-muted); margin-bottom:4px;">UDSTYR & MODIFIKATORER</div>
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <button class="btn btn-active" id="questisToggle" onclick="toggleQuestis()">Questis-Datapad [AKTIV: +2 Boost / -1 Diff]</button>
+          <button class="btn" onclick="quickRollSkill('Blaster Pistol', 3, 1)">Angreb: Blaster Pistol (Skade 7)</button>
+        </div>
+      </div>
+
+      <div class="tab-content" id="diceTab">
+        <div style="font-size:11px; color:var(--text-muted); margin-bottom:6px;">OPBYG TERNINGEPULJE</div>
+        <div class="dice-selector">
+          <button class="die-btn die-ability" onclick="addDie('ability')">Ab</button>
+          <button class="die-btn die-proficiency" onclick="addDie('proficiency')">Pr</button>
+          <button class="die-btn die-boost" onclick="addDie('boost')">Bo</button>
+          <button class="die-btn die-difficulty" onclick="addDie('difficulty')">Di</button>
+          <button class="die-btn die-challenge" onclick="addDie('challenge')">Ch</button>
+          <button class="die-btn die-setback" onclick="addDie('setback')">Se</button>
+          <button class="die-btn die-force" onclick="addDie('force')">Fo</button>
+        </div>
+        <div id="poolDisplay" style="font-size:12px; margin-bottom:10px; min-height:18px; color:var(--cyan);">Pulje: Tom</div>
+        <div style="display:flex; gap:6px;">
+          <button class="btn btn-active" style="flex-grow:1;" onclick="rollCurrentPool()">KAST PULJE</button>
+          <button class="btn" onclick="clearPool()">RYD</button>
+        </div>
+      </div>
+
+      <div class="tab-content" id="chatTab">
+        <div id="rollFeed" style="display:flex; flex-direction:column; gap:6px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slicing Terminal Modal -->
+  <div class="modal-overlay" id="terminalModal">
+    <div class="terminal-window">
+      <div class="terminal-nav">
+        <div style="font-size:11px; color:var(--cyan); margin-bottom:8px;">IMPERIAL ARCHIVES // V2.1</div>
+        <button class="btn" onclick="viewFile('tk442')">Driftslog // TK-442</button>
+        <button class="btn" onclick="viewFile('kantine')">Forsyning // Madrationer</button>
+        <button class="btn" onclick="viewFile('disciplin')">Disciplinær // Feber</button>
+        <button class="btn" onclick="viewFile('depot')">[LÅST] Depot // Sektion 2</button>
+        <button class="btn btn-red" onclick="viewFile('omega')">[OMEGA] Dr. Vael Forskningsnotat</button>
+        <button class="btn btn-red" onclick="viewFile('hangar')">[SEK] Hangar Dæk 1-Aurek</button>
+        <div style="margin-top:auto;">
+          <button class="btn" style="width:100%;" onclick="closeTerminalModal()">LUK TERMINAL</button>
+        </div>
+      </div>
+
+      <div class="terminal-body" id="terminalDisplay">
+        <h3 style="color:var(--cyan); margin-bottom:10px;">VELKOMMEN TIL SILO 1 MAINFRAME</h3>
+        <p style="font-size:13px; line-height:1.6; color:#94a3b8;">
+          Vælg en fil i venstre navigationspanel for at gennemse data.<br>
+          Krypterede sektioner kræver autorisationskode eller manuel bypass (slicing).
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scene Modal -->
+  <div class="modal-overlay" id="sceneModal">
+    <div class="terminal-window" style="width:480px; height:280px; display:block; padding:20px;">
+      <h3 style="color:var(--cyan); margin-bottom:15px;">SKIFT KORT-BILLEDE</h3>
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <label style="font-size:12px;">Billede Web-URL:</label>
+        <input type="text" id="sceneUrlInput" style="background:#111; border:1px solid var(--bg-border); color:#fff; padding:6px;" placeholder="https://...">
+        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:15px;">
+          <button class="btn" onclick="closeSceneModal()">Annuller</button>
+          <button class="btn btn-active" onclick="saveAndApplyScene()">Opdater Kort</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- 1. Supabase Opsætning med Safe-Mode ---
+    const RAW_SUPABASE_URL = "https://gaedntdevwkqmhaecggd.supabase.co/rest/v1/";
+    const SUPABASE_URL = RAW_SUPABASE_URL.replace(/\/rest\/v1\/?$/, "");
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdhZWRudGRldndrcW1oYWVjZ2dkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE1MzMwNTcsImV4cCI6MjEwNzEwOTA1N30.uyTzp1mHC30r_LjRfitxaLFpTyS4txOgd1BitoFOMl0";
+
+    let supabaseClient = null;
+    let vttChannel = null;
+
+    try {
+      if (window.supabase && typeof window.supabase.createClient === 'function') {
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      }
+    } catch(e) {
+      console.warn("Supabase init forbigået (kører i standalone mode):", e);
+    }
+
+    let currentRole = "GM";
+    let questisEquipped = true;
+    let activeDicePool = [];
+
+    function initSupabaseRealtime() {
+      const statusEl = document.getElementById('connStatus');
+      if (!supabaseClient) {
+        if(statusEl) statusEl.innerText = "STANDALONE MODE";
+        return;
+      }
+      try {
+        vttChannel = supabaseClient.channel('rakata_vtt_room');
+        vttChannel
+          .on('broadcast', { event: 'dice_roll' }, p => logRoll(p.payload.title, p.payload.result))
+          .on('broadcast', { event: 'scene_update' }, p => applySceneImage(p.payload.url))
+          .on('broadcast', { event: 'slot_change' }, p => setSlotUI(p.payload.slotIdx))
+          .on('broadcast', { event: 'token_position' }, p => {
+            const t = document.getElementById(p.payload.id);
+            if (t) { t.style.left = p.payload.left; t.style.top = p.payload.top; }
+          })
+          .subscribe(status => {
+            if (status === 'SUBSCRIBED' && statusEl) {
+              statusEl.innerText = "ONLINE // REALTIME";
+              statusEl.style.color = "var(--green)";
+            }
+          });
+      } catch(e) {
+        console.warn("Realtime fejl:", e);
+      }
+    }
+
+    // --- 2. Automatisk Tegning af Taktisk Kort-Blueprint (Undgår sort skærm) ---
+    function drawDefaultTacticalGrid() {
+      const canvas = document.getElementById('mapCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const box = document.getElementById('mapBox');
+      canvas.width = box.clientWidth || 800;
+      canvas.height = box.clientHeight || 600;
+
+      // Tegn mørkt metallisk baggrundsgitter
+      ctx.fillStyle = "#0c1017";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.08)";
+      ctx.lineWidth = 1;
+      const step = 40;
+      for (let x = 0; x < canvas.width; x += step) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+      }
+      for (let y = 0; y < canvas.height; y += step) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+      }
+
+      // Tegn Silo 1 Niveau 4 Omrids
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(100, 80, canvas.width - 200, canvas.height - 160);
+
+      // Celler og central gang
+      ctx.fillStyle = "rgba(0, 229, 255, 0.03)";
+      ctx.fillRect(100, canvas.height/2 - 40, canvas.width - 200, 80);
+
+      ctx.font = "12px Consolas, monospace";
+      ctx.fillStyle = "rgba(0, 229, 255, 0.6)";
+      ctx.fillText("IMPERIAL SILO 1 // NIVEAU 4: FORSØGSRINGEN", 120, 110);
+      ctx.fillText("[KORRIDOR AUREK - CELLEBLOK B17]", 120, canvas.height/2 + 5);
+      ctx.fillText("SEKTION 2 HOVEDTERMINAL ->", canvas.width/2 - 80, canvas.height/2 + 60);
+    }
+
+    window.addEventListener('resize', drawDefaultTacticalGrid);
+
+    // --- 3. Karakter & Roller ---
+    function toggleRole() {
+      currentRole = (currentRole === "GM") ? "Kethani" : (currentRole === "Kethani" ? "Mitth" : "GM");
+      document.getElementById('currentRoleLabel').innerText = currentRole;
+      loadRoleSheet();
+    }
+
+    function loadRoleSheet() {
+      if(currentRole === "Mitth") {
+        document.getElementById('sheetName').innerText = "Mitth Diplomat";
+        document.getElementById('sheetFamily').innerText = "Mitth Protege";
+        document.getElementById('cBrw').innerText = "2";
+        document.getElementById('cAgi').innerText = "2";
+        document.getElementById('cInt').innerText = "3";
+        document.getElementById('cCun').innerText = "2";
+        document.getElementById('cWil').innerText = "3";
+        document.getElementById('cPrs').innerText = "4";
+      } else {
+        document.getElementById('sheetName').innerText = "Irizi’Keth’ani";
+        document.getElementById('sheetFamily').innerText = "Irizi Slicer";
+        document.getElementById('cBrw').innerText = "2";
+        document.getElementById('cAgi').innerText = "3";
+        document.getElementById('cInt').innerText = "4";
+        document.getElementById('cCun').innerText = "3";
+        document.getElementById('cWil').innerText = "2";
+        document.getElementById('cPrs').innerText = "1";
+      }
+    }
+
+    // --- 4. Genesys Dice Engine ---
+    const DIE_FACES = {
+      ability: [{}, {s:1}, {s:1}, {s:2}, {a:1}, {a:1}, {s:1, a:1}, {a:2}],
+      proficiency: [{}, {s:1}, {s:1}, {s:2}, {s:2}, {a:1}, {s:1, a:1}, {s:1, a:1}, {s:1, a:1}, {a:2}, {a:2}, {triumph:1, s:1}],
+      boost: [{}, {}, {s:1}, {s:1, a:1}, {a:2}, {a:1}],
+      difficulty: [{}, {f:1}, {f:2}, {t:1}, {t:1}, {t:1}, {t:2}, {f:1, t:1}],
+      challenge: [{}, {f:1}, {f:1}, {f:2}, {f:2}, {t:1}, {t:1}, {f:1, t:1}, {f:1, t:1}, {t:2}, {t:2}, {despair:1, f:1}],
+      setback: [{}, {}, {f:1}, {f:1}, {t:1}, {t:1}],
+      force: [{dark:1}, {dark:1}, {dark:1}, {dark:1}, {dark:1}, {dark:1}, {dark:2}, {light:1}, {light:1}, {light:2}, {light:2}, {light:2}]
+    };
+
+    function addDie(type) { activeDicePool.push(type); updatePoolDisplay(); }
+    function clearPool() { activeDicePool = []; updatePoolDisplay(); }
+    function updatePoolDisplay() {
+      document.getElementById('poolDisplay').innerText = activeDicePool.length ? "Pulje: " + activeDicePool.join(", ") : "Pulje: Tom";
+    }
+
+    function rollCurrentPool(title = "Standard Rul") {
+      if(!activeDicePool.length) return;
+      let s = 0, f = 0, a = 0, t = 0, tr = 0, des = 0;
+
+      activeDicePool.forEach(die => {
+        const sides = DIE_FACES[die];
+        const res = sides[Math.floor(Math.random() * sides.length)];
+        if(res.s) s += res.s; if(res.f) f += res.f;
+        if(res.a) a += res.a; if(res.t) t += res.t;
+        if(res.triumph) tr += res.triumph;
+        if(res.despair) des += res.despair;
+      });
+
+      const netS = s - f;
+      const netA = a - t;
+      let text = (netS >= 0 ? `${netS} Success` : `${Math.abs(netS)} Failure`) + " | " + (netA >= 0 ? `${netA} Advantage` : `${Math.abs(netA)} Threat`);
+      if(tr) text += ` | ${tr} TRIUMPH!`;
+      if(des) text += ` | ${des} DESPAIR!`;
+
+      logRoll(title, text);
+      if(vttChannel) vttChannel.send({ type:'broadcast', event:'dice_roll', payload:{ title, result: text } });
+      clearPool();
+    }
+
+    function quickRollSkill(name, charVal, skillVal) {
+      clearPool();
+      const higher = Math.max(charVal, skillVal);
+      const lower = Math.min(charVal, skillVal);
+      for(let i=0; i<lower; i++) addDie('proficiency');
+      for(let i=0; i<(higher - lower); i++) addDie('ability');
+      if(questisEquipped && name === "Computers") { addDie('boost'); addDie('boost'); }
+      addDie('difficulty'); addDie('difficulty');
+      rollCurrentPool(`${currentRole}: ${name}`);
+      showTab('chatTab');
+    }
+
+    function toggleQuestis() {
+      questisEquipped = !questisEquipped;
+      const btn = document.getElementById('questisToggle');
+      btn.innerText = questisEquipped ? "Questis-Datapad [AKTIV: +2 Boost / -1 Diff]" : "Questis-Datapad [DEAKTIVERET]";
+      btn.classList.toggle('btn-active', questisEquipped);
+    }
+
+    function logRoll(title, res) {
+      const feed = document.getElementById('rollFeed');
+      const item = document.createElement('div');
+      item.className = 'roll-log-item';
+      item.innerHTML = `<div class="roll-title">${title}</div><div class="roll-result">${res}</div>`;
+      feed.prepend(item);
+    }
+
+    function showTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      event.target.classList.add('active');
+    }
+
+    // --- 5. Mainframe Terminal ---
+    const DATABASE_FILES = {
+      tk442: { title: "DRIFTSLOG // TK-442", content: "Tekniker Kaelen: Rutinemæssig udbedring fuldført. Rørene på Niveau 3 med Indur-17 viser accelereret korrosion. Stanken fra affaldsskaktens bund på Niveau 5 er uudholdelig." },
+      kantine: { title: "FORSYNING // MADRATIONER", content: "Proteinblokke forsinket. Næringspasta doseres med 80% mængde til fanger i Batch 17." },
+      disciplin: { title: "DISCIPLINÆR // FEBER", content: "TK-781 fundet bevidstløs på vagtpost med feberkramper og rystelser. Affærdiget som dovenskab." },
+      depot: { title: "DEPOT // SEKTION 2", locked: true, passcode: "TRIDENT-44", content: "BOKS 7 OPLÅST:\n- 1x Kileformet Questis-datapad (Kethani)\n- 1x Krystallinsk datachip (Syndic'en)" },
+      omega: { title: "FORSKNINGSNOTAT // OMEGA-SORT", slicingRequired: true, content: "KUN FOR GRAND MOFF KHARLON:\nChiss-DNA dæmper MycoVex. Subjekt 09 (Naya) og broderen overført til orbit. Resterende klargøres til Quadanium-minerne på Agaris." },
+      hangar: { title: "HANGAR // DÆK 1-AUREK", slicingRequired: true, content: "[1] Antiluftskyts deaktiveret\n[2] Hangarporte åbnet mod kyststormen" }
+    };
+
+    function openTerminalModal() { document.getElementById('terminalModal').classList.add('active'); }
+    function closeTerminalModal() { document.getElementById('terminalModal').classList.remove('active'); }
+
+    function viewFile(key) {
+      const file = DATABASE_FILES[key];
+      const d = document.getElementById('terminalDisplay');
+      if(file.locked) {
+        d.innerHTML = `<h3 style="color:var(--yellow);">${file.title}</h3><p style="margin:10px 0;">KODELÅS AKTIV.</p><input id="passInput" style="background:#111; border:1px solid #333; color:#fff; padding:6px;" placeholder="KODE"><button class="btn btn-active" onclick="verifyPassword('${key}')" style="margin-left:6px;">LÅS OP</button>`;
+      } else if(file.slicingRequired) {
+        d.innerHTML = `<h3 style="color:var(--red);">${file.title}</h3><p style="margin:10px 0;">KRÆVER SLICING BYPASS.</p><button class="btn btn-red" onclick="startSlicing('${key}')">[START SLICING MINISPIL]</button>`;
+      } else {
+        d.innerHTML = `<h3 style="color:var(--cyan); margin-bottom:10px;">${file.title}</h3><div style="white-space:pre-wrap; line-height:1.6; font-size:13px; color:#cbd5e1;">${file.content}</div>`;
+      }
+    }
+
+    function verifyPassword(key) {
+      const val = document.getElementById('passInput').value.trim().toUpperCase();
+      if(val === DATABASE_FILES[key].passcode) {
+        DATABASE_FILES[key].locked = false;
+        viewFile(key);
+      } else alert("ADGANG NÆGTET!");
+    }
+
+    // Minigame
+    let matrixData = [], targetSeq = ["7A", "BD", "E9"], seqIdx = 0, isRow = true, activeIdx = 0, currentKey = "";
+    function startSlicing(key) {
+      currentKey = key; seqIdx = 0; isRow = true; activeIdx = 0;
+      const hex = ["1C", "7A", "BD", "E9", "5C"];
+      matrixData = [];
+      for(let r=0; r<5; r++) {
+        let row = [];
+        for(let c=0; c<5; c++) row.push(hex[Math.floor(Math.random()*hex.length)]);
+        matrixData.push(row);
+      }
+      renderMatrix();
+    }
+
+    function renderMatrix() {
+      const d = document.getElementById('terminalDisplay');
+      let html = `<h3 style="color:var(--cyan);">NEURAL DATA ROUTING</h3><div class="target-sequence">${targetSeq.map((c, i) => `<span class="target-badge ${i < seqIdx ? 'done' : ''}">${c}</span>`).join('')}</div><div class="matrix-grid">`;
+      for(let r=0; r<5; r++) {
+        for(let c=0; c<5; c++) {
+          const eligible = isRow ? (r === activeIdx) : (c === activeIdx);
+          html += `<div class="matrix-cell ${eligible ? 'active-lane' : ''}" onclick="pickCell(${r}, ${c})">${matrixData[r][c]}</div>`;
+        }
+      }
+      html += `</div><div style="font-size:11px; color:var(--text-muted);">Vælg fra aktiv ${isRow ? 'række' : 'kolonne'}</div>`;
+      d.innerHTML = html;
+    }
+
+    function pickCell(r, c) {
+      if(isRow && r !== activeIdx) return;
+      if(!isRow && c !== activeIdx) return;
+      if(matrixData[r][c] === targetSeq[seqIdx]) {
+        seqIdx++;
+        if(seqIdx >= targetSeq.length) {
+          DATABASE_FILES[currentKey].slicingRequired = false;
+          viewFile(currentKey);
+          return;
+        }
+      }
+      if(isRow) { activeIdx = c; isRow = false; } else { activeIdx = r; isRow = true; }
+      renderMatrix();
+    }
+
+    // --- 6. Tokens, Drag & Modals ---
+    function dragToken(e, el) {
+      let sx = e.clientX - el.getBoundingClientRect().left;
+      let sy = e.clientY - el.getBoundingClientRect().top;
+      function moveAt(pageX, pageY) {
+        const b = document.getElementById('mapBox').getBoundingClientRect();
+        el.style.left = (pageX - b.left - sx) + 'px';
+        el.style.top = (pageY - b.top - sy) + 'px';
+        if(vttChannel) vttChannel.send({ type:'broadcast', event:'token_position', payload:{ id: el.id, left: el.style.left, top: el.style.top } });
+      }
+      function onMove(evt) { moveAt(evt.pageX, evt.pageY); }
+      document.addEventListener('mousemove', onMove);
+      el.onmouseup = () => { document.removeEventListener('mousemove', onMove); el.onmouseup = null; };
+    }
+
+    function openSceneModal() { document.getElementById('sceneModal').classList.add('active'); }
+    function closeSceneModal() { document.getElementById('sceneModal').classList.remove('active'); }
+    function saveAndApplyScene() {
+      const url = document.getElementById('sceneUrlInput').value;
+      if(url) {
+        applySceneImage(url);
+        if(vttChannel) vttChannel.send({ type:'broadcast', event:'scene_update', payload:{ url } });
+      }
+      closeSceneModal();
+    }
+    function applySceneImage(url) {
+      const canvas = document.getElementById('mapCanvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      img.onload = () => ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      img.src = url;
+    }
+
+    let curSlot = 0;
+    function setSlotUI(i) {
+      curSlot = i;
+      document.querySelectorAll('.slot-pill').forEach((s, idx) => s.classList.toggle('active', idx === i));
+    }
+    function activateSlot(i) {
+      setSlotUI(i);
+      if(vttChannel) vttChannel.send({ type:'broadcast', event:'slot_change', payload:{ slotIdx: i } });
+    }
+    function nextCombatTurn() {
+      activateSlot((curSlot + 1) % document.querySelectorAll('.slot-pill').length);
+    }
+    function rollInitiativePrompt() {
+      clearPool(); addDie('proficiency'); addDie('ability');
+      rollCurrentPool("Initiativ Rul"); showTab('chatTab');
+    }
+
+    async function initMedia() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        const vid = document.getElementById('videoGM');
+        if(vid) vid.srcObject = stream;
+        const ph = document.getElementById('phGM');
+        if(ph) ph.style.display = 'none';
+      } catch(e) {
+        console.log("Kamera ikke tilsluttet – viser standby grafik");
+      }
+    }
+
+    function toggleMute(n) { alert("Mikrofon toggled: " + n); }
+    function whisperNode(n) { alert("Krypteret forbindelse oprettet til: " + n); }
+    function triggerAlarm() { alert("ALARM: SIKKERHEDSBRUD PÅ NIVEAU 4!"); }
+
+    window.onload = () => {
+      drawDefaultTacticalGrid();
+      loadRoleSheet();
+      initMedia();
+      initSupabaseRealtime();
+    };
+  </script>
+</body>
+</html>
