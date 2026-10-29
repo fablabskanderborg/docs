@@ -1,990 +1,1752 @@
 <!DOCTYPE html>
-<html lang="da" class="h-full bg-slate-950 text-slate-100">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Roll20 Light - Virtuelt Rollespilsbord</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <style>
-    /* Brugerdefineret rullebjælke og animationer */
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #0f172a; }
-    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>IMPERIAL DATAPAD // SILO-1 TERMINAL</title>
+<!-- Optional Supabase SDK for Realtime Sync between GM and Player -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap');
 
-    .grid-bg-dungeon {
-      background-color: #1a1614;
-      background-image: 
-        radial-gradient(#2d2522 15%, transparent 16%),
-        linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px);
-      background-size: 40px 40px, 40px 40px, 40px 40px;
-    }
+  :root {
+    /* SKIN 1: IMPERIAL BRUTALISM (DEFAULT) */
+    --bg-main: #060809;
+    --bg-panel: #0b0f12;
+    --bg-header: #0f161b;
+    --bg-row-even: #090d10;
+    --border-color: #1c3329;
+    --border-highlight: #2ee68a;
+    --text-main: #a8d5ba;
+    --text-Bright: #2ee68a;
+    --text-dim: #4a6b58;
+    --accent-cyan: #00e5ff;
+    --alert-red: #ff2a2a;
+    --warn-amber: #ffae00;
+    --orbital-purple: #c084fc;
+    --font-family: 'Share Tech Mono', 'Courier New', monospace;
+    --border-radius: 0px;
+    --panel-shadow: inset 0 0 15px rgba(46, 230, 138, 0.06);
+    --scanline-opacity: 0.18;
+  }
 
-    .grid-bg-forest {
-      background-color: #0f1c15;
-      background-image: 
-        radial-gradient(#1a3325 15%, transparent 16%),
-        linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(255,255,255,0.04) 1px, transparent 1px);
-      background-size: 40px 40px, 40px 40px, 40px 40px;
-    }
+  /* SKIN 2: CHISS QUESTIS (MODERN, SOFT, BIOLUMINESCENT BLUE) */
+  body.questis-skin {
+    --bg-main: #040914;
+    --bg-panel: rgba(11, 25, 48, 0.85);
+    --bg-header: rgba(16, 37, 71, 0.90);
+    --bg-row-even: rgba(15, 32, 60, 0.55);
+    --border-color: rgba(56, 189, 248, 0.30);
+    --border-highlight: #38bdf8;
+    --text-main: #e0f2fe;
+    --text-Bright: #7dd3fc;
+    --text-dim: #6495ed;
+    --accent-cyan: #00f0ff;
+    --alert-red: #f43f5e;
+    --warn-amber: #fbbf24;
+    --orbital-purple: #d8b4fe;
+    --font-family: 'Exo 2', sans-serif;
+    --border-radius: 14px;
+    --panel-shadow: 0 8px 32px rgba(0, 195, 255, 0.18), inset 0 0 20px rgba(56, 189, 248, 0.12);
+    --scanline-opacity: 0;
+  }
 
-    .grid-bg-parchment {
-      background-color: #2b251d;
-      background-image: 
-        linear-gradient(to right, rgba(212, 185, 150, 0.08) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(212, 185, 150, 0.08) 1px, transparent 1px);
-      background-size: 40px 40px;
-    }
+  /* AUREBESH SIMULATION */
+  body.aurebesh-mode .translatable {
+    font-family: sans-serif;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    filter: contrast(1.4);
+  }
 
-    .token-pulse {
-      animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
-    }
-    @keyframes pulse-ring {
-      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-      70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
-      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-    }
-  </style>
+  * {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  body {
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    font-family: var(--font-family);
+    margin: 0;
+    padding: 12px;
+    min-height: 100vh;
+    transition: background-color 0.5s ease, color 0.4s ease;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* CRT Scanlines (Imperial only) */
+  body::after {
+    content: " ";
+    display: block;
+    position: fixed;
+    top: 0; left: 0; bottom: 0; right: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.35) 50%), 
+                linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+    z-index: 999;
+    background-size: 100% 3px, 6px 100%;
+    pointer-events: none;
+    opacity: var(--scanline-opacity);
+    transition: opacity 0.5s ease;
+  }
+
+  .app-container {
+    max-width: 1320px;
+    margin: 0 auto;
+    border: 2px solid var(--border-highlight);
+    border-radius: var(--border-radius);
+    background: var(--bg-panel);
+    box-shadow: var(--panel-shadow);
+    backdrop-filter: blur(12px);
+    padding: 16px;
+    transition: all 0.5s ease;
+  }
+
+  /* TOP HEADER */
+  .top-bar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--bg-header);
+    border: 1px solid var(--border-color);
+    border-bottom: 2px solid var(--border-highlight);
+    border-radius: var(--border-radius);
+    padding: 12px 16px;
+    margin-bottom: 14px;
+    gap: 12px;
+  }
+
+  .title-block h1 {
+    margin: 0;
+    font-size: 1.3rem;
+    color: var(--text-Bright);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  .title-block .subtitle {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+  }
+
+  .controls-block {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* TOUCH-FRIENDLY INPUTS & BUTTONS */
+  input[type="text"] {
+    background: rgba(0,0,0,0.6);
+    border: 1px solid var(--border-color);
+    color: var(--text-Bright);
+    font-family: inherit;
+    padding: 10px 12px;
+    min-height: 44px;
+    font-size: 0.92rem;
+    border-radius: var(--border-radius);
+    outline: none;
+  }
+  input[type="text"]:focus {
+    border-color: var(--border-highlight);
+    box-shadow: 0 0 8px rgba(46, 230, 138, 0.35);
+  }
+
+  button {
+    background: rgba(15, 30, 25, 0.8);
+    color: var(--text-Bright);
+    border: 1px solid var(--border-highlight);
+    padding: 10px 14px;
+    min-height: 44px;
+    font-family: inherit;
+    font-size: 0.84rem;
+    cursor: pointer;
+    border-radius: var(--border-radius);
+    transition: all 0.15s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  body.questis-skin button {
+    background: rgba(24, 55, 95, 0.7);
+    border-radius: 10px;
+  }
+  button:hover, button:active {
+    background: var(--border-highlight);
+    color: #000;
+    font-weight: bold;
+  }
+  button.danger {
+    border-color: var(--alert-red);
+    color: var(--alert-red);
+  }
+  button.danger:hover, button.danger:active {
+    background: var(--alert-red);
+    color: #fff;
+  }
+  button.warn {
+    border-color: var(--warn-amber);
+    color: var(--warn-amber);
+  }
+  button.warn:hover, button.warn:active {
+    background: var(--warn-amber);
+    color: #000;
+  }
+  button.questis-btn {
+    border-color: var(--accent-cyan);
+    color: var(--accent-cyan);
+    box-shadow: 0 0 10px rgba(0, 229, 255, 0.25);
+  }
+
+  /* SECURITY CLEARANCE BAR */
+  .clearance-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 10px 14px;
+    margin-bottom: 14px;
+    border: 1px solid var(--border-color);
+    background: rgba(0,0,0,0.35);
+    border-radius: var(--border-radius);
+    font-size: 0.84rem;
+  }
+  .badge {
+    display: inline-block;
+    padding: 5px 10px;
+    margin: 2px;
+    border: 1px solid var(--text-dim);
+    color: var(--text-dim);
+    border-radius: var(--border-radius);
+    font-size: 0.76rem;
+  }
+  .badge.unlocked {
+    border-color: var(--text-Bright);
+    color: var(--text-Bright);
+    background: rgba(46, 230, 138, 0.14);
+  }
+  body.questis-skin .badge.unlocked {
+    background: rgba(56, 189, 248, 0.20);
+  }
+
+  /* MAIN LAYOUT GRID */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 960px) {
+    .main-grid { grid-template-columns: 1fr; }
+  }
+
+  /* SIDEBAR NAVIGATION & SEARCH */
+  .sidebar {
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 12px;
+    background: rgba(0,0,0,0.25);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .search-box { width: 100%; }
+  .nav-category {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-top: 8px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 4px;
+  }
+  .file-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .file-item {
+    padding: 12px 12px;
+    min-height: 46px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-size: 0.85rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.15s ease;
+    background: rgba(255,255,255,0.01);
+  }
+  .file-item:hover, .file-item:active {
+    border-color: var(--border-highlight);
+    background: rgba(46, 230, 138, 0.08);
+  }
+  .file-item.active {
+    background: var(--border-highlight);
+    color: #000;
+    font-weight: bold;
+  }
+  .file-item.locked {
+    color: var(--alert-red);
+    border-color: rgba(255, 42, 42, 0.35);
+    opacity: 0.85;
+  }
+
+  /* CONTENT VIEWPORT */
+  .viewport {
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 18px;
+    background: rgba(0,0,0,0.25);
+    min-height: 560px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow-x: hidden;
+  }
+  .doc-header {
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .doc-header h2 {
+    margin: 0;
+    color: var(--text-Bright);
+    font-size: 1.2rem;
+  }
+  .doc-meta {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+  .doc-body {
+    line-height: 1.6;
+    font-size: 0.92rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* TABLES IN VIEWPORT */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.84rem;
+    margin-top: 10px;
+    min-width: 580px;
+  }
+  th, td {
+    border: 1px solid var(--border-color);
+    padding: 10px 9px;
+    text-align: left;
+    vertical-align: middle;
+  }
+  th {
+    background: var(--bg-header);
+    color: var(--text-Bright);
+    text-transform: uppercase;
+    font-size: 0.76rem;
+  }
+  tr:nth-child(even) { background: var(--bg-row-even); }
+
+  .action-btn-group {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .action-btn-group button {
+    min-height: 38px;
+    padding: 6px 10px;
+    font-size: 0.76rem;
+  }
+
+  .status-armed { color: var(--alert-red); font-weight: bold; }
+  .status-safe { color: var(--text-Bright); font-weight: bold; }
+  .status-orbit { color: var(--orbital-purple); font-weight: bold; }
+  .status-dead { color: #666; text-decoration: line-through; }
+
+  .callout-box {
+    border-left: 3px solid var(--border-highlight);
+    background: rgba(46, 230, 138, 0.06);
+    padding: 14px 16px;
+    margin: 14px 0;
+    border-radius: var(--border-radius);
+  }
+  .callout-box.danger {
+    border-left-color: var(--alert-red);
+    background: rgba(255, 42, 42, 0.08);
+  }
+
+  /* TERMINAL LOG FOOTER */
+  .sys-log {
+    margin-top: 18px;
+    background: #030506;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 10px 14px;
+    height: 115px;
+    overflow-y: auto;
+    font-size: 0.8rem;
+    color: var(--text-Bright);
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* SLICING MINIGAME MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.88);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    padding: 14px;
+  }
+  .modal-box {
+    background: var(--bg-panel);
+    border: 2px solid var(--border-highlight);
+    border-radius: var(--border-radius);
+    max-width: 560px;
+    width: 100%;
+    padding: 20px;
+    box-shadow: 0 0 35px rgba(0,0,0,0.95);
+  }
+
+  /* Minigame 1: Hex Grid */
+  .hex-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    margin: 15px 0;
+  }
+  .hex-cell {
+    border: 1px solid var(--border-color);
+    min-height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1rem;
+    border-radius: var(--border-radius);
+    background: rgba(0,0,0,0.45);
+    transition: background-color 0.15s;
+    user-select: none;
+  }
+  .hex-cell:hover, .hex-cell:active { border-color: var(--border-highlight); }
+  .hex-cell.matched { background: var(--border-highlight); color: #000; }
+  .hex-cell.wrong-flash { background: var(--alert-red) !important; color: #fff !important; }
+
+  /* Minigame 2: Frequency Sliders */
+  .freq-row {
+    margin: 14px 0;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    background: rgba(0,0,0,0.35);
+  }
+  .freq-row input[type="range"] {
+    width: 100%;
+    height: 32px;
+    accent-color: var(--border-highlight);
+    cursor: pointer;
+  }
+
+  /* Minigame 3: Pattern Nodes */
+  .pattern-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin: 15px 0;
+  }
+  .pattern-node {
+    min-height: 68px;
+    border: 2px solid var(--border-color);
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: var(--border-radius);
+    user-select: none;
+    transition: all 0.15s ease;
+  }
+  .pattern-node.lit {
+    background: var(--accent-cyan);
+    border-color: #fff;
+    color: #000;
+    box-shadow: 0 0 18px var(--accent-cyan);
+  }
+  .pattern-node.matched {
+    background: var(--border-highlight);
+    color: #000;
+  }
+  .pattern-node.wrong-flash {
+    background: var(--alert-red) !important;
+    color: #fff !important;
+  }
+
+  .timer-bar {
+    font-size: 1.2rem;
+    color: var(--alert-red);
+    font-weight: bold;
+  }
+</style>
 </head>
-<body class="h-full flex flex-col select-none overflow-hidden font-sans">
+<body>
 
-  <header class="bg-slate-900 border-b border-slate-800 px-4 py-2 flex items-center justify-between z-30 shadow-md shrink-0">
-    <div class="flex items-center gap-3">
-      <div class="p-2 bg-rose-600/20 text-rose-400 border border-rose-500/30 rounded-lg flex items-center justify-center">
-        <i data-lucide="dices" class="w-5 h-5"></i>
+<div class="app-container">
+  <!-- TOP HEADER -->
+  <div class="top-bar">
+    <div class="title-block">
+      <h1 id="os-title" class="translatable">IMPERIAL DATAPAD // SILO-1 RELAY</h1>
+      <div class="subtitle translatable" id="os-subtitle">SECTOR RESEARCH DIVISION // RAKATA PRIME NETWORK</div>
+    </div>
+
+    <div class="controls-block">
+      <input type="text" id="pass-input" placeholder="ENTER PASSCODE..." onkeydown="if(event.key==='Enter') submitPassword()">
+      <button onclick="submitPassword()">AUTHORIZE</button>
+      <button onclick="toggleAurebesh()" id="aurebesh-btn">AUREBESH: OFF</button>
+      <!-- HIDDEN QUESTIS BUTTON (UNLOCKED VIA CODE: IRIZI-QUESTIS) -->
+      <button id="skin-toggle-btn" class="questis-btn" style="display:none;" onclick="toggleSkin()">SWITCH OS: QUESTIS</button>
+    </div>
+  </div>
+
+  <!-- SECURITY CLEARANCE BAR -->
+  <div class="clearance-bar">
+    <div>
+      <strong>SECURITY CLEARANCE:</strong>
+      <span class="badge unlocked">OPEN FILES [ACTIVE]</span>
+      <span class="badge" id="badge-lvl1">LEVEL 1: CLASSIFIED [LOCKED]</span>
+      <span class="badge" id="badge-lvl2">LEVEL 2: OMEGA-BLACK [LOCKED]</span>
+    </div>
+    <div>
+      <button class="warn" onclick="openSlicingModal()">[INITIATE SLICING BYPASS]</button>
+    </div>
+  </div>
+
+  <!-- MAIN INTERFACE -->
+  <div class="main-grid">
+    <!-- LEFT SIDEBAR -->
+    <div class="sidebar">
+      <input type="text" class="search-box" id="search-input" placeholder="Search decrypted database..." oninput="renderFileList()">
+      
+      <div class="nav-category">Open Operations Logs (Level 0)</div>
+      <ul class="file-list" id="list-lvl0"></ul>
+
+      <div class="nav-category">Classified Data (Level 1)</div>
+      <ul class="file-list" id="list-lvl1"></ul>
+
+      <div class="nav-category">Omega-Black Archives (Level 2)</div>
+      <ul class="file-list" id="list-lvl2"></ul>
+    </div>
+
+    <!-- RIGHT VIEWPORT -->
+    <div class="viewport">
+      <div id="doc-content" class="translatable">
+        <!-- Rendered document content -->
       </div>
+
+      <div class="sys-log" id="sys-log">
+        &gt; TERMINAL CONNECTED TO SILO-1 SUB-NET (LEVEL 3 RELAY)...<br>
+        &gt; WARNING: INTERMITTENT ION STORM INTERFERENCE DETECTED ON ORBITAL UPLINK.<br>
+        &gt; ENTER AUTHORIZATION PASSCODE OR INITIATE SLICING BYPASS TO DECRYPT CLASSIFIED NODES.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLICING MINIGAME MODAL -->
+<div class="modal-overlay" id="slicing-modal">
+  <div class="modal-box">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
       <div>
-        <h1 class="font-bold text-sm md:text-base tracking-wide text-slate-100 flex items-center gap-2">
-          Roll20 Light <span class="text-xs font-medium px-2 py-0.5 rounded bg-rose-950 text-rose-400 border border-rose-800">D&D 5E</span>
-        </h1>
-        <p class="text-xs text-slate-400">Kampagne: Dragens Forbandelse</p>
+        <h3 id="minigame-title" style="margin:0; color:var(--text-Bright);">SECURITY BYPASS PROTOCOL</h3>
+        <div id="minigame-stage-indicator" style="font-size:0.78rem; color:var(--accent-cyan);">STAGE 1 OF 1</div>
       </div>
+      <span class="timer-bar" id="slice-timer">15.0s</span>
     </div>
 
-    <!-- Hovedværktøjslinje -->
-    <div class="flex items-center gap-1 bg-slate-950/70 p-1 rounded-xl border border-slate-800">
-      <button id="tool-select" onclick="setTool('select')" class="tool-btn active p-2 rounded-lg text-slate-200 hover:bg-slate-800 hover:text-white transition" title="Vælg & Flyt Tokens">
-        <i data-lucide="mouse-pointer" class="w-4 h-4"></i>
-      </button>
-      <button id="tool-pan" onclick="setTool('pan')" class="tool-btn p-2 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition" title="Træk / Panorer kort">
-        <i data-lucide="hand" class="w-4 h-4"></i>
-      </button>
-      <button id="tool-ruler" onclick="setTool('ruler')" class="tool-btn p-2 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition" title="Målebånd (Afstand)">
-        <i data-lucide="ruler" class="w-4 h-4"></i>
-      </button>
-      <button id="tool-draw" onclick="setTool('draw')" class="tool-btn p-2 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition" title="Tegn på kort">
-        <i data-lucide="pencil" class="w-4 h-4"></i>
-      </button>
-      <div class="h-4 w-px bg-slate-800 mx-1"></div>
-      <button onclick="clearDrawings()" class="p-2 rounded-lg text-rose-400 hover:bg-rose-950/50 transition" title="Ryd tegninger">
-        <i data-lucide="trash-2" class="w-4 h-4"></i>
-      </button>
+    <p id="minigame-desc" style="font-size:0.84rem; color:var(--text-dim); margin:10px 0;">
+      Select security target and press START to initialize slicing sequence. Warning: Incorrect inputs incur a -2.5s trace penalty!
+    </p>
+
+    <div id="minigame-area">
+      <!-- Dynamic Minigame UI injected here -->
     </div>
 
-    <!-- Knapper til sidepaneler & modals -->
-    <div class="flex items-center gap-2">
-      <button onclick="toggleSheetModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-600/20 text-amber-300 border border-amber-600/40 hover:bg-amber-600/30 transition">
-        <i data-lucide="user" class="w-4 h-4"></i>
-        <span>Karakterark</span>
-      </button>
-      <button onclick="toggleVideoPanel()" id="btn-toggle-video" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-indigo-600/20 text-indigo-300 border border-indigo-600/40 hover:bg-indigo-600/30 transition">
-        <i data-lucide="video" class="w-4 h-4"></i>
-        <span>Video & Lyd</span>
-      </button>
-      <button onclick="toggleChatPanel()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 text-slate-200 hover:bg-slate-700 transition">
-        <i data-lucide="message-square" class="w-4 h-4"></i>
-        <span class="hidden sm:inline">Log</span>
-      </button>
-    </div>
-  </header>
-
-  <div class="flex-1 flex relative overflow-hidden">
-    
-    <!-- Venstre værktøjspanel / Token palette -->
-    <aside class="w-16 bg-slate-900 border-r border-slate-800 flex flex-col items-center py-3 gap-3 z-20 shrink-0">
-      <div class="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Tokens</div>
-      
-      <!-- Hurtig token tilføjelse -->
-      <button onclick="spawnToken('player')" class="w-10 h-10 rounded-full bg-blue-600 hover:bg-blue-500 flex items-center justify-center text-white font-bold shadow-lg shadow-blue-900/40 border-2 border-blue-300 transition" title="Tilføj Spiller Token">
-        H
-      </button>
-      <button onclick="spawnToken('monster')" class="w-10 h-10 rounded-full bg-rose-600 hover:bg-rose-500 flex items-center justify-center text-white font-bold shadow-lg shadow-rose-900/40 border-2 border-rose-300 transition" title="Tilføj Monster Token (Goblin)">
-        M
-      </button>
-      <button onclick="spawnToken('boss')" class="w-10 h-10 rounded-full bg-amber-600 hover:bg-amber-500 flex items-center justify-center text-white font-bold shadow-lg shadow-amber-900/40 border-2 border-amber-300 transition" title="Tilføj Drage/Boss">
-        D
-      </button>
-
-      <div class="w-8 h-px bg-slate-800 my-1"></div>
-
-      <!-- Kort tema skifter -->
-      <div class="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Kort</div>
-      <button onclick="setMapTheme('dungeon')" class="w-9 h-9 rounded-lg bg-stone-800 hover:border-stone-400 border border-stone-700 text-stone-300 flex items-center justify-center text-xs" title="Fangekælder">
-        <i data-lucide="shield" class="w-4 h-4"></i>
-      </button>
-      <button onclick="setMapTheme('forest')" class="w-9 h-9 rounded-lg bg-emerald-950 hover:border-emerald-400 border border-emerald-800 text-emerald-300 flex items-center justify-center text-xs" title="Skov">
-        <i data-lucide="trees" class="w-4 h-4"></i>
-      </button>
-      <button onclick="setMapTheme('parchment')" class="w-9 h-9 rounded-lg bg-amber-950 hover:border-amber-400 border border-amber-800 text-amber-200 flex items-center justify-center text-xs" title="Pergament">
-        <i data-lucide="map" class="w-4 h-4"></i>
-      </button>
-
-      <!-- Zoom kontroller -->
-      <div class="mt-auto flex flex-col gap-1 items-center">
-        <button onclick="zoomMap(1.15)" class="w-8 h-8 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center" title="Zoom ind">
-          <i data-lucide="zoom-in" class="w-4 h-4"></i>
-        </button>
-        <button onclick="resetZoom()" class="text-[10px] text-slate-400 hover:text-white" title="Nulstil zoom">100%</button>
-        <button onclick="zoomMap(0.85)" class="w-8 h-8 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center" title="Zoom ud">
-          <i data-lucide="zoom-out" class="w-4 h-4"></i>
-        </button>
-      </div>
-    </aside>
-
-    <main id="viewport" class="flex-1 relative overflow-hidden bg-slate-950 cursor-default">
-      
-      <!-- Transformation Container for Map & Tokens -->
-      <div id="map-plane" class="absolute top-0 left-0 w-[3000px] h-[3000px] grid-bg-dungeon transition-none origin-top-left">
-        <!-- SVG Overlæg til tegning og opmåling -->
-        <svg id="svg-layer" class="absolute inset-0 w-full h-full pointer-events-none z-10">
-          <g id="drawings-group"></g>
-          <g id="ruler-group"></g>
-        </svg>
-
-        <!-- Token Container -->
-        <div id="tokens-layer" class="absolute inset-0 z-20"></div>
-      </div>
-
-      <!-- Kort information overlay -->
-      <div class="absolute bottom-4 left-4 bg-slate-900/80 backdrop-blur-md px-3 py-1.5 rounded-lg border border-slate-800 text-xs text-slate-400 pointer-events-none flex items-center gap-3">
-        <span>Gitter: <strong class="text-slate-200">1 tern = 5 fod (~1,5m)</strong></span>
-        <span>Aktivt værktøj: <strong id="lbl-active-tool" class="text-rose-400 capitalize">Vælg</strong></span>
-      </div>
-
-      <!-- Hurtig Terningebjælke (Bund) -->
-      <div class="absolute bottom-4 right-4 z-20 flex items-center gap-1.5 bg-slate-900/90 backdrop-blur-md p-2 rounded-2xl border border-slate-800 shadow-xl">
-        <button onclick="quickRoll(4)" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-rose-600 hover:text-white text-xs font-semibold text-slate-300 transition">d4</button>
-        <button onclick="quickRoll(6)" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-rose-600 hover:text-white text-xs font-semibold text-slate-300 transition">d6</button>
-        <button onclick="quickRoll(8)" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-rose-600 hover:text-white text-xs font-semibold text-slate-300 transition">d8</button>
-        <button onclick="quickRoll(10)" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-rose-600 hover:text-white text-xs font-semibold text-slate-300 transition">d10</button>
-        <button onclick="quickRoll(12)" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-rose-600 hover:text-white text-xs font-semibold text-slate-300 transition">d12</button>
-        <button onclick="quickRoll(20)" class="px-3 py-1.5 rounded-xl bg-rose-600/30 border border-rose-500/50 hover:bg-rose-600 text-rose-200 hover:text-white text-xs font-bold transition">d20</button>
-        <button onclick="quickRoll(100)" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-rose-600 hover:text-white text-xs font-semibold text-slate-300 transition">d100</button>
-      </div>
-
-      <!-- Flydende Videopanel (Webcam / Samtale) -->
-      <div id="video-panel" class="absolute top-4 left-4 z-20 bg-slate-900/95 border border-slate-800 rounded-2xl shadow-2xl p-3 w-72 backdrop-blur-md transition-all">
-        <div class="flex items-center justify-between pb-2 border-b border-slate-800">
-          <div class="flex items-center gap-2 text-xs font-semibold text-slate-300">
-            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-            <span>Spiller Video / Lyd</span>
-          </div>
-          <button onclick="toggleVideoPanel()" class="text-slate-400 hover:text-slate-200">
-            <i data-lucide="x" class="w-4 h-4"></i>
-          </button>
-        </div>
-
-        <!-- Video grids -->
-        <div class="grid grid-cols-2 gap-2 mt-2">
-          <!-- Lokal spiller webcam -->
-          <div class="relative bg-slate-950 rounded-xl overflow-hidden aspect-video border border-slate-800 flex items-center justify-center">
-            <video id="local-video" autoplay muted playsinline class="w-full h-full object-cover hidden"></video>
-            <div id="video-placeholder" class="flex flex-col items-center justify-center text-slate-500">
-              <i data-lucide="camera-off" class="w-5 h-5 mb-1"></i>
-              <span class="text-[10px]">Kamera slået fra</span>
-            </div>
-            <span class="absolute bottom-1 left-1.5 text-[9px] bg-slate-900/80 px-1 rounded text-slate-300">Dig (Spilleder)</span>
-          </div>
-
-          <!-- Mock Fjernspiller 1 -->
-          <div class="relative bg-slate-950 rounded-xl overflow-hidden aspect-video border border-slate-800 flex items-center justify-center">
-            <div class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center font-bold text-xs text-white">
-              KV
-            </div>
-            <span class="absolute bottom-1 left-1.5 text-[9px] bg-slate-900/80 px-1 rounded text-slate-300">Kasper (Kriger)</span>
-            <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-emerald-500" title="Online & Lytter"></span>
-          </div>
-
-          <!-- Mock Fjernspiller 2 -->
-          <div class="relative bg-slate-950 rounded-xl overflow-hidden aspect-video border border-slate-800 flex items-center justify-center">
-            <div class="w-8 h-8 rounded-full bg-emerald-700 flex items-center justify-center font-bold text-xs text-white">
-              SM
-            </div>
-            <span class="absolute bottom-1 left-1.5 text-[9px] bg-slate-900/80 px-1 rounded text-slate-300">Sara (Troldkvinde)</span>
-            <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-emerald-500" title="Online"></span>
-          </div>
-
-          <!-- Mock Fjernspiller 3 -->
-          <div class="relative bg-slate-950 rounded-xl overflow-hidden aspect-video border border-slate-800 flex items-center justify-center">
-            <div class="w-8 h-8 rounded-full bg-amber-600 flex items-center justify-center font-bold text-xs text-white">
-              TB
-            </div>
-            <span class="absolute bottom-1 left-1.5 text-[9px] bg-slate-900/80 px-1 rounded text-slate-300">Troels (Skjald)</span>
-            <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-slate-600" title="Muted"></span>
-          </div>
-        </div>
-
-        <!-- WebRTC enhedsstyring -->
-        <div class="flex items-center justify-between mt-3 pt-2 border-t border-slate-800/80">
-          <button id="btn-cam" onclick="toggleWebcam()" class="flex-1 mr-1 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-medium text-slate-200 flex items-center justify-center gap-1.5">
-            <i data-lucide="video" class="w-3.5 h-3.5"></i>
-            <span id="txt-cam">Start Kamera</span>
-          </button>
-          <button id="btn-mic" onclick="toggleMic()" class="flex-1 ml-1 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-medium text-slate-200 flex items-center justify-center gap-1.5">
-            <i data-lucide="mic" class="w-3.5 h-3.5"></i>
-            <span id="txt-mic">Slå mikrofon til</span>
-          </button>
-        </div>
-      </div>
-    </main>
-
-    <aside id="chat-sidebar" class="w-80 bg-slate-900 border-l border-slate-800 flex flex-col z-20 transition-all duration-300">
-      <div class="p-3 border-b border-slate-800 flex items-center justify-between">
-        <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
-          <i data-lucide="scroll" class="w-4 h-4 text-rose-400"></i>
-          Spillog & Terningeslag
-        </h2>
-        <button onclick="clearChatLog()" class="text-xs text-slate-500 hover:text-rose-400" title="Ryd log">
-          <i data-lucide="eraser" class="w-3.5 h-3.5"></i>
-        </button>
-      </div>
-
-      <!-- Chat Feed -->
-      <div id="chat-messages" class="flex-1 p-3 overflow-y-auto space-y-3 text-xs">
-        <!-- Velkomstbesked -->
-        <div class="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/80">
-          <div class="flex items-center justify-between text-[10px] text-slate-500 mb-1">
-            <span class="font-bold text-rose-400">System</span>
-            <span>Lige nu</span>
-          </div>
-          <p class="text-slate-300">Velkommen til spilsessionen! Rul terninger direkte via knapperne eller skriv fx <code class="bg-slate-800 px-1 rounded text-amber-300">/r 2d6+3</code>.</p>
-        </div>
-      </div>
-
-      <!-- Inputformular til chat & terninger -->
-      <div class="p-3 bg-slate-950/70 border-t border-slate-800">
-        <form id="chat-form" onsubmit="handleChatSubmit(event)" class="space-y-2">
-          <div class="flex items-center gap-2">
-            <select id="chat-as" class="bg-slate-900 border border-slate-800 text-[11px] text-slate-300 rounded-lg px-2 py-1 focus:outline-none focus:border-rose-500">
-              <option value="GM">Spilleder (GM)</option>
-              <option value="Helden">Hjalte Ravneøje</option>
-              <option value="OOC">OOC (Uden for spil)</option>
-            </select>
-            <span class="text-[10px] text-slate-500">/r for terninger</span>
-          </div>
-          <div class="flex gap-2">
-            <input id="chat-input" type="text" placeholder="Besked eller /r 1d20+5..." class="flex-1 bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-rose-500">
-            <button type="submit" class="bg-rose-600 hover:bg-rose-500 text-white px-3 py-2 rounded-lg flex items-center justify-center transition">
-              <i data-lucide="send" class="w-3.5 h-3.5"></i>
-            </button>
-          </div>
-        </form>
-      </div>
-    </aside>
-  </div>
-
-  <div id="sheet-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
-      <!-- Sheet Top -->
-      <div class="px-6 py-4 bg-slate-950/90 border-b border-slate-800 flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 font-bold">
-            HR
-          </div>
-          <div>
-            <input id="sheet-name" type="text" value="Hjalte Ravneøje" class="bg-transparent font-bold text-slate-100 text-base focus:outline-none border-b border-transparent focus:border-amber-500">
-            <p class="text-xs text-slate-400">Niveau 3 Ranger / Spejder (D&D 5e)</p>
-          </div>
-        </div>
-        <button onclick="toggleSheetModal()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
-      </div>
-
-      <!-- Sheet Indhold med Rullepanel -->
-      <div class="p-6 overflow-y-auto space-y-6">
-        <!-- Vigtige Stats: HP, AC, Initiative -->
-        <div class="grid grid-cols-3 gap-3">
-          <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800 text-center">
-            <span class="text-[10px] text-slate-400 uppercase font-semibold">Livspoint (HP)</span>
-            <div class="flex items-center justify-center gap-1 mt-1">
-              <input id="char-hp-cur" type="number" value="28" class="w-12 text-center bg-slate-900 border border-slate-700 rounded text-emerald-400 font-bold text-lg">
-              <span class="text-slate-500">/</span>
-              <input id="char-hp-max" type="number" value="28" class="w-12 text-center bg-slate-900 border border-slate-700 rounded text-slate-400 font-bold text-lg">
-            </div>
-          </div>
-          <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800 text-center">
-            <span class="text-[10px] text-slate-400 uppercase font-semibold">Rustningsklasse (AC)</span>
-            <div class="mt-1 text-xl font-black text-amber-400">15</div>
-          </div>
-          <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800 text-center">
-            <span class="text-[10px] text-slate-400 uppercase font-semibold">Initiativ</span>
-            <div class="mt-1">
-              <button onclick="rollStat('Initiativ', 3)" class="px-3 py-0.5 rounded bg-slate-800 hover:bg-amber-600 hover:text-white text-slate-200 text-sm font-bold border border-slate-700 transition">
-                +3 🎲
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Evne-egenskaber (Ability Scores) -->
-        <div>
-          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Evne-Egenskaber (Klik for at slå)</h3>
-          <div class="grid grid-cols-6 gap-2 text-center">
-            <!-- STR -->
-            <button onclick="rollStat('Styrke', 1)" class="bg-slate-950/60 hover:bg-amber-600/20 p-2.5 rounded-xl border border-slate-800 hover:border-amber-500/50 transition flex flex-col items-center">
-              <span class="text-[10px] font-bold text-slate-400">STR</span>
-              <span class="text-base font-black text-slate-100">12</span>
-              <span class="text-xs font-bold text-amber-400">+1</span>
-            </button>
-            <!-- DEX -->
-            <button onclick="rollStat('Behændighed', 3)" class="bg-slate-950/60 hover:bg-amber-600/20 p-2.5 rounded-xl border border-slate-800 hover:border-amber-500/50 transition flex flex-col items-center">
-              <span class="text-[10px] font-bold text-slate-400">DEX</span>
-              <span class="text-base font-black text-slate-100">16</span>
-              <span class="text-xs font-bold text-amber-400">+3</span>
-            </button>
-            <!-- CON -->
-            <button onclick="rollStat('Konstitution', 2)" class="bg-slate-950/60 hover:bg-amber-600/20 p-2.5 rounded-xl border border-slate-800 hover:border-amber-500/50 transition flex flex-col items-center">
-              <span class="text-[10px] font-bold text-slate-400">CON</span>
-              <span class="text-base font-black text-slate-100">14</span>
-              <span class="text-xs font-bold text-amber-400">+2</span>
-            </button>
-            <!-- INT -->
-            <button onclick="rollStat('Intelligens', 0)" class="bg-slate-950/60 hover:bg-amber-600/20 p-2.5 rounded-xl border border-slate-800 hover:border-amber-500/50 transition flex flex-col items-center">
-              <span class="text-[10px] font-bold text-slate-400">INT</span>
-              <span class="text-base font-black text-slate-100">10</span>
-              <span class="text-xs font-bold text-amber-400">+0</span>
-            </button>
-            <!-- WIS -->
-            <button onclick="rollStat('Visdom', 2)" class="bg-slate-950/60 hover:bg-amber-600/20 p-2.5 rounded-xl border border-slate-800 hover:border-amber-500/50 transition flex flex-col items-center">
-              <span class="text-[10px] font-bold text-slate-400">WIS</span>
-              <span class="text-base font-black text-slate-100">15</span>
-              <span class="text-xs font-bold text-amber-400">+2</span>
-            </button>
-            <!-- CHA -->
-            <button onclick="rollStat('Karisma', -1)" class="bg-slate-950/60 hover:bg-amber-600/20 p-2.5 rounded-xl border border-slate-800 hover:border-amber-500/50 transition flex flex-col items-center">
-              <span class="text-[10px] font-bold text-slate-400">CHA</span>
-              <span class="text-base font-black text-slate-100">8</span>
-              <span class="text-xs font-bold text-rose-400">-1</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Våben & Angreb -->
-        <div>
-          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Våben & Angreb</h3>
-          <div class="space-y-2">
-            <div class="flex items-center justify-between p-2.5 bg-slate-950/60 border border-slate-800 rounded-xl">
-              <div>
-                <div class="font-bold text-xs text-slate-200">Langbue (Langdistance)</div>
-                <div class="text-[11px] text-slate-400">Rækkevidde 150/600 fod • 1d8 + 3 stikskade</div>
-              </div>
-              <div class="flex items-center gap-1.5">
-                <button onclick="rollAttack('Langbue', 5, '1d8+3', 'stikskade')" class="px-2.5 py-1 bg-amber-600/30 hover:bg-amber-600 border border-amber-500/40 text-amber-200 hover:text-white rounded-lg text-xs font-semibold transition">
-                  Angreb (+5)
-                </button>
-                <button onclick="rollDamage('Langbue Skade', 8, 3)" class="px-2.5 py-1 bg-rose-600/30 hover:bg-rose-600 border border-rose-500/40 text-rose-200 hover:text-white rounded-lg text-xs font-semibold transition">
-                  Skade (1d8+3)
-                </button>
-              </div>
-            </div>
-
-            <div class="flex items-center justify-between p-2.5 bg-slate-950/60 border border-slate-800 rounded-xl">
-              <div>
-                <div class="font-bold text-xs text-slate-200">Kortsværd (Nærkamp)</div>
-                <div class="text-[11px] text-slate-400">Finesse • 1d6 + 3 skæreskade</div>
-              </div>
-              <div class="flex items-center gap-1.5">
-                <button onclick="rollAttack('Kortsværd', 5, '1d6+3', 'hugskade')" class="px-2.5 py-1 bg-amber-600/30 hover:bg-amber-600 border border-amber-500/40 text-amber-200 hover:text-white rounded-lg text-xs font-semibold transition">
-                  Angreb (+5)
-                </button>
-                <button onclick="rollDamage('Kortsværd Skade', 6, 3)" class="px-2.5 py-1 bg-rose-600/30 hover:bg-rose-600 border border-rose-500/40 text-rose-200 hover:text-white rounded-lg text-xs font-semibold transition">
-                  Skade (1d6+3)
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Noter & Udstyr -->
-        <div>
-          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Udstyr & Magiske Genstande</h3>
-          <textarea class="w-full h-20 bg-slate-950/60 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-300 focus:outline-none focus:border-amber-500" placeholder="Skriv udstyr, eliksirer og magiske genstande her...">- Rejsesæt med sovepose og fakler (5x)
-- 2x Helbredende Eliksirer (2d4+2 HP)
-- Gammelt kort over Dragespiret fundet i ruinerne</textarea>
-        </div>
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-top:14px;">
+      <select id="slice-tier-select" style="background:#000; color:var(--text-Bright); border:1px solid var(--border-color); padding:10px; min-height:44px; font-family:inherit;">
+        <option value="1">Target: Level 1 Classified (1 Stage)</option>
+        <option value="2">Target: Level 2 Omega-Black (2 Stages Required)</option>
+      </select>
+      <div style="display:flex; gap:8px;">
+        <button onclick="startSlicingRun()">START BYPASS</button>
+        <button class="danger" onclick="closeSlicingModal()">ABORT</button>
       </div>
     </div>
   </div>
+</div>
 
-  <script>
-    /* Global Application State */
-    const state = {
-      tool: 'select', // select, pan, ruler, draw
-      zoom: 1,
-      pan: { x: -300, y: -200 },
-      isDraggingMap: false,
-      dragStart: { x: 0, y: 0 },
-      tokens: [
-        { id: 't1', name: 'Hjalte', type: 'player', x: 520, y: 360, size: 40, color: '#2563eb', hp: '28/28' },
-        { id: 't2', name: 'Goblin 1', type: 'monster', x: 680, y: 360, size: 40, color: '#dc2626', hp: '7/7' },
-        { id: 't3', name: 'Goblin 2', type: 'monster', x: 680, y: 440, size: 40, color: '#dc2626', hp: '7/7' },
-        { id: 't4', name: 'Drageunge', type: 'boss', x: 800, y: 400, size: 80, color: '#d97706', hp: '65/65' }
-      ],
-      selectedTokenId: null,
-      isDraggingToken: false,
-      tokenDragOffset: { x: 0, y: 0 },
-      
-      // Målebånd (Ruler) tilstand
-      rulerStart: null,
-      rulerCurrent: null,
+<script>
+  // ============================================================================
+  // 1. SUPABASE REALTIME CONFIGURATION (OPTIONAL)
+  // Paste your Supabase URL and Anon Key below for real-time sync between GM
+  // and player. If left blank, the datapad runs 100% locally without errors.
+  // ============================================================================
+  const SUPABASE_URL = ""; 
+  const SUPABASE_ANON_KEY = "";
+  let supabaseClient = null;
+  let realtimeChannel = null;
 
-      // Tegnetilstand
-      isDrawing: false,
-      currentDrawPath: []
-    };
+  if (SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase) {
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    realtimeChannel = supabaseClient.channel('silo1-datapad-sync');
+    realtimeChannel
+      .on('broadcast', { event: 'state_update' }, (payload) => {
+        applyRemoteState(payload.payload);
+      })
+      .subscribe();
+  }
 
-    /* DOM Element referencer */
-    const viewport = document.getElementById('viewport');
-    const mapPlane = document.getElementById('map-plane');
-    const tokensLayer = document.getElementById('tokens-layer');
-    const rulerGroup = document.getElementById('ruler-group');
-    const drawingsGroup = document.getElementById('drawings-group');
-    const chatMessages = document.getElementById('chat-messages');
+  function broadcastState() {
+    if (!realtimeChannel) return;
+    realtimeChannel.send({
+      type: 'broadcast',
+      event: 'state_update',
+      payload: {
+        clearanceLvl1,
+        clearanceLvl2,
+        depotUnlocked,
+        questisUnlocked,
+        aaTurretsActive,
+        hangarDoorsOpen,
+        containmentLocks,
+        blastDoorCodeUnlocked,
+        unlockedLockers,
+        batch17
+      }
+    });
+  }
 
-    function updateMapTransform() {
-      mapPlane.style.transform = `translate(${state.pan.x}px, ${state.pan.y}px) scale(${state.zoom})`;
-    }
-
-    function zoomMap(factor) {
-      const oldZoom = state.zoom;
-      state.zoom = Math.min(Math.max(state.zoom * factor, 0.4), 2.5);
-      
-      // Zoom mod midten af viewporten
-      const rect = viewport.getBoundingClientRect();
-      const cx = rect.width / 2;
-      const cy = rect.height / 2;
-      state.pan.x = cx - (cx - state.pan.x) * (state.zoom / oldZoom);
-      state.pan.y = cy - (cy - state.pan.y) * (state.zoom / oldZoom);
-      
-      updateMapTransform();
-    }
-
-    function resetZoom() {
-      state.zoom = 1;
-      updateMapTransform();
-    }
-
-    function setTool(toolName) {
-      state.tool = toolName;
-      document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('bg-slate-800', 'text-white'));
-      const activeBtn = document.getElementById(`tool-${toolName}`);
-      if (activeBtn) activeBtn.classList.add('bg-slate-800', 'text-white');
-      
-      const labels = {
-        select: 'Vælg & Flyt',
-        pan: 'Panorer',
-        ruler: 'Målebånd (5 fod)',
-        draw: 'Tegn'
-      };
-      document.getElementById('lbl-active-tool').innerText = labels[toolName] || toolName;
-
-      // Opdater cursor-stil
-      if (toolName === 'pan') viewport.style.cursor = 'grab';
-      else if (toolName === 'ruler') viewport.style.cursor = 'crosshair';
-      else if (toolName === 'draw') viewport.style.cursor = 'crosshair';
-      else viewport.style.cursor = 'default';
-    }
-
-    function setMapTheme(theme) {
-      mapPlane.className = `absolute top-0 left-0 w-[3000px] h-[3000px] grid-bg-${theme} transition-none origin-top-left`;
-    }
-
-    /* Konverter museposition til koordinater på kortplanet */
-    function getMapCoords(e) {
-      const rect = viewport.getBoundingClientRect();
-      const clientX = e.clientX || (e.touches && e.touches[0].clientX);
-      const clientY = e.clientY || (e.touches && e.touches[0].clientY);
-      const vx = clientX - rect.left;
-      const vy = clientY - rect.top;
-      return {
-        x: (vx - state.pan.x) / state.zoom,
-        y: (vy - state.pan.y) / state.zoom
-      };
-    }
-
-    function renderTokens() {
-      tokensLayer.innerHTML = '';
-      state.tokens.forEach(token => {
-        const el = document.createElement('div');
-        el.id = `token-${token.id}`;
-        el.className = `absolute select-none flex flex-col items-center justify-center cursor-grab rounded-full font-bold shadow-lg transition-shadow duration-150 ${
-          state.selectedTokenId === token.id ? 'ring-4 ring-amber-400' : 'hover:ring-2 hover:ring-white/80'
-        }`;
-        
-        el.style.width = `${token.size}px`;
-        el.style.height = `${token.size}px`;
-        el.style.left = `${token.x}px`;
-        el.style.top = `${token.y}px`;
-        el.style.backgroundColor = token.color;
-        el.style.color = '#ffffff';
-        el.style.border = '2px solid rgba(255,255,255,0.7)';
-
-        // Initialer / Token ikon
-        el.innerHTML = `
-          <span class="text-xs pointer-events-none drop-shadow-md">${token.name.substring(0, 2).toUpperCase()}</span>
-          <div class="absolute -top-5 left-1/2 -translate-x-1/2 bg-slate-900/90 text-slate-200 border border-slate-700 px-1.5 py-0.2 rounded text-[9px] whitespace-nowrap pointer-events-none shadow">
-            ${token.name} (${token.hp})
-          </div>
-        `;
-
-        // Token begivenheder
-        el.addEventListener('mousedown', (e) => {
-          if (state.tool !== 'select') return;
-          e.stopPropagation();
-          state.selectedTokenId = token.id;
-          state.isDraggingToken = true;
-          const coords = getMapCoords(e);
-          state.tokenDragOffset = {
-            x: coords.x - token.x,
-            y: coords.y - token.y
-          };
-          renderTokens();
-        });
-
-        tokensLayer.appendChild(el);
+  function applyRemoteState(data) {
+    if (!data) return;
+    clearanceLvl1 = data.clearanceLvl1;
+    clearanceLvl2 = data.clearanceLvl2;
+    depotUnlocked = data.depotUnlocked;
+    questisUnlocked = data.questisUnlocked;
+    aaTurretsActive = data.aaTurretsActive;
+    hangarDoorsOpen = data.hangarDoorsOpen;
+    containmentLocks = data.containmentLocks;
+    blastDoorCodeUnlocked = data.blastDoorCodeUnlocked;
+    if (data.unlockedLockers) unlockedLockers = data.unlockedLockers;
+    if (data.batch17) {
+      data.batch17.forEach((remoteSub, i) => {
+        if (batch17[i]) Object.assign(batch17[i], remoteSub);
       });
     }
+    updateClearanceBadges();
+    renderFileList();
+    selectFile(currentFileId, true);
+  }
 
-    function spawnToken(type) {
-      const centerX = (-state.pan.x + viewport.clientWidth / 2) / state.zoom;
-      const centerY = (-state.pan.y + viewport.clientHeight / 2) / state.zoom;
-      
-      const snapX = Math.round(centerX / 40) * 40;
-      const snapY = Math.round(centerY / 40) * 40;
+  // ============================================================================
+  // 2. WEB AUDIO SYNTHESIZER (WARNING BUZZERS & CONFIRMATION BEEPS)
+  // ============================================================================
+  let audioCtx = null;
+  function getAudioCtx() {
+    if (!audioCtx) {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AudioContext();
+    }
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
 
-      let newToken;
-      if (type === 'player') {
-        newToken = {
-          id: 't_' + Date.now(),
-          name: 'Spiller ' + (state.tokens.filter(t => t.type==='player').length + 1),
-          type: 'player',
-          x: snapX,
-          y: snapY,
-          size: 40,
-          color: '#3b82f6',
-          hp: '20/20'
-        };
-      } else if (type === 'monster') {
-        newToken = {
-          id: 't_' + Date.now(),
-          name: 'Ork ' + (state.tokens.filter(t => t.type==='monster').length + 1),
-          type: 'monster',
-          x: snapX,
-          y: snapY,
-          size: 40,
-          color: '#ef4444',
-          hp: '15/15'
-        };
-      } else {
-        newToken = {
-          id: 't_' + Date.now(),
-          name: 'Boss Drage',
-          type: 'boss',
-          x: snapX,
-          y: snapY,
-          size: 80,
-          color: '#b45309',
-          hp: '120/120'
-        };
+  // Harsh dual low-frequency Imperial buzzer on wrong password or slicing error
+  function playWarningSound() {
+    try {
+      const ctx = getAudioCtx();
+      const now = ctx.currentTime;
+      [0, 0.16].forEach(offset => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(145, now + offset);
+        osc.frequency.linearRampToValueAtTime(92, now + offset + 0.13);
+        gain.gain.setValueAtTime(0.25, now + offset);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.14);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now + offset);
+        osc.stop(now + offset + 0.15);
+      });
+    } catch (e) {}
+  }
+
+  // Short crisp digital beep
+  function playClickSound(freq = 880) {
+    try {
+      const ctx = getAudioCtx();
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now);
+      gain.gain.setValueAtTime(0.14, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.09);
+    } catch (e) {}
+  }
+
+  // Ascending unlock chime
+  function playUnlockSound() {
+    playClickSound(587.33);
+    setTimeout(() => playClickSound(880), 90);
+    setTimeout(() => playClickSound(1174.66), 180);
+  }
+
+  // ============================================================================
+  // 3. SYSTEM STATE, DEPOT LOCKERS & BATCH 17 TELEMETRY
+  // ============================================================================
+  let clearanceLvl1 = false;
+  let clearanceLvl2 = false;
+  let depotUnlocked = false;
+  let questisUnlocked = false;
+  let isQuestisSkin = false;
+  let isAurebesh = false;
+  let currentFileId = "log_kaelen";
+
+  // Facility Control States
+  let aaTurretsActive = true;
+  let hangarDoorsOpen = false;
+  let containmentLocks = true;
+  let blastDoorCodeUnlocked = false; // Requires KREEL-LOCK-9 via Computers check
+
+  // Depot Section 2 Lockers (01 to 12) - Expanded with previous batches' loot
+  let unlockedLockers = {};
+  const depotLockers = [
+    { box: "01", batch: "Batch 01 (Mixed Miners)", desc: "Heavy mining overalls, 2x industrial plasma-cutters (depleted power cells), 1x battered vibro-pick, pouch with 85 Imperial credits." },
+    { box: "02", batch: "Batch 03 (Human Group)", desc: "Confiscated spacer jackets, 1x Medpac (contains 2 intact Bacta Stimpacks), personal comlinks (frequencies wiped), 1x magnetic glowrod." },
+    { box: "03", batch: "Batch 04 & 05 (Rodian / Twi'lek)", desc: "2x HoldoutBlaster Pistols (ammunition clips removed and stored in Box 09), 1x fine Rylothian silk cloak, 3x Sabacc decks." },
+    { box: "04", batch: "Batch 06 (Bothan Operatives)", desc: "1x encrypted Bothan holo-recorder, 1x Electronic Lock Breaker (grants Boost die to Skulduggery checks), 2x concealed vibro-knives." },
+    { box: "05", batch: "Batch 07 & 08 (Trandoshan / Wookiee)", desc: "1x heavy Trandoshan Jagannath blade, braided Wookiee bandolier, 2x Frag Grenades (safety pins Magna-sealed)." },
+    { box: "06", batch: "Batch 17 (B17-01 & B17-02)", desc: "Confiscated formal diplomatic robes, tunic, and heavy cloak belonging to Subject B17-01 (Thzaron) and Subject B17-02 (Charinn) — routinely bio-scanned with no anomalies detected and sealed in textile storage bag." },
+    { box: "07", batch: "Batch 17 (B17-03)", desc: "1x Custom wedge-shaped Chiss terminal ('Questis' datapad) belonging to Subject B17-03 (Kethani), 1x set of precision micro-slicing probes." },
+    { box: "08", batch: "Batch 17 (Chiss Escort Crew)", desc: "2x Chiss Charric Pistols (maser power packs attached), standard Chiss Defense Fleet uniforms, 2x short-range encrypted comlinks." },
+    { box: "09", batch: "Batch 10–15 (Assorted Confiscations)", desc: "6x standard blaster power packs, 1x illegal Modified Disruptor Pistol (flagged for ISB disposal), 1x breath mask with 4 spare filters." },
+    { box: "10", batch: "Batch 16 (High-Security)", desc: "1x heavy restraining bolt caller, 2x stun batons, 1x damaged Imperial Security Bureau code cylinder (corroded circuit)." },
+    { box: "11", batch: "Batch 17 (Border Farmers)", desc: "Coarse frontier work-clothes belonging to B17-05 through B17-08, 140 unregistered Outer Rim trade coins, 1x multi-spanner." },
+    { box: "12", batch: "Unclaimed / Quarantine Salvage", desc: "3x Emergency Med-Patches, 1x spool of high-tensile ascension cable with grappling hook, 2x ration packs." }
+  ];
+
+  const batch17 = [
+    { id: "B17-01", name: "Thzaron", loc: "SILO 1", bpm: 62, bp: "112/70", temp: "35.4°C", stress: "18%", state: "ARMED" },
+    { id: "B17-02", name: "Charinn", loc: "SILO 1", bpm: 84, bp: "126/82", temp: "35.7°C", stress: "46%", state: "ARMED" },
+    { id: "B17-03", name: "Kethani", loc: "SILO 1", bpm: 90, bp: "130/85", temp: "35.8°C", stress: "52%", state: "ARMED" },
+    { id: "B17-04", name: "Loran",   loc: "SILO 1", bpm: 56, bp: "102/64", temp: "35.2°C", stress: "14%", state: "ARMED" },
+    { id: "B17-05", name: "Vora",    loc: "SILO 1", bpm: 58, bp: "104/66", temp: "35.3°C", stress: "16%", state: "ARMED" },
+    { id: "B17-06", name: "Reve",    loc: "SILO 1", bpm: 54, bp: "100/62", temp: "35.1°C", stress: "12%", state: "ARMED" },
+    { id: "B17-07", name: "Roza",    loc: "SILO 1", bpm: 60, bp: "106/68", temp: "35.3°C", stress: "19%", state: "ARMED" },
+    { id: "B17-08", name: "Kinta",   loc: "SILO 1", bpm: 57, bp: "103/65", temp: "35.2°C", stress: "15%", state: "ARMED" },
+    { id: "B17-09", name: "Naya",    loc: "SILO 1", bpm: 72, bp: "110/70", temp: "35.6°C", stress: "22%", state: "ARMED" },
+    { id: "B17-10", name: "Kaelis",  loc: "SILO 1", bpm: 88, bp: "128/84", temp: "35.7°C", stress: "61%", state: "ARMED" },
+    { id: "B17-11", name: "Voren",   loc: "SILO 1", bpm: 102, bp: "142/92", temp: "36.1°C", stress: "78%", state: "ARMED" },
+    { id: "B17-12", name: "Janas",   loc: "SILO 1", bpm: 108, bp: "148/96", temp: "36.2°C", stress: "89%", state: "ARMED" },
+    { id: "B17-13", name: "Prard",   loc: "SILO 1", bpm: 79, bp: "122/78", temp: "35.5°C", stress: "41%", state: "ARMED" },
+    { id: "B17-14", name: "Kreln",   loc: "SILO 1", bpm: 82, bp: "124/80", temp: "35.6°C", stress: "44%", state: "ARMED" }
+  ];
+
+  // ============================================================================
+  // 4. DATABASE FILES (ALL IN ENGLISH)
+  // ============================================================================
+  const files = [
+    // --- LEVEL 0: OPEN FILES ---
+    {
+      id: "log_kaelen",
+      level: 0,
+      lockedLabel: "",
+      title: "MAINTENANCE LOG: TK-442 (INDUR-17)",
+      meta: "Technician Kaelen // Section 3-B Engineering",
+      keywords: "indur-17 cables corrosion epoxy level 3 level 5 kaelen",
+      render: () => `
+        <p><strong>TECHNICAL MAINTENANCE LOG: SILO 1 // SECTION 3-B</strong><br>
+        <strong>LOGGING OFFICER:</strong> Technician Kaelen (ID: TK-442)</p>
+        <p>Routine pressure-drop repairs along the vertical conduit shafts on Level 3 have been completed. For the third time in two standard weeks, we have had to replace entire sections of <strong>Indur-17 alloy</strong> piping leading toward the lower decks. The alloy exhibits accelerated surface pitting, structural brittleness, and microscopic fractures far beyond Imperial durability specifications.</p>
+        <p>The cause continues to be logged as high humidity accumulation and poor exhaust ventilation rising from the disposal shaft on Level 5. As local stores are completely out of replacement Indur-17 spools, the corroded couplings have been scrubbed and temporarily patched with standard industrial epoxy paste.</p>
+        <div class="callout-box">
+          <strong>ENGINEERING NOTE:</strong> The biomass accumulation in the lower disposal shaft (Level 5) should be scheduled for a full thermal purge during the next monthly service cycle to halt further pipe degradation. However, until the Batch 17 evaluation concludes, all high-output reactor power for the incinerator nozzles remains diverted to the Level 4 testing ring. Operational status rated stable.
+        </div>
+      `
+    },
+    {
+      id: "log_vagtplan",
+      level: 0,
+      lockedLabel: "",
+      title: "DUTY ROSTER & DISCIPLINARY REPORT",
+      meta: "Major Ordon Kreel // Garrison Section 2",
+      keywords: "roster kreel stormtrooper fever droids level 4 5",
+      render: () => `
+        <p><strong>GARRISON DEPLOYMENT ROSTER // SILO 1 SECURITY</strong><br>
+        <strong>COMMANDING OFFICER:</strong> Major Ordon Kreel (ISB)</p>
+        <table>
+          <thead>
+            <tr><th>Deck / Sector</th><th>Staffing Status</th><th>Standing Orders & Protocols</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Level 1 (Hangar Aurek)</td><td>2x Sentry Posts + Patrol</td><td>Live-fire readiness. Lambda-class shuttle undergoing pre-flight fueling.</td></tr>
+            <tr><td>Level 2 (Barracks & Depot)</td><td>Security Office Manned</td><td>Confiscated Goods Depot Section 2 locked (Passcode held by Duty Officer).</td></tr>
+            <tr><td>Level 3 (Technical Relay)</td><td>Engineering Crew (Rotating)</td><td>0 Security Droids active (Strict ban on Indur-17 logic circuits).</td></tr>
+            <tr><td>Level 4 (Testing Ring)</td><td>0 Physical Guards</td><td>100% Automated airlock and sensor control slaved to Orbital Command.</td></tr>
+            <tr><td>Level 5 (Biomass Shaft)</td><td>RESTRICTED ZONE</td><td>All physical access prohibited. Awaiting thermal incineration cycle.</td></tr>
+          </tbody>
+        </table>
+        <div class="callout-box danger">
+          <strong>DISCIPLINARY INCIDENT (TK-819):</strong> Trooper TK-819 was discovered unconscious at his post near the Level 2 ventilation shaft during shift change, exhibiting violent muscle tremors, dilated pupils, and a 40.4°C fever. Subject claimed to hear "a rhythmic humming inside the bulkhead walls." Confined to isolation brig for dereliction of duty. — <em>Major Kreel</em>
+        </div>
+      `
+    },
+    {
+      id: "log_forsyning",
+      level: 0,
+      lockedLabel: "",
+      title: "SUPPLY MANIFEST & REQUISITIONS",
+      meta: "Quartermaster Office // Logistics Level 1–2",
+      keywords: "supply mess hall flavor paste hydro-spanner workshop",
+      render: () => `
+        <p><strong>LOGISTICS & REQUISITION STATUS // CYCLE 114</strong></p>
+        <ul>
+          <li><strong>Supply Pod #44-B:</strong> Delayed due to severe coastal gales. Contains 400 units of synthetic protein blocks, high-grade medical air filters, and replacement seals for atmospheric airlocks.</li>
+          <li><strong>Mess Hall Complaint (Denied):</strong> Requisition for Core World flavor-pastes has once again been rejected by the Orbital Quartermaster. Garrison personnel are instructed to consume standard ration packs without complaint.</li>
+          <li><strong>Missing Tools Notice (Workshop B):</strong> Three magnetic <em>hydro-spanners</em>, one fusion cutter, and two rolls of insulation tape are missing from Section 3-B. If technicians continue leaving tools inside the Level 4 service crawlways, replacement costs will be deducted directly from pay!</li>
+        </ul>
+      `
+    },
+    {
+      id: "log_vejr",
+      level: 0,
+      lockedLabel: "",
+      title: "ATMOSPHERIC SENSOR LOG",
+      meta: "Rakata Prime // Surface Radar & Orbital Uplink",
+      keywords: "storm ion blackout orbit star destroyer uplink",
+      render: () => `
+        <p><strong>METEOROLOGICAL & ORBITAL TELEMETRY // SILO 1</strong></p>
+        <p>The coastal sector surrounding Silo 1 and Silo 2 continues to experience heavy electrical storm fronts moving in from the ocean. Wind gusts measured at 34 m/s across the Hangar Aurek cliffside aperture.</p>
+        <div class="callout-box">
+          <strong>UPLINK INTERFERENCE (BLACKOUT WINDOWS):</strong><br>
+          Whenever ion density in the upper cloud layer exceeds threshold 4.2, the vertical data-beam linking Silo 1 (Level 3 Relay) to the Command Ship in orbit suffers periodic <strong>telemetry blackouts lasting 4 to 8 minutes</strong>. During these windows, cranial implant signals are cached locally on Level 3 before re-transmission to Dr. Vael's orbital console.
+        </div>
+      `
+    },
+
+    // --- LEVEL 1: CLASSIFIED FILES (OBFUSCATED IN MENU UNTIL UNLOCKED) ---
+    {
+      id: "batch_17_live",
+      level: 1,
+      lockedLabel: "[ENCRYPTED // SEC-1_NODE_01]",
+      title: "BATCH 17 // CRANIAL TELEMETRY (LIVE)",
+      meta: "Level 1 Classified // Active Biometric Implant Control",
+      keywords: "batch 17 cranial implant pulse shock detonate kethani charinn naya loran thzaron",
+      render: () => renderBatch17Table()
+    },
+    {
+      id: "batch_01_16_log",
+      level: 1,
+      lockedLabel: "[ENCRYPTED // SEC-1_NODE_02]",
+      title: "ARCHIVE: BATCH 01–16 (SILO 1 & 2)",
+      meta: "Level 1 Classified // Comparative Xenobiological Exposure",
+      keywords: "batch 1 16 silo 1 silo 2 humans rodians twi'leks bothans wookiees trandoshans gands mon calamari",
+      render: () => `
+        <p><strong>SUMMARY OF PRIOR TEST GROUPS (MVS-3 PATHOGEN)</strong><br>
+        Trials were conducted in parallel across <strong>Silo 1</strong> and adjacent facility <strong>Silo 2</strong> to isolate species-specific mutations.</p>
+        <table>
+          <thead>
+            <tr><th>Batch</th><th>Facility</th><th>Composition (Species)</th><th>Clinical Observation, Mutation & Disposition</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Batch 01</strong></td><td>Silo 1</td><td><strong>Mixed</strong> <em>(Humans, Rodians, Twi'leks, Bothans)</em></td><td>Acute exposure (Surviving laborers from Sector Extraction Zone). Complete loss of higher volition within 18 hours. Humans became catatonic; non-humans entered chaotic frenzy. Disposed into Level 5 shaft.</td></tr>
+            <tr><td><strong>Batch 02</strong></td><td>Silo 2</td><td><strong>Mixed</strong> <em>(Wookiees, Trandoshans, Gands, Mon Calamari)</em></td><td>Terminated prematurely: Triggered immediate inter-species combat rage. Three sensor domes and two hydraulic rams destroyed. Unusable data.</td></tr>
+            <tr><td><strong>Batch 03</strong></td><td>Silo 1</td><td><strong>Humans</strong> <em>(Isolated)</em></td><td>Lethargy & Motor Lock: Subjects fall into a stupor with zero pain response, but exhibit a violent, locking grasping reflex upon physical contact. Deposited into Level 5.</td></tr>
+            <tr><td><strong>Batch 04</strong></td><td>Silo 2</td><td><strong>Rodians</strong> <em>(Isolated)</em></td><td>Hyper-Mobility: Green-purple crystalline fungal growths erupt through scales. Subjects retain extreme leaping power and manic hunting instincts.</td></tr>
+            <tr><td><strong>Batch 05</strong></td><td>Silo 1</td><td><strong>Twi'leks</strong> <em>(Isolated)</em></td><td>Motor Override: Pathogen invades neural pathways inside <em>lekku</em> at record speed. Triggers whipping spasms and erratic, acrobatic aggression. Dumped live into Level 5.</td></tr>
+            <tr><td><strong>Batch 06</strong></td><td>Silo 2</td><td><strong>Bothans</strong> <em>(Isolated)</em></td><td>Acoustic/Olfactory Mania: Fur sheds rapidly while auditory and olfactory nerves hyper-stimulate. Subjects attack any sound source in coordinated packs.</td></tr>
+            <tr><td><strong>Batch 07</strong></td><td>Silo 1</td><td><strong>Trandoshans</strong> <em>(Isolated)</em></td><td>Crystalline Hypertrophy: Natural regeneration battles the fungus, forming heavy, armored bone-spurs (increased Soak) before internal organ failure. Deposited into Level 5.</td></tr>
+            <tr><td><strong>Batch 08</strong></td><td>Silo 2</td><td><strong>Wookiees</strong> <em>(Isolated)</em></td><td>Circulatory Collapse: Required 400% spore dosage. Achieved massive physical Brawn, but cardiac and pulmonary tissues ruptured within 36 hours.</td></tr>
+            <tr><td><strong>Batch 09</strong></td><td>Silo 1</td><td><strong>Gands</strong> <em>(Isolated)</em></td><td>Stagnation & Acid: Subjects fuse to floor grates as swollen spore-blisters. Secrete a highly corrosive enzymatic acid during decay. Flushed into Level 5.</td></tr>
+            <tr><td><strong>Batch 10</strong></td><td>Silo 1</td><td><strong>Mon Calamari</strong> <em>(Isolated)</em></td><td>Aggressive Vitality: Moist tissue provides optimal fungal symbiosis without cellular necrosis. Remain fully mobile, tireless, and violently aggressive. Disposed into Level 5.</td></tr>
+            <tr><td><strong>Batch 11</strong></td><td>Silo 1</td><td><strong>Rodians</strong> <em>(Stress Test)</em></td><td>Persistence: Subjects climb and leap across vertical conduits after days without nutrition. Transferred directly to Level 5 shaft.</td></tr>
+            <tr><td><strong>Batch 12</strong></td><td>Silo 2</td><td><strong>Twi'leks</strong> <em>(Stress Test)</em></td><td>Anomaly: Under extreme sonic pressure, subjects ceased fighting one another and moved in silent synchronicity via subtle <em>lekku</em> twitches.</td></tr>
+            <tr><td><strong>Batch 13</strong></td><td>Silo 1</td><td><strong>Bothans</strong> <em>(Stress Test)</em></td><td>Pack Coordination: Despite 0% higher brainwave activity, subjects stalked and ambushed test drones in coordinated formations. Dumped into Level 5.</td></tr>
+            <tr><td><strong>Batch 14</strong></td><td>Silo 2</td><td><strong>Mon Calamari</strong> <em>(Thermal)</em></td><td>Thermal Asymmetry: -40°C forces both host and pathogen into stasis. Upon rapid heating (+65°C), subjects awaken in a berserk frenzy.</td></tr>
+            <tr><td><strong>Batch 15</strong></td><td>Silo 1</td><td><strong>Mobile Group</strong> <em>(Twi'lek, Rodian, Mon Cal, Bothan)</em></td><td>Lethal Endurance: Refuse to enter stasis or expire. Represent a persistent swarm of fast vectors. Dumped un-sedated into Level 5 (thermal purge postponed due to power diversion to Batch 17).</td></tr>
+            <tr><td><strong>Batch 16</strong></td><td>Silo 2</td><td><strong>Wookiees & Trandoshans</strong></td><td>Gravity Centrifuge: Muscle fibers pushed far beyond biological limits until bones and tendons shattered internally. Terminated via cranial charges.</td></tr>
+          </tbody>
+        </table>
+      `
+    },
+    {
+      id: "depot_sektion2",
+      level: 1,
+      lockedLabel: "[ENCRYPTED // SEC-1_NODE_03]",
+      title: "DEPOT // SECTION 2 MANIFEST",
+      meta: "Level 1 Classified (Or Direct Passcode: TRIDENT-44)",
+      keywords: "depot box 07 questis clothing robes thzaron kethani",
+      render: () => renderDepotManifest()
+    },
+
+    // --- LEVEL 2: OMEGA-BLACK ARCHIVES (OBFUSCATED IN MENU UNTIL UNLOCKED) ---
+    {
+      id: "vael_krydssmitte",
+      level: 2,
+      lockedLabel: "[ENCRYPTED // OMEGA_NODE_01]",
+      title: "RESEARCH: CROSS-INFECTION & STATIC CORE",
+      meta: "Omega-Black // Dr. Arkris Vael – Pathogen Analysis",
+      keywords: "cross-infection spores mutate stable engineered vael conclusion",
+      render: () => `
+        <p><strong>SPECIAL SCIENTIFIC REPORT // MVS-3 GENETIC STABILITY</strong><br>
+        <strong>AUTHOR:</strong> Dr. Arkris Vael, Chief Xenobiologist (Orbital Research Division)</p>
+        <p><strong>1. Extreme Host Variation (Inter- and Intra-Species):</strong><br>
+        Data gathered across Batch 01 through 16 in Silo 1 and Silo 2 demonstrates extraordinary biological plasticity among infected hosts. We observe not only stark differences in mutation velocity and physical manifestation <em>between</em> species (e.g., catatonic lethargy in Humans versus hyper-mobility in Rodians and acid secretion in Gands), but also unpredictable diversity <em>within the exact same species</em> — including variable crystalline dermis growth, sensory shifts, muscle hypertrophy, and cognitive decay rates.</p>
+        <p><strong>2. Cross-Harvesting of Spores (The Null-Effect Experiment):</strong><br>
+        To determine whether MycoVex adapts and carries over traits from its previous host, we harvested active spores from heavily mutated specimens (including crystallized Trandoshans in Silo 1 and synchronized Twi'leks in Silo 2) and used them to infect fresh subjects of different species across multiple permutations.</p>
+        <div class="callout-box danger">
+          <strong>CONCLUSION — THE STATIC CORE:</strong><br>
+          Cross-species spore harvesting produced <strong>zero variance whatsoever</strong> in any combination. Regardless of which mutated host the spores were harvested from, the newly infected subject reacted strictly according to its own baseline genetics.<br><br>
+          The implication is unmistakable: <strong>While MycoVex forces every living host into violent and chaotic biological mutation, MycoVex itself does not mutate at all.</strong> Its genetic core is 100% static, immutable, and unnaturally stable. An organism with zero self-mutation cannot have arisen through natural evolution. It bears every hallmark of having been <em>artificially engineered and genetically locked</em>.
+        </div>
+      `
+    },
+    {
+      id: "vael_verdant_reign",
+      level: 2,
+      lockedLabel: "[ENCRYPTED // OMEGA_NODE_02]",
+      title: "OPERATION VERDANT REIGN (BIOWEAPON)",
+      meta: "Omega-Black // Eyes Only: Grand Moff Veris Kharlon",
+      keywords: "verdant reign strain a strain b chiss dna naya loran vora janas kharlon",
+      render: () => `
+        <p><strong>IMPERIAL RESEARCH DIVISION — OPERATION VERDANT REIGN</strong><br>
+        <strong>SUBJECT:</strong> Bioweapon Optimization via Chiss Genetic Sequencing (Batch 17 / MVS-3)</p>
+        <p>Whereas Batch 01 through 16 (Human and alien species) succumb to cellular breakdown or total cognitive collapse within days, Batch 17 confirms a breakthrough anomaly: <strong>Chiss DNA exhibits 0% cellular necrosis</strong> and acts as a biological dampener that stabilizes host physiology without neutralizing pathogen virulence.</p>
+        <p>By splicing Chiss regulatory sequences into MVS-3, we can synthesize two distinct operational bioweapon vectors:</p>
+        <ul>
+          <li><strong>Strain A (Planetary Infiltration):</strong> Extends incubation to several weeks. Infected populations remain asymptomatic carriers long enough to spread the pathogen globally via starports before synchronous mass-collapse occurs.</li>
+          <li><strong>Strain B (Tactical Pacification):</strong> Locks non-Chiss hosts into a prolonged, hyper-aggressive state with extreme pain tolerance and delayed organ failure — ideal for rapid pacification of insurgent worlds.</li>
+        </ul>
+        <div class="callout-box">
+          <strong>RECOMMENDATION (IMMEDIATE ORBITAL TRANSFER):</strong><br>
+          The following four subjects from Batch 17 are flagged for immediate extraction to the Star Destroyer laboratory in orbit for deep genetic harvesting and comparative baseline control:<br>
+          • <strong>Subject B17-09 (Naya):</strong> Exhibits 0% synaptic degradation and an unexplained neural resonance anomaly.<br>
+          • <strong>Subject B17-04 (Loran):</strong> Primary control specimen for rapid volitional suppression (Category Beta docility).<br>
+          • <strong>Subject B17-05 (Vora):</strong> Secondary physiological reference specimen (high physical endurance under docile compliance).<br>
+          • <strong>Subject B17-12 (Janas):</strong> Control specimen for acute neural stress-response under aerosol exposure.
+        </div>
+      `
+    },
+    {
+      id: "kharlon_slave_log",
+      level: 2,
+      lockedLabel: "[ENCRYPTED // OMEGA_NODE_03]",
+      title: "DIRECTIVE: QUADANIUM LABOR FORCE",
+      meta: "Omega-Black // Grand Moff Veris Kharlon Logistics",
+      keywords: "quadanium slave category beta loran farmers mine",
+      render: () => `
+        <p><strong>COMMAND DIRECTIVE // SECTOR EXTRACTION ZONE</strong><br>
+        <strong>FROM:</strong> Grand Moff Veris Kharlon (Orbital Flagship)</p>
+        <p>As our vital extraction of <strong>Quadanium ore</strong> across the Sector Mining Complex remains completely paralyzed by the pathogen outbreak, and because security and labor droids suffer catastrophic logic-circuit failure due to enzymatic corrosion of their Indur-17 wiring, <em>Protocol Iron Grip</em> is hereby enacted:</p>
+        <p>Those individuals in Batch 17 classified by Dr. Vael as <strong>Category Beta</strong> (including Subject B17-04 Loran and frontier laborers B17-05 through B17-08) demonstrate full biological survival and immunity to tissue decay, while losing all independent initiative and rebellious willpower.</p>
+        <div class="callout-box danger">
+          <strong>DIRECTIVE:</strong> These compliant Chiss specimens are not to be wasted on destructive centrifuge trials. They are to be deployed as an immune, docile slave-labor force deep within the spore-contaminated Quadanium shafts to resume ore quotas for Imperial fleet construction.
+        </div>
+      `
+    },
+    {
+      id: "hangar_kontrol",
+      level: 2,
+      lockedLabel: "[ENCRYPTED // OMEGA_NODE_04]",
+      title: "FACILITY CONTROL: HANGAR AUREK & LOCKS",
+      meta: "Omega-Black // Level 1 Surface & Containment Bulkheads",
+      keywords: "hangar aurek anti-air turbolaser airlocks blast doors shuttle",
+      render: () => renderFacilityControls()
+    }
+  ];
+
+  // ============================================================================
+  // 5. RENDER & UI FUNCTIONS
+  // ============================================================================
+  function isFileUnlocked(file) {
+    if (file.level === 0) return true;
+    if (file.level === 1) return clearanceLvl1 || (file.id === "depot_sektion2" && depotUnlocked);
+    if (file.level === 2) return clearanceLvl2;
+    return false;
+  }
+
+  function updateClearanceBadges() {
+    const b1 = document.getElementById("badge-lvl1");
+    const b2 = document.getElementById("badge-lvl2");
+    if (clearanceLvl1) {
+      b1.className = "badge unlocked";
+      b1.innerText = "LEVEL 1: CLASSIFIED [OPEN]";
+    }
+    if (clearanceLvl2) {
+      b2.className = "badge unlocked";
+      b2.innerText = "LEVEL 2: OMEGA-BLACK [OPEN]";
+    }
+    if (questisUnlocked) {
+      document.getElementById("skin-toggle-btn").style.display = "inline-flex";
+    }
+  }
+
+  function renderFileList() {
+    const query = document.getElementById("search-input").value.toLowerCase().trim();
+    const list0 = document.getElementById("list-lvl0");
+    const list1 = document.getElementById("list-lvl1");
+    const list2 = document.getElementById("list-lvl2");
+
+    list0.innerHTML = "";
+    list1.innerHTML = "";
+    list2.innerHTML = "";
+
+    files.forEach(file => {
+      const unlocked = isFileUnlocked(file);
+
+      // Search only matches locked files if they have already been unlocked
+      if (query) {
+        if (!unlocked) return;
+        const match = file.title.toLowerCase().includes(query) || 
+                      file.keywords.toLowerCase().includes(query) ||
+                      file.meta.toLowerCase().includes(query);
+        if (!match) return;
       }
 
-      state.tokens.push(newToken);
-      renderTokens();
-      appendChatMessage('System', `Nyt token placeret på kortet: <strong>${newToken.name}</strong>`);
+      const displayTitle = unlocked ? file.title : file.lockedLabel;
+
+      const li = document.createElement("li");
+      li.className = `file-item ${currentFileId === file.id ? "active" : ""} ${!unlocked ? "locked" : ""}`;
+      li.innerHTML = `
+        <span>${displayTitle}</span>
+        <span style="font-size:0.72rem;">${unlocked ? "[OPEN]" : "[LOCKED]"}</span>
+      `;
+      li.onclick = () => selectFile(file.id);
+
+      if (file.level === 0) list0.appendChild(li);
+      else if (file.level === 1) list1.appendChild(li);
+      else list2.appendChild(li);
+    });
+  }
+
+  function selectFile(fileId, silent = false) {
+    const file = files.find(f => f.id === fileId);
+    if (!file) return;
+
+    const unlocked = isFileUnlocked(file);
+    currentFileId = fileId;
+    renderFileList();
+
+    const container = document.getElementById("doc-content");
+    if (!unlocked) {
+      if (!silent) playWarningSound();
+      container.innerHTML = `
+        <div class="doc-header">
+          <div>
+            <h2 style="color:var(--alert-red);">ACCESS DENIED // ${file.lockedLabel}</h2>
+            <div class="doc-meta">Security Clearance Level ${file.level} Required</div>
+          </div>
+        </div>
+        <div class="callout-box danger">
+          This data node is protected by Imperial Section-${file.level} encryption. Filename and contents are obfuscated.<br><br>
+          Enter a valid authorization passcode in the top bar or tap <strong>[INITIATE SLICING BYPASS]</strong> to decrypt this sector.
+        </div>
+      `;
+      if (!silent) logMsg(`ACCESS DENIED: Attempted to read ${file.lockedLabel} without Level ${file.level} clearance.`);
+      return;
     }
 
-    viewport.addEventListener('mousedown', (e) => {
-      const coords = getMapCoords(e);
+    if (!silent) playClickSound(720);
+    container.innerHTML = `
+      <div class="doc-header">
+        <div>
+          <h2>${file.title}</h2>
+          <div class="doc-meta">${file.meta}</div>
+        </div>
+        <div class="badge unlocked">CLEARANCE: LEVEL ${file.level}</div>
+      </div>
+      <div class="doc-body">${file.render()}</div>
+    `;
+  }
 
-      if (state.tool === 'pan' || e.button === 1 || (e.button === 0 && e.shiftKey)) {
-        state.isDraggingMap = true;
-        state.dragStart = { x: e.clientX - state.pan.x, y: e.clientY - state.pan.y };
-        viewport.style.cursor = 'grabbing';
-      } else if (state.tool === 'ruler') {
-        state.rulerStart = coords;
-        state.rulerCurrent = coords;
-      } else if (state.tool === 'draw') {
-        state.isDrawing = true;
-        state.currentDrawPath = [coords];
-      } else if (state.tool === 'select') {
-        state.selectedTokenId = null;
-        renderTokens();
-      }
-    });
+  function renderDepotManifest() {
+    let rows = depotLockers.map(item => {
+      const isOpen = !!unlockedLockers[item.box];
+      return `
+        <tr>
+          <td><strong>BOX ${item.box}</strong></td>
+          <td>${item.batch}</td>
+          <td>${item.desc}</td>
+          <td class="${isOpen ? 'status-safe' : 'status-armed'}">${isOpen ? 'MAG-LOCK OPEN' : 'SEALED'}</td>
+        </tr>
+      `;
+    }).join("");
 
-    window.addEventListener('mousemove', (e) => {
-      // Panorering af kort
-      if (state.isDraggingMap) {
-        state.pan.x = e.clientX - state.dragStart.x;
-        state.pan.y = e.clientY - state.dragStart.y;
-        updateMapTransform();
-        return;
-      }
-
-      const coords = getMapCoords(e);
-
-      // Træk token
-      if (state.isDraggingToken && state.selectedTokenId) {
-        const token = state.tokens.find(t => t.id === state.selectedTokenId);
-        if (token) {
-          token.x = coords.x - state.tokenDragOffset.x;
-          token.y = coords.y - state.tokenDragOffset.y;
-          
-          const el = document.getElementById(`token-${token.id}`);
-          if (el) {
-            el.style.left = `${token.x}px`;
-            el.style.top = `${token.y}px`;
-          }
-        }
-        return;
-      }
-
-      // Målebånd
-      if (state.tool === 'ruler' && state.rulerStart) {
-        state.rulerCurrent = coords;
-        drawRuler();
-        return;
-      }
-
-      // Frihåndstegning
-      if (state.tool === 'draw' && state.isDrawing) {
-        state.currentDrawPath.push(coords);
-        renderCurrentDrawing();
-      }
-    });
-
-    window.addEventListener('mouseup', (e) => {
-      if (state.isDraggingMap) {
-        state.isDraggingMap = false;
-        viewport.style.cursor = state.tool === 'pan' ? 'grab' : 'default';
-      }
-
-      if (state.isDraggingToken && state.selectedTokenId) {
-        // Gitter-snapping (40px pr. tern)
-        const token = state.tokens.find(t => t.id === state.selectedTokenId);
-        if (token) {
-          token.x = Math.round(token.x / 40) * 40;
-          token.y = Math.round(token.y / 40) * 40;
-          renderTokens();
-        }
-        state.isDraggingToken = false;
-      }
-
-      if (state.tool === 'ruler' && state.rulerStart) {
-        state.rulerStart = null;
-        state.rulerCurrent = null;
-        rulerGroup.innerHTML = '';
-      }
-
-      if (state.tool === 'draw' && state.isDrawing) {
-        state.isDrawing = false;
-        commitDrawing();
-      }
-    });
-
-    // Zoom via musehjul
-    viewport.addEventListener('wheel', (e) => {
-      e.preventDefault();
-      const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
-      zoomMap(zoomFactor);
-    }, { passive: false });
-
-    function drawRuler() {
-      if (!state.rulerStart || !state.rulerCurrent) return;
-
-      const dx = state.rulerCurrent.x - state.rulerStart.x;
-      const dy = state.rulerCurrent.y - state.rulerStart.y;
-      const pixelDistance = Math.hypot(dx, dy);
+    return `
+      <p><strong>CONFISCATED GOODS & SALVAGE // SECURITY DEPOT SECTION 2 (LEVEL 2)</strong><br>
+      <em>Contains seized prisoner property from Batches 01 through 17. Enter a specific Box ID below to disengage its magnetic seal.</em></p>
       
-      // 40 pixels = 5 feet (1 D&D gitter-tern)
-      const feet = Math.round((pixelDistance / 40) * 5);
+      <div class="callout-box">
+        <strong>REMOTE MAGNETIC SEAL OVERRIDE:</strong><br>
+        Enter Locker Box Number (01 to 12) to toggle its magnetic lock:<br><br>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+          <input type="text" id="locker-input" placeholder="BOX # (e.g. 07)..." style="width:180px;" onkeydown="if(event.key==='Enter') triggerLockerBox()">
+          <button onclick="triggerLockerBox()">[TOGGLE BOX MAG-LOCK]</button>
+        </div>
+      </div>
 
-      rulerGroup.innerHTML = `
-        <line x1="${state.rulerStart.x}" y1="${state.rulerStart.y}" 
-              x2="${state.rulerCurrent.x}" y2="${state.rulerCurrent.y}" 
-              stroke="#fbbf24" stroke-width="3" stroke-dasharray="6,4" />
-        <circle cx="${state.rulerStart.x}" cy="${state.rulerStart.y}" r="4" fill="#fbbf24" />
-        <circle cx="${state.rulerCurrent.x}" cy="${state.rulerCurrent.y}" r="4" fill="#fbbf24" />
-        <g transform="translate(${(state.rulerStart.x + state.rulerCurrent.x) / 2}, ${(state.rulerStart.y + state.rulerCurrent.y) / 2 - 12})">
-          <rect x="-35" y="-12" width="70" height="20" rx="4" fill="#0f172a" stroke="#fbbf24" stroke-width="1.5" />
-          <text x="0" y="2" fill="#fbbf24" font-size="11" font-weight="bold" text-anchor="middle" dominant-baseline="middle">
-            ${feet} fod
-          </text>
-        </g>
+      <table>
+        <thead>
+          <tr>
+            <th style="width:90px;">Box ID</th>
+            <th style="width:170px;">Origin / Batch</th>
+            <th>Registered Inventory Contents</th>
+            <th style="width:120px;">Lock Status</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    `;
+  }
+
+  function triggerLockerBox() {
+    const inp = document.getElementById("locker-input");
+    if (!inp) return;
+    let raw = inp.value.trim().replace(/^box\s*/i, "");
+    if (raw.length === 1 && /^\d$/.test(raw)) raw = "0" + raw;
+
+    const found = depotLockers.find(l => l.box === raw);
+    if (!found) {
+      playWarningSound();
+      logMsg(`DEPOT ERROR: Locker Box '${inp.value}' not found. Valid range is 01 to 12.`);
+      return;
+    }
+
+    unlockedLockers[found.box] = !unlockedLockers[found.box];
+    const stateText = unlockedLockers[found.box] ? "DISENGAGED (OPEN)" : "ENGAGED (SEALED)";
+    playUnlockSound();
+    logMsg(`DEPOT SECTION 2: Magnetic seal on BOX ${found.box} (${found.batch}) is now ${stateText}.`);
+    broadcastState();
+    selectFile("depot_sektion2", true);
+  }
+
+  function renderBatch17Table() {
+    let rows = batch17.map((s, idx) => {
+      let stateClass = "status-armed";
+      if (s.state === "OFFLINE") stateClass = "status-safe";
+      else if (s.state === "TERMINATED") stateClass = "status-dead";
+
+      return `
+        <tr>
+          <td><strong>${s.id}</strong></td>
+          <td><strong>${s.name}</strong></td>
+          <td style="cursor:pointer;" title="GM Function: Tap to toggle between SILO 1 and ORBIT" onclick="toggleLocation(${idx})">
+            <span class="${s.loc === 'ORBIT' ? 'status-orbit' : ''}">${s.loc} &#8644;</span>
+          </td>
+          <td>${s.state === 'TERMINATED' ? '0 BPM (FLATLINE)' : `${s.bpm} BPM | ${s.bp} | ${s.temp}`}</td>
+          <td>${s.state === 'TERMINATED' ? '0%' : s.stress}</td>
+          <td class="${stateClass}">${s.state}</td>
+          <td>
+            <div class="action-btn-group">
+              <button onclick="toggleImplant(${idx})">${s.state === 'ARMED' ? 'Disarm' : 'Arm'}</button>
+              <button class="warn" onclick="shockSubject(${idx})">Shock</button>
+              <button class="danger" onclick="detonateSubject(${idx})">Detonate</button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join("");
+
+    return `
+      <p style="font-size:0.84rem; margin-top:0;">
+        Live biometric monitoring of cranial implants for <strong>Batch 17</strong>. 
+        <em>(GM Tip: Tap directly on SILO 1 / ORBIT next to any subject to transfer them to the Star Destroyer).</em>
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Core Name</th>
+            <th>Location</th>
+            <th>Clinical Telemetry (BPM / BP / Temp)</th>
+            <th>Stress</th>
+            <th>Implant</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    `;
+  }
+
+  function renderFacilityControls() {
+    let blastDoorSection = "";
+    if (!blastDoorCodeUnlocked) {
+      blastDoorSection = `
+        <div class="callout-box danger">
+          <strong>3. MAGNETIC BLAST DOORS & CELL RING (LEVELS 2–4):</strong><br>
+          Status: <strong>HARDWIRED QUARANTINE LOCK [ACTIVE]</strong><br>
+          <span style="font-size:0.84rem; color:var(--text-dim);">
+            Notice: Cell ring and bulkhead magnetic seals operate on an isolated security circuit and <strong>cannot</strong> be bypassed via the Slicing Minigame. Requires manual override code obtained via a dedicated <em>Computers</em> check at the security console.
+          </span><br><br>
+          <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+            <input type="text" id="blast-code-input" placeholder="ENTER BULKHEAD CODE..." onkeydown="if(event.key==='Enter') unlockBlastDoors()">
+            <button class="warn" onclick="unlockBlastDoors()">OVERRIDE BULKHEAD LOCKS</button>
+          </div>
+        </div>
+      `;
+    } else {
+      blastDoorSection = `
+        <div class="callout-box">
+          <strong>3. MAGNETIC BLAST DOORS & CELL RING (LEVELS 2–4):</strong><br>
+          Status: <strong style="color:${containmentLocks ? 'var(--alert-red)' : 'var(--text-Bright)'};">
+            ${containmentLocks ? 'QUARANTINE LOCKED' : 'UNSEALED (OVERRIDDEN VIA KREEL-LOCK-9)'}
+          </strong><br><br>
+          <button onclick="containmentLocks=!containmentLocks; playUnlockSound(); logMsg('BULKHEAD DOORS: Quarantine locks ' + (containmentLocks?'ENGAGED':'RELEASED')); broadcastState(); selectFile('hangar_kontrol', true);">
+            [${containmentLocks ? 'RELEASE BLAST DOORS & CELLS' : 'LOCK BLAST DOORS & CELLS'}]
+          </button>
+        </div>
       `;
     }
 
-    function renderCurrentDrawing() {
-      if (state.currentDrawPath.length < 2) return;
-      
-      let d = `M ${state.currentDrawPath[0].x} ${state.currentDrawPath[0].y}`;
-      for (let i = 1; i < state.currentDrawPath.length; i++) {
-        d += ` L ${state.currentDrawPath[i].x} ${state.currentDrawPath[i].y}`;
+    return `
+      <p><strong>PRIMARY FACILITY SYSTEMS OVERRIDE (SILO 1)</strong></p>
+      <div class="callout-box">
+        <strong>1. SURFACE ANTI-AIR DEFENSE (TURBOLASER BATTERY AUREK):</strong><br>
+        Status: <strong style="color:${aaTurretsActive ? 'var(--alert-red)' : 'var(--text-Bright)'};">
+          ${aaTurretsActive ? 'ONLINE (ENGAGING UNAUTHORIZED VESSELS)' : 'OFFLINE (SAFE FLIGHT CORRIDOR OPEN)'}
+        </strong><br><br>
+        <button onclick="aaTurretsActive=!aaTurretsActive; playUnlockSound(); logMsg('ANTI-AIR TURRETS: Status changed to ' + (aaTurretsActive?'ONLINE':'OFFLINE')); broadcastState(); selectFile('hangar_kontrol', true);">
+          [${aaTurretsActive ? 'DEACTIVATE ANTI-AIR TURRETS' : 'ACTIVATE ANTI-AIR TURRETS'}]
+        </button>
+      </div>
+
+      <div class="callout-box">
+        <strong>2. HANGAR AUREK MAIN CLAMSHELL DOORS (LEVEL 1):</strong><br>
+        Status: <strong>${hangarDoorsOpen ? 'OPEN TO COASTAL STORM' : 'SEALED (CLOSED)'}</strong><br><br>
+        <button onclick="hangarDoorsOpen=!hangarDoorsOpen; playUnlockSound(); logMsg('HANGAR AUREK DOORS: Status changed to ' + (hangarDoorsOpen?'OPEN':'CLOSED')); broadcastState(); selectFile('hangar_kontrol', true);">
+          [${hangarDoorsOpen ? 'CLOSE HANGAR DOORS' : 'FORCE OPEN HANGAR DOORS'}]
+        </button>
+      </div>
+
+      ${blastDoorSection}
+    `;
+  }
+
+  function unlockBlastDoors() {
+    const inp = document.getElementById("blast-code-input");
+    if (!inp) return;
+    const val = inp.value.trim().toUpperCase();
+    if (val === "KREEL-LOCK-9") {
+      blastDoorCodeUnlocked = true;
+      containmentLocks = false;
+      playUnlockSound();
+      logMsg("SECURITY OVERRIDE ACCEPTED [KREEL-LOCK-9]: Magnetic blast doors and cell ring (Levels 2–4) are now released!");
+      broadcastState();
+      selectFile("hangar_kontrol", true);
+    } else {
+      playWarningSound();
+      logMsg(`ERROR: Bulkhead override code '${val}' rejected! Requires valid security code from Computers check.`);
+    }
+  }
+
+  // ============================================================================
+  // 6. INTERACTIVE ACTIONS FOR BATCH 17
+  // ============================================================================
+  function toggleLocation(idx) {
+    const s = batch17[idx];
+    s.loc = s.loc === "SILO 1" ? "ORBIT" : "SILO 1";
+    playClickSound(640);
+    logMsg(`TELEMETRY UPDATE [${s.id} - ${s.name}]: Location registered as -> ${s.loc}.`);
+    broadcastState();
+    selectFile("batch_17_live", true);
+  }
+
+  function toggleImplant(idx) {
+    const s = batch17[idx];
+    if (s.state === "TERMINATED") return;
+    if (s.loc === "ORBIT") {
+      playWarningSound();
+      logMsg(`ERROR ON ${s.id} (${s.name}): Subject is located in ORBIT beyond local relay range! Requires direct terminal access aboard the Star Destroyer.`);
+      return;
+    }
+    s.state = s.state === "ARMED" ? "OFFLINE" : "ARMED";
+    playUnlockSound();
+    logMsg(`CRANIAL IMPLANT [${s.id} - ${s.name}]: Explosive charge set to -> ${s.state}.`);
+    broadcastState();
+    selectFile("batch_17_live", true);
+  }
+
+  function shockSubject(idx) {
+    const s = batch17[idx];
+    if (s.state === "TERMINATED") return;
+    if (s.loc === "ORBIT") {
+      playWarningSound();
+      logMsg(`ERROR ON ${s.id} (${s.name}): Subject is in ORBIT. Cannot transmit synaptic shock from surface relay.`);
+      return;
+    }
+    s.bpm = Math.min(165, s.bpm + 28);
+    s.stress = "96%";
+    playWarningSound();
+    logMsg(`WARNING! Synaptic shock pulse triggered in ${s.id} (${s.name})! Inflicts acute neural pain / Strain.`);
+    broadcastState();
+    selectFile("batch_17_live", true);
+  }
+
+  function detonateSubject(idx) {
+    const s = batch17[idx];
+    if (s.state === "TERMINATED") return;
+    if (s.loc === "ORBIT") {
+      playWarningSound();
+      logMsg(`ERROR ON ${s.id} (${s.name}): Subject is in ORBIT. Detonation signal blocked.`);
+      return;
+    }
+    if (!confirm(`CONFIRM DETONATION: Are you sure you want to detonate the cranial charge on ${s.id} (${s.name})?`)) return;
+    s.state = "TERMINATED";
+    playWarningSound();
+    logMsg(`CRITICAL ALERT! Cranial implant in ${s.id} (${s.name}) DETONATED. Flatline confirmed.`);
+    broadcastState();
+    selectFile("batch_17_live", true);
+  }
+
+  // ============================================================================
+  // 7. PASSCODE SYSTEM
+  // ============================================================================
+  function submitPassword() {
+    const input = document.getElementById("pass-input");
+    const code = input.value.trim().toUpperCase();
+    input.value = "";
+
+    if (!code) return;
+
+    if (code === "INDUR-17") {
+      clearanceLvl1 = true;
+      depotUnlocked = true;
+      playUnlockSound();
+      updateClearanceBadges();
+      logMsg("AUTHORIZATION ACCEPTED [INDUR-17]: Security Level 1 (Batch 17 Live Telemetry, Depot & Batches 01–16) decrypted!");
+      broadcastState();
+      renderFileList();
+      selectFile("batch_17_live", true);
+    } 
+    else if (code === "VERDANT-OMEGA") {
+      clearanceLvl1 = true;
+      clearanceLvl2 = true;
+      depotUnlocked = true;
+      playUnlockSound();
+      updateClearanceBadges();
+      logMsg("OMEGA AUTHORIZATION ACCEPTED [VERDANT-OMEGA]: Full access granted to Dr. Vael's research archives, Cross-Infection data, and Facility Controls!");
+      broadcastState();
+      renderFileList();
+      selectFile("vael_krydssmitte", true);
+    } 
+    else if (code === "TRIDENT-44") {
+      depotUnlocked = true;
+      playUnlockSound();
+      logMsg("DEPOT PASSCODE ACCEPTED [TRIDENT-44]: Access to Depot Section 2 Manifest unlocked.");
+      broadcastState();
+      renderFileList();
+      selectFile("depot_sektion2", true);
+    } 
+    else if (code === "KREEL-LOCK-9") {
+      blastDoorCodeUnlocked = true;
+      containmentLocks = false;
+      playUnlockSound();
+      logMsg("SECURITY OVERRIDE ACCEPTED [KREEL-LOCK-9]: Magnetic blast doors and cell ring (Levels 2–4) released!");
+      broadcastState();
+      if (currentFileId === "hangar_kontrol") selectFile("hangar_kontrol", true);
+    }
+    else if (code === "IRIZI-QUESTIS") {
+      questisUnlocked = true;
+      playUnlockSound();
+      updateClearanceBadges();
+      logMsg("CHISS BIOMETRIC PROTOCOL RECOGNIZED [IRIZI-QUESTIS]: Kethani's personal Questis interface unlocked! Tap [SWITCH OS: QUESTIS].");
+      broadcastState();
+      if (!isQuestisSkin) toggleSkin();
+    } 
+    else {
+      playWarningSound();
+      logMsg(`ERROR: Authorization passcode '${code}' rejected by security relay.`);
+    }
+  }
+
+  // ============================================================================
+  // 8. SKIN & LANGUAGE TOGGLES
+  // ============================================================================
+  function toggleSkin() {
+    isQuestisSkin = !isQuestisSkin;
+    document.body.classList.toggle("questis-skin", isQuestisSkin);
+    const btn = document.getElementById("skin-toggle-btn");
+    const title = document.getElementById("os-title");
+    const subtitle = document.getElementById("os-subtitle");
+
+    playClickSound(920);
+    if (isQuestisSkin) {
+      btn.innerText = "SWITCH OS: IMPERIAL";
+      title.innerText = "QUESTIS OS // IRIZI NEURAL-LINK";
+      subtitle.innerText = "CRYSTALLINE SLICER DECK // KETHANI PERSONAL INTERFACE";
+      logMsg("OS SWITCH: Questis Chiss-OS active. Bioluminescent decryption matrix online (+4s Slicing bonus).");
+    } else {
+      btn.innerText = "SWITCH OS: QUESTIS";
+      title.innerText = "IMPERIAL DATAPAD // SILO-1 RELAY";
+      subtitle.innerText = "SECTOR RESEARCH DIVISION // RAKATA PRIME NETWORK";
+      logMsg("OS SWITCH: Standard Imperial Datapad interface restored.");
+    }
+  }
+
+  function toggleAurebesh() {
+    isAurebesh = !isAurebesh;
+    playClickSound(600);
+    document.body.classList.toggle("aurebesh-mode", isAurebesh);
+    document.getElementById("aurebesh-btn").innerText = `AUREBESH: ${isAurebesh ? "ON" : "OFF"}`;
+  }
+
+  function logMsg(msg) {
+    const box = document.getElementById("sys-log");
+    box.innerHTML += `<br>&gt; ${msg}`;
+    box.scrollTop = box.scrollHeight;
+  }
+
+  // ============================================================================
+  // 9. MULTI-MINIGAME SLICING ENGINE (3 RANDOM GAMES + 2 STAGES FOR LEVEL 2)
+  // ============================================================================
+  let sliceTimer = null;
+  let timeLeft = 16.0;
+  let currentTier = 1;
+  let requiredStages = 1;
+  let completedStages = 0;
+  let lastGameType = -1;
+
+  // Game 1 state (Hex Matrix)
+  let targetSequence = [];
+  let currentStep = 0;
+
+  // Game 2 state (Frequency Alignment)
+  let freqTargets = [];
+
+  // Game 3 state (Logic Node Memory Pattern)
+  let patternSequence = [];
+  let patternStep = 0;
+  let patternPlaying = false;
+
+  function openSlicingModal() {
+    playClickSound(750);
+    document.getElementById("slicing-modal").style.display = "flex";
+    document.getElementById("minigame-title").innerText = "SECURITY BYPASS PROTOCOL";
+    document.getElementById("minigame-stage-indicator").innerText = "READY TO INITIALIZE";
+    document.getElementById("minigame-desc").innerText = "Select target security level below and tap [START BYPASS]. Level 2 requires completing TWO consecutive slicing stages!";
+    document.getElementById("minigame-area").innerHTML = "";
+    document.getElementById("slice-timer").innerText = isQuestisSkin ? "20.0s" : "16.0s";
+  }
+
+  function closeSlicingModal() {
+    clearInterval(sliceTimer);
+    document.getElementById("slicing-modal").style.display = "none";
+  }
+
+  function startSlicingRun() {
+    clearInterval(sliceTimer);
+    currentTier = parseInt(document.getElementById("slice-tier-select").value, 10);
+    requiredStages = currentTier === 1 ? 1 : 2;
+    completedStages = 0;
+    lastGameType = -1;
+    launchNextMinigameStage();
+  }
+
+  function startTimer(seconds) {
+    clearInterval(sliceTimer);
+    timeLeft = seconds + (isQuestisSkin ? 4.0 : 0.0);
+    document.getElementById("slice-timer").innerText = `${timeLeft.toFixed(1)}s`;
+
+    sliceTimer = setInterval(() => {
+      timeLeft -= 0.1;
+      document.getElementById("slice-timer").innerText = `${Math.max(0, timeLeft).toFixed(1)}s`;
+      if (timeLeft <= 0) {
+        clearInterval(sliceTimer);
+        playWarningSound();
+        logMsg("ALERT! Slicing trace timer expired! Imperial firewall reset the connection.");
+        closeSlicingModal();
       }
+    }, 100);
+  }
 
-      let activePathEl = document.getElementById('active-drawing-path');
-      if (!activePathEl) {
-        activePathEl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        activePathEl.setAttribute('id', 'active-drawing-path');
-        activePathEl.setAttribute('stroke', '#ef4444');
-        activePathEl.setAttribute('stroke-width', '4');
-        activePathEl.setAttribute('stroke-linecap', 'round');
-        activePathEl.setAttribute('stroke-linejoin', 'round');
-        activePathEl.setAttribute('fill', 'none');
-        drawingsGroup.appendChild(activePathEl);
-      }
-      activePathEl.setAttribute('d', d);
+  function applyTimePenalty() {
+    playWarningSound();
+    timeLeft = Math.max(0, timeLeft - 2.5);
+    document.getElementById("slice-timer").innerText = `${timeLeft.toFixed(1)}s`;
+    logMsg("TRACE PENALTY: Incorrect node input! -2.5 seconds deducted from bypass window.");
+    if (timeLeft <= 0) {
+      clearInterval(sliceTimer);
+      logMsg("ALERT! Slicing trace timer expired due to penalties! Firewall reset connection.");
+      closeSlicingModal();
     }
+  }
 
-    function commitDrawing() {
-      const activePathEl = document.getElementById('active-drawing-path');
-      if (activePathEl) {
-        activePathEl.removeAttribute('id');
-      }
-      state.currentDrawPath = [];
-    }
+  function launchNextMinigameStage() {
+    playClickSound(880);
+    document.getElementById("minigame-stage-indicator").innerText = `BYPASS STAGE ${completedStages + 1} OF ${requiredStages}`;
 
-    function clearDrawings() {
-      drawingsGroup.innerHTML = '';
-      appendChatMessage('System', 'Alle tegninger på kortet blev slettet.');
-    }
+    // Pick a random game (0, 1, or 2), avoiding immediate repeat on 2-stage runs
+    let options = [0, 1, 2].filter(g => g !== lastGameType);
+    let gameType = options[Math.floor(Math.random() * options.length)];
+    lastGameType = gameType;
 
-    function rollDice(sides) {
-      return Math.floor(Math.random() * sides) + 1;
-    }
+    if (gameType === 0) setupHexMatrixGame();
+    else if (gameType === 1) setupFrequencyGame();
+    else setupPatternMemoryGame();
+  }
 
-    function appendChatMessage(sender, htmlContent, isRoll = false) {
-      const msg = document.createElement('div');
-      msg.className = `p-2.5 rounded-xl border ${
-        isRoll 
-          ? 'bg-rose-950/20 border-rose-900/40 text-slate-100' 
-          : 'bg-slate-950/60 border-slate-800/80 text-slate-300'
-      }`;
-      
-      const time = new Date().toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' });
-      msg.innerHTML = `
-        <div class="flex items-center justify-between text-[10px] text-slate-500 mb-1">
-          <span class="font-bold ${sender === 'GM' ? 'text-amber-400' : sender === 'System' ? 'text-rose-400' : 'text-blue-400'}">${sender}</span>
-          <span>${time}</span>
-        </div>
-        <div class="text-xs leading-relaxed">${htmlContent}</div>
-      `;
+  function advanceOrFinishStage() {
+    clearInterval(sliceTimer);
+    completedStages++;
 
-      chatMessages.appendChild(msg);
-      chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
-
-    function quickRoll(sides) {
-      const val = rollDice(sides);
-      const isCrit = sides === 20 && val === 20;
-      const isFail = sides === 20 && val === 1;
-      
-      let extraClass = '';
-      let critBadge = '';
-      if (isCrit) {
-        extraClass = 'text-emerald-400 font-extrabold';
-        critBadge = '<span class="ml-1 text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-700 px-1 rounded">KRITISK SUCCES!</span>';
-      } else if (isFail) {
-        extraClass = 'text-rose-500 font-extrabold';
-        critBadge = '<span class="ml-1 text-[10px] bg-rose-950 text-rose-300 border border-rose-700 px-1 rounded">KRITISK FIASKO!</span>';
-      }
-
-      appendChatMessage('Spilleder', `
-        Slår <strong class="text-rose-400">d${sides}</strong>: 
-        <span class="text-sm font-bold bg-slate-900 px-2 py-0.5 rounded border border-slate-700 ${extraClass}">${val}</span>
-        ${critBadge}
-      `, true);
-    }
-
-    function handleChatSubmit(e) {
-      e.preventDefault();
-      const input = document.getElementById('chat-input');
-      const sender = document.getElementById('chat-as').value;
-      const rawText = input.value.trim();
-      if (!rawText) return;
-
-      if (rawText.startsWith('/r ') || rawText.startsWith('/roll ')) {
-        const formula = rawText.replace(/^\/(r|roll)\s+/, '');
-        parseAndRollFormula(sender, formula);
+    if (completedStages < requiredStages) {
+      playUnlockSound();
+      logMsg(`SLICING STAGE 1/${requiredStages} COMPLETE! Initializing secondary firewall bypass...`);
+      setTimeout(() => launchNextMinigameStage(), 650);
+    } else {
+      closeSlicingModal();
+      playUnlockSound();
+      if (currentTier === 1) {
+        clearanceLvl1 = true;
+        depotUnlocked = true;
+        updateClearanceBadges();
+        logMsg("SLICING SUCCESS! Level 1 Classified encryption broken.");
+        broadcastState();
+        renderFileList();
+        selectFile("batch_17_live", true);
       } else {
-        appendChatMessage(sender, rawText);
+        clearanceLvl1 = true;
+        clearanceLvl2 = true;
+        depotUnlocked = true;
+        updateClearanceBadges();
+        logMsg("CRITICAL SLICING SUCCESS! Both firewall stages bypassed — Level 2 Omega-Black Archives decrypted!");
+        broadcastState();
+        renderFileList();
+        selectFile("vael_krydssmitte", true);
       }
+    }
+  }
 
-      input.value = '';
+  // --- MINIGAME 1: MATRIX HEX-ROUTING ---
+  function setupHexMatrixGame() {
+    document.getElementById("minigame-title").innerText = "MINIGAME A // MATRIX HEX-ROUTING";
+    document.getElementById("minigame-desc").innerText = "Tap the target hexadecimal sequence in exact order. Wrong taps cost -2.5 seconds!";
+    startTimer(15.0);
+
+    const seqLength = currentTier === 1 ? 4 : 5;
+    currentStep = 0;
+
+    const hexPool = ["A7", "1F", "C4", "88", "0E", "B2", "5D", "9A", "3C", "71", "E9", "4B", "F0", "26", "D3"];
+    const gridValues = [];
+    for (let i = 0; i < 20; i++) {
+      gridValues.push(hexPool[Math.floor(Math.random() * hexPool.length)]);
     }
 
-    function parseAndRollFormula(sender, formula) {
-      // RegEx til at håndtere format som 2d6+4, 1d20-1 osv.
-      const match = formula.match(/^(\d+)d(\d+)(?:\s*([+-])\s*(\d+))?$/i);
-      if (!match) {
-        appendChatMessage('System', `Ugyldig terningeformel "<code>${formula}</code>". Brug f.eks: <code>1d20</code> eller <code>2d6+3</code>`);
-        return;
+    targetSequence = [];
+    const usedIndices = new Set();
+    while (targetSequence.length < seqLength) {
+      let r = Math.floor(Math.random() * gridValues.length);
+      if (!usedIndices.has(r)) {
+        usedIndices.add(r);
+        targetSequence.push({ index: r, val: gridValues[r] });
       }
-
-      const count = parseInt(match[1]);
-      const sides = parseInt(match[2]);
-      const sign = match[3] || '+';
-      const mod = match[4] ? parseInt(match[4]) : 0;
-
-      if (count > 50) {
-        appendChatMessage('System', 'Maks 50 terninger ad gangen!');
-        return;
-      }
-
-      let rolls = [];
-      let sum = 0;
-      for (let i = 0; i < count; i++) {
-        const r = rollDice(sides);
-        rolls.push(r);
-        sum += r;
-      }
-
-      const finalTotal = sign === '+' ? sum + mod : sum - mod;
-      const modString = mod !== 0 ? ` ${sign} ${mod}` : '';
-
-      appendChatMessage(sender, `
-        Kaster <strong>${formula}</strong>:
-        <div class="mt-1 flex items-center gap-2 flex-wrap">
-          <span class="text-slate-400">[${rolls.join(', ')}]${modString}</span>
-          <span>=</span>
-          <span class="text-base font-black text-rose-400 bg-slate-900 px-2.5 py-0.5 rounded border border-slate-700">${finalTotal}</span>
-        </div>
-      `, true);
     }
 
-    /* Karakterarks terningeslag */
-    function rollStat(statName, mod) {
-      const d20 = rollDice(20);
-      const total = d20 + mod;
-      const sign = mod >= 0 ? '+' : '';
-      appendChatMessage('Hjalte Ravneøje', `
-        Evnetjek: <strong>${statName}</strong> (d20 ${sign}${mod})<br>
-        Resultat: <strong>${total}</strong> (Kast: ${d20} ${sign}${mod})
-      `, true);
-    }
+    const area = document.getElementById("minigame-area");
+    area.innerHTML = `
+      <div style="margin-bottom:8px; font-size:0.92rem;">
+        TARGET SEQUENCE: <strong id="target-seq" style="color:var(--accent-cyan); letter-spacing:2px;"></strong>
+      </div>
+      <div class="hex-grid" id="hex-grid"></div>
+    `;
 
-    function rollAttack(weaponName, attackMod, dmgFormula, dmgType) {
-      const d20 = rollDice(20);
-      const total = d20 + attackMod;
-      appendChatMessage('Hjalte Ravneøje', `
-        Angreb med <strong>${weaponName}</strong>:<br>
-        Rul mod AC: <span class="text-sm font-bold text-amber-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-700">${total}</span> 
-        (d20: ${d20} + ${attackMod})
-      `, true);
-    }
+    updateHexTargetDisplay();
 
-    function rollDamage(title, sides, mod) {
-      const roll = rollDice(sides);
-      const total = roll + mod;
-      appendChatMessage('Hjalte Ravneøje', `
-        Skaderulle (<strong>${title}</strong>):<br>
-        Skade: <span class="text-sm font-black text-rose-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-700">${total}</span> 
-        (1d${sides}: ${roll} + ${mod})
-      `, true);
-    }
-
-    function clearChatLog() {
-      chatMessages.innerHTML = '';
-      appendChatMessage('System', 'Chatlog ryddet.');
-    }
-
-    let localStream = null;
-    let isMicMuted = true;
-    let isCamActive = false;
-
-    async function toggleWebcam() {
-      const videoEl = document.getElementById('local-video');
-      const placeholder = document.getElementById('video-placeholder');
-      const btnCam = document.getElementById('txt-cam');
-
-      if (isCamActive) {
-        // Sluk kamera
-        if (localStream) {
-          localStream.getVideoTracks().forEach(track => track.stop());
+    const gridEl = document.getElementById("hex-grid");
+    gridValues.forEach((val, idx) => {
+      const cell = document.createElement("div");
+      cell.className = "hex-cell";
+      cell.innerText = val;
+      cell.onclick = () => {
+        const expected = targetSequence[currentStep];
+        if (!expected) return;
+        if (val === expected.val && !cell.classList.contains("matched")) {
+          playClickSound(950);
+          cell.classList.add("matched");
+          currentStep++;
+          updateHexTargetDisplay();
+          if (currentStep >= targetSequence.length) advanceOrFinishStage();
+        } else {
+          cell.classList.add("wrong-flash");
+          setTimeout(() => cell.classList.remove("wrong-flash"), 250);
+          applyTimePenalty();
         }
-        isCamActive = false;
-        videoEl.classList.add('hidden');
-        placeholder.classList.remove('hidden');
-        btnCam.innerText = 'Start Kamera';
-        appendChatMessage('System', 'Webcam slukket.');
-      } else {
-        // Tænd kamera
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: !isMicMuted });
-          localStream = stream;
-          videoEl.srcObject = stream;
-          videoEl.classList.remove('hidden');
-          placeholder.classList.add('hidden');
-          isCamActive = true;
-          btnCam.innerText = 'Stop Kamera';
-          appendChatMessage('System', 'Webcam forbundet succesfuldt.');
-        } catch (err) {
-          appendChatMessage('System', '<span class="text-rose-400">Kunne ikke få adgang til kamera. Kontroller rettigheder i browseren.</span>');
+      };
+      gridEl.appendChild(cell);
+    });
+  }
+
+  function updateHexTargetDisplay() {
+    const el = document.getElementById("target-seq");
+    if (!el) return;
+    el.innerHTML = targetSequence.map((item, idx) => {
+      if (idx < currentStep) return `<span style="color:var(--text-Bright); text-decoration:line-through;">${item.val}</span>`;
+      if (idx === currentStep) return `<span style="border-bottom:2px solid var(--accent-cyan);">${item.val}</span>`;
+      return `<span style="opacity:0.5;">${item.val}</span>`;
+    }).join(" - ");
+  }
+
+  // --- MINIGAME 2: SIGNAL FREQUENCY ALIGNMENT ---
+  function setupFrequencyGame() {
+    document.getElementById("minigame-title").innerText = "MINIGAME B // CARRIER WAVE ALIGNMENT";
+    document.getElementById("minigame-desc").innerText = "Adjust all 3 carrier frequency sliders to match their target frequencies, then tap [LOCK FREQUENCIES]. Wrong lock costs -2.5s!";
+    startTimer(16.0);
+
+    freqTargets = [
+      Math.floor(Math.random() * 18 + 1) * 5,
+      Math.floor(Math.random() * 18 + 1) * 5,
+      Math.floor(Math.random() * 18 + 1) * 5
+    ];
+
+    const area = document.getElementById("minigame-area");
+    area.innerHTML = freqTargets.map((t, i) => `
+      <div class="freq-row">
+        <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:6px;">
+          <span>CHANNEL 0${i+1} TARGET: <strong style="color:var(--accent-cyan);">${t} GHz</strong></span>
+          <span>CURRENT: <strong id="freq-val-${i}" style="color:var(--text-Bright);">50 GHz</strong></span>
+        </div>
+        <input type="range" id="freq-slider-${i}" min="5" max="95" step="5" value="50" 
+               oninput="document.getElementById('freq-val-${i}').innerText = this.value + ' GHz'; playClickSound(500 + this.value*4);">
+      </div>
+    `).join("") + `
+      <button style="width:100%; margin-top:8px;" onclick="verifyFrequencies()">[LOCK CARRIER FREQUENCIES]</button>
+    `;
+  }
+
+  function verifyFrequencies() {
+    let allMatched = true;
+    freqTargets.forEach((t, i) => {
+      const val = parseInt(document.getElementById(`freq-slider-${i}`).value, 10);
+      if (val !== t) allMatched = false;
+    });
+
+    if (allMatched) {
+      advanceOrFinishStage();
+    } else {
+      applyTimePenalty();
+    }
+  }
+
+  // --- MINIGAME 3: LOGIC NODE MEMORY PATTERN ---
+  function setupPatternMemoryGame() {
+    document.getElementById("minigame-title").innerText = "MINIGAME C // NEURAL CIPHER SEQUENCE";
+    document.getElementById("minigame-desc").innerText = "Watch the flashing security nodes, then repeat the exact sequence! Wrong tap costs -2.5s and replays the pattern.";
+    startTimer(18.0);
+
+    const seqLen = currentTier === 1 ? 4 : 5;
+    patternSequence = [];
+    for (let i = 0; i < seqLen; i++) {
+      patternSequence.push(Math.floor(Math.random() * 9));
+    }
+    patternStep = 0;
+
+    const area = document.getElementById("minigame-area");
+    area.innerHTML = `
+      <div style="margin-bottom:8px; font-size:0.88rem; display:flex; justify-content:space-between;">
+        <span id="pattern-status" style="color:var(--warn-amber);">OBSERVE CIPHER SEQUENCE...</span>
+        <span id="pattern-progress">0 / ${seqLen}</span>
+      </div>
+      <div class="pattern-grid" id="pattern-grid"></div>
+    `;
+
+    const grid = document.getElementById("pattern-grid");
+    const labels = ["N-01", "N-02", "N-03", "N-04", "N-05", "N-06", "N-07", "N-08", "N-09"];
+    labels.forEach((lbl, idx) => {
+      const node = document.createElement("div");
+      node.className = "pattern-node";
+      node.id = `pnode-${idx}`;
+      node.innerText = lbl;
+      node.onclick = () => handlePatternTap(idx);
+      grid.appendChild(node);
+    });
+
+    playPatternSequence();
+  }
+
+  function playPatternSequence() {
+    patternPlaying = true;
+    patternStep = 0;
+    const statusEl = document.getElementById("pattern-status");
+    if (statusEl) statusEl.innerText = "OBSERVE CIPHER SEQUENCE...";
+
+    patternSequence.forEach((nodeIdx, step) => {
+      setTimeout(() => {
+        const el = document.getElementById(`pnode-${nodeIdx}`);
+        if (el) {
+          el.classList.add("lit");
+          playClickSound(620 + nodeIdx * 45);
+          setTimeout(() => el.classList.remove("lit"), 360);
         }
+      }, (step + 1) * 550);
+    });
+
+    setTimeout(() => {
+      patternPlaying = false;
+      const st = document.getElementById("pattern-status");
+      if (st) st.innerText = "REPEAT SEQUENCE NOW!";
+    }, (patternSequence.length + 1) * 550);
+  }
+
+  function handlePatternTap(idx) {
+    if (patternPlaying) return;
+    const node = document.getElementById(`pnode-${idx}`);
+    if (idx === patternSequence[patternStep]) {
+      playClickSound(880 + patternStep * 60);
+      node.classList.add("matched");
+      setTimeout(() => node.classList.remove("matched"), 220);
+      patternStep++;
+      const prog = document.getElementById("pattern-progress");
+      if (prog) prog.innerText = `${patternStep} / ${patternSequence.length}`;
+
+      if (patternStep >= patternSequence.length) {
+        advanceOrFinishStage();
       }
-      lucide.createIcons();
+    } else {
+      node.classList.add("wrong-flash");
+      setTimeout(() => node.classList.remove("wrong-flash"), 250);
+      applyTimePenalty();
+      const prog = document.getElementById("pattern-progress");
+      if (prog) prog.innerText = `0 / ${patternSequence.length}`;
+      if (timeLeft > 0) setTimeout(() => playPatternSequence(), 400);
     }
+  }
 
-    async function toggleMic() {
-      const btnMic = document.getElementById('txt-mic');
-      isMicMuted = !isMicMuted;
-
-      if (!isMicMuted) {
-        btnMic.innerText = 'Mute mikrofon';
-        appendChatMessage('System', 'Mikrofon aktiveret.');
-      } else {
-        btnMic.innerText = 'Slå mikrofon til';
-        appendChatMessage('System', 'Mikrofon slået fra (muted).');
-      }
-
-      if (localStream) {
-        localStream.getAudioTracks().forEach(track => {
-          track.enabled = !isMicMuted;
-        });
-      }
-    }
-
-    /* UI Skiftere for paneler og modals */
-    function toggleVideoPanel() {
-      const panel = document.getElementById('video-panel');
-      panel.classList.toggle('hidden');
-    }
-
-    function toggleChatPanel() {
-      const chat = document.getElementById('chat-sidebar');
-      chat.classList.toggle('hidden');
-    }
-
-    function toggleSheetModal() {
-      const modal = document.getElementById('sheet-modal');
-      if (modal.classList.contains('hidden')) {
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-      } else {
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-      }
-    }
-
-    window.onload = function() {
-      updateMapTransform();
-      renderTokens();
-      lucide.createIcons();
-    };
-  </script>
+  // INITIALIZE TERMINAL
+  renderFileList();
+  selectFile("log_kaelen", true);
+</script>
 </body>
 </html>
