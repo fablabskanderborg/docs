@@ -668,6 +668,7 @@
       <button class="tab-btn active-tab" id="tab-silo1" onclick="switchMainTab('silo1')">[SILO-1 - LOGS]</button>
       <button class="tab-btn" id="tab-personal" style="display:none;" onclick="switchMainTab('personal')">[PERSONAL DATA // QUESTIS]</button>
       <span id="gm-active-indicator" class="badge unlocked" style="display:none; border-color:var(--warn-amber); color:var(--warn-amber);">GM OVERRIDE ACTIVE</span>
+      <button id="gm-toggle-slicing-btn" class="warn" style="display:none; padding:3px 8px; font-size:0.7rem;" onclick="togglePlayerSlicingAccess()">[SLICING ACCESS: OFF]</button>
       <button id="gm-reset-btn" class="danger" style="display:none; padding:3px 8px; font-size:0.7rem;" onclick="resetAllToDefault()">[RESET ALL ('FORFRA')]</button>
     </div>
 
@@ -675,7 +676,8 @@
       <span class="badge unlocked">LEVEL 0 [OPEN]</span>
       <span class="badge" id="badge-lvl1">LEVEL 1 [LOCKED]</span>
       <span class="badge" id="badge-lvl2">LEVEL 2 [LOCKED]</span>
-      <button class="warn" onclick="openSlicingModal()">[SLICING BYPASS]</button>
+      <!-- Skjult for spilleren indtil GM aktiverer den -->
+      <button class="warn" id="player-slicing-btn" style="display:none;" onclick="openSlicingModal()">[SLICING BYPASS]</button>
     </div>
   </div>
 
@@ -793,6 +795,7 @@
   let isAurebesh = false;
   let gmModeUnlocked = false;
   let gmBonusSeconds = 0;
+  let slicingEnabled = false; // Spilleren kan først slice, når GM tænder for dette
   let currentFileId = "log_kaelen";
   let expandedHoloIndex = null;
 
@@ -873,13 +876,15 @@
   // ============================================================================
   const LOCAL_STORAGE_KEY = "silo1_questis_state_v5";
 
-  function buildStatePayload() {
+function buildStatePayload() {
     return {
       updatedAt: Date.now(),
       clearanceLvl1,
       clearanceLvl2,
       depotUnlocked,
       questisUnlocked,
+      slicingEnabled,
+      gmBonusSeconds,
       aaTurretsActive,
       hangarDoorsOpen,
       containmentLocks,
@@ -896,6 +901,27 @@
     if (typeof data.clearanceLvl2 === "boolean") clearanceLvl2 = data.clearanceLvl2;
     if (typeof data.depotUnlocked === "boolean") depotUnlocked = data.depotUnlocked;
     if (typeof data.questisUnlocked === "boolean") questisUnlocked = data.questisUnlocked;
+    if (typeof data.slicingEnabled === "boolean") slicingEnabled = data.slicingEnabled;
+
+    // Synkronisér GM tidsbonus globalt til iPad
+    if (typeof data.gmBonusSeconds === "number" && data.gmBonusSeconds !== gmBonusSeconds) {
+      const diff = data.gmBonusSeconds - gmBonusSeconds;
+      gmBonusSeconds = data.gmBonusSeconds;
+      const sign = gmBonusSeconds >= 0 ? "+" : "";
+      const lbl = document.getElementById("gm-offset-label");
+      if (lbl) lbl.innerText = `${sign}${gmBonusSeconds}s`;
+
+      // Opdatér timeren på spillerens skærm med det samme
+      const timerEl = document.getElementById("slice-timer");
+      if (sliceTimer) {
+        timeLeft = Math.max(1.0, timeLeft + diff);
+        if (timerEl) timerEl.innerText = `${timeLeft.toFixed(1)}s`;
+      } else if (timerEl) {
+        const previewTime = Math.max(5.0, 16.0 + (isQuestisSkin ? 4.0 : 0.0) + gmBonusSeconds);
+        timerEl.innerText = `${previewTime.toFixed(1)}s`;
+      }
+    }
+
     if (typeof data.aaTurretsActive === "boolean") aaTurretsActive = data.aaTurretsActive;
     if (typeof data.hangarDoorsOpen === "boolean") hangarDoorsOpen = data.hangarDoorsOpen;
     if (typeof data.containmentLocks === "boolean") containmentLocks = data.containmentLocks;
@@ -1016,6 +1042,8 @@
     customHoloGallery = [];
     expandedHoloIndex = null;
     currentFileId = "log_kaelen";
+    slicingEnabled = false;
+    gmBonusSeconds = 0;
 
     try {
       localStorage.removeItem("silo1_questis_state_v2");
@@ -1620,7 +1648,7 @@
     return false;
   }
 
-  function updateClearanceBadges() {
+ function updateClearanceBadges() {
     const b1 = document.getElementById("badge-lvl1");
     const b2 = document.getElementById("badge-lvl2");
     b1.className = clearanceLvl1 ? "badge unlocked" : "badge";
@@ -1632,9 +1660,35 @@
     document.getElementById("skin-toggle-btn").style.display = questisUnlocked ? "inline-block" : "none";
     document.getElementById("tab-personal").style.display = questisUnlocked ? "inline-block" : "none";
 
+    // Vis kun [SLICING BYPASS] hvis GM har tændt for den (eller hvis man selv er i GM-mode)
+    const sliceBtn = document.getElementById("player-slicing-btn");
+    if (sliceBtn) {
+      sliceBtn.style.display = (slicingEnabled || gmModeUnlocked) ? "inline-block" : "none";
+    }
+
+    // GM Kontroller
     document.getElementById("gm-active-indicator").style.display = gmModeUnlocked ? "inline-block" : "none";
     document.getElementById("gm-reset-btn").style.display = gmModeUnlocked ? "inline-block" : "none";
     document.getElementById("gm-slice-box").style.display = gmModeUnlocked ? "block" : "none";
+
+    const gmSliceToggle = document.getElementById("gm-toggle-slicing-btn");
+    if (gmSliceToggle) {
+      gmSliceToggle.style.display = gmModeUnlocked ? "inline-block" : "none";
+      gmSliceToggle.innerText = slicingEnabled ? "[SLICING ACCESS: ON]" : "[SLICING ACCESS: OFF]";
+      gmSliceToggle.className = slicingEnabled ? "questis-btn" : "warn";
+    }
+
+    const sign = gmBonusSeconds >= 0 ? "+" : "";
+    const lbl = document.getElementById("gm-offset-label");
+    if (lbl) lbl.innerText = `${sign}${gmBonusSeconds}s`;
+  }
+
+  function togglePlayerSlicingAccess() {
+    slicingEnabled = !slicingEnabled;
+    playUnlockSound();
+    updateClearanceBadges();
+    savePersistentState();
+    logMsg(`GM OVERRIDE: Player Slicing Bypass access is now ${slicingEnabled ? 'ENABLED (Visible on iPad)' : 'DISABLED (Hidden on iPad)'}.`);
   }
 
   function renderFileList() {
@@ -2282,6 +2336,7 @@
     timeLeft = Math.max(1.0, timeLeft + delta);
     document.getElementById("slice-timer").innerText = `${timeLeft.toFixed(1)}s`;
     playClickSound(delta > 0 ? 980 : 420);
+    savePersistentState(); // Sender straks den nye tid til Supabase & iPad!
   }
 
   function openSlicingModal() {
