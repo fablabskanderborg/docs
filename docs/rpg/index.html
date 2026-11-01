@@ -868,9 +868,10 @@
   }
 
   // ============================================================================
-  // 3. PERSISTENCE ENGINE (SUPABASE DB + LOCALSTORAGE + DIAGNOSTICS)
+  // 3. PERSISTENCE ENGINE (DIRECT SUPABASE REST API + REALTIME + LOCALSTORAGE)
+  // Virker 100% på iPad Safari, selv hvis cdn.jsdelivr.net blokeres!
   // ============================================================================
-  const LOCAL_STORAGE_KEY = "silo1_questis_state_v4";
+  const LOCAL_STORAGE_KEY = "silo1_questis_state_v5";
 
   function buildStatePayload() {
     return {
@@ -913,6 +914,7 @@
     selectFile(currentFileId, true);
   }
 
+  // Direkte HTTPS REST-kald til Supabase (afhænger IKKE af cdn.jsdelivr.net)
   async function savePersistentState() {
     const payload = buildStatePayload();
     try {
@@ -925,25 +927,74 @@
       } catch (e) {}
     }
 
-    if (supabaseClient) {
-      setDbBadge("DB: SAVING...", "warn");
-      try {
-        const { error } = await supabaseClient
-          .from('datapad_state')
-          .upsert({ id: 1, payload: payload }, { onConflict: 'id' });
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+      setDbBadge("LOCAL ONLY", "warn");
+      return;
+    }
 
-        if (error) {
-          console.error("Supabase Upsert Error:", error);
-          setDbBadge("DB ERROR (SEE LOG)", "err");
-          logMsg(`SUPABASE SAVE ERROR: ${error.message} (Code: ${error.code || 'N/A'}). Make sure table 'datapad_state' exists and RLS is disabled!`);
-        } else {
-          setDbBadge("DB: SAVED ✓", "ok");
-        }
-      } catch (e) {
-        console.error("Supabase Network Exception:", e);
-        setDbBadge("DB: OFFLINE", "err");
-        logMsg(`SUPABASE NETWORK ERROR: ${e.message}`);
+    setDbBadge("DB: SAVING...", "warn");
+    try {
+      const cleanUrl = SUPABASE_URL.replace(/\/?$/, "");
+      const res = await fetch(`${cleanUrl}/rest/v1/datapad_state?on_conflict=id`, {
+        method: "POST",
+        headers: {
+          "apikey": SUPABASE_ANON_KEY,
+          "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+          "Content-Type": "application/json",
+          "Prefer": "resolution=merge-duplicates,return=minimal"
+        },
+        body: JSON.stringify({
+          id: 1,
+          payload: payload,
+          updated_at: new Date().toISOString()
+        })
+      });
+
+      if (!res.ok) {
+        const errText = await res.text();
+        setDbBadge("DB ERROR", "err");
+        logMsg(`SUPABASE SAVE ERROR (${res.status}): ${errText}`);
+      } else {
+        setDbBadge("DB: SAVED ✓", "ok");
       }
+    } catch (e) {
+      setDbBadge("DB: OFFLINE", "err");
+      logMsg(`SUPABASE NETWORK ERROR: ${e.message}`);
+    }
+  }
+
+  async function fetchStateFromSupabase() {
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return false;
+    const cleanUrl = SUPABASE_URL.replace(/\/?$/, "");
+    const res = await fetch(`${cleanUrl}/rest/v1/datapad_state?id=eq.1&select=payload`, {
+      method: "GET",
+      headers: {
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+        "Accept": "application/json"
+      }
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      setDbBadge("DB ERROR", "err");
+      logMsg(`SUPABASE READ ERROR (${res.status}): ${errText}`);
+      return false;
+    }
+
+    const rows = await res.json();
+    if (Array.isArray(rows) && rows.length > 0 && rows[0].payload && Object.keys(rows[0].payload).length > 0) {
+      applyStatePayload(rows[0].payload);
+      try {
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(rows[0].payload));
+      } catch (e) {}
+      setDbBadge("DB: SYNCED ✓", "ok");
+      return true;
+    } else {
+      // Tabellen er tom -> gem start-tilstanden i række 1
+      await savePersistentState();
+      setDbBadge("DB: READY ✓", "ok");
+      return true;
     }
   }
 
@@ -969,6 +1020,7 @@
     try {
       localStorage.removeItem("silo1_questis_state_v2");
       localStorage.removeItem("silo1_questis_state_v3");
+      localStorage.removeItem("silo1_questis_state_v4");
       localStorage.removeItem(LOCAL_STORAGE_KEY);
     } catch (e) {}
 
@@ -980,48 +1032,25 @@
   }
 
   async function initPersistence() {
-    // 1. Load local cache first as immediate fallback
-    let localPayload = null;
+    // 1. Indlæs lokal cache med det samme
     try {
       const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
-      if (raw) {
-        localPayload = JSON.parse(raw);
-        applyStatePayload(localPayload);
-      }
+      if (raw) applyStatePayload(JSON.parse(raw));
     } catch (e) {}
 
-    // 2. Connect to Supabase and fetch authoritative row
-    if (SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase) {
+    // 2. Hent direkte fra Supabase via HTTPS fetch (virker uanset om window.supabase er blokeret)
+    setDbBadge("DB: CONNECTING...", "warn");
+    try {
+      const ok = await fetchStateFromSupabase();
+      if (ok) logMsg("SUPABASE DB SYNC: Persistent campaign & Cranial Telemetry state loaded.");
+    } catch (e) {
+      setDbBadge("DB: OFFLINE", "err");
+      logMsg(`SUPABASE CONNECTION ERROR: ${e.message}`);
+    }
+
+    // 3. Hvis window.supabase SDK også er tilgængelig, kobl Realtime på, ellers poll hvert 5. sekund
+    if (window.supabase && SUPABASE_URL && SUPABASE_ANON_KEY) {
       supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-      setDbBadge("DB: CONNECTING...", "warn");
-
-      try {
-        const { data, error } = await supabaseClient
-          .from('datapad_state')
-          .select('payload')
-          .eq('id', 1)
-          .maybeSingle();
-
-        if (error) {
-          setDbBadge("DB ERROR (SEE LOG)", "err");
-          logMsg(`SUPABASE READ ERROR: ${error.message}. Run the SQL setup in Supabase SQL Editor!`);
-        } else if (data && data.payload && Object.keys(data.payload).length > 0) {
-          applyStatePayload(data.payload);
-          try {
-            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data.payload));
-          } catch (e) {}
-          setDbBadge("DB: SYNCED ✓", "ok");
-          logMsg("SUPABASE DB SYNC: Persistent campaign & Cranial Telemetry state loaded.");
-        } else {
-          // Table is empty -> push initial state to row 1
-          await savePersistentState();
-          setDbBadge("DB: READY ✓", "ok");
-        }
-      } catch (e) {
-        setDbBadge("DB: OFFLINE", "err");
-      }
-
-      // Realtime broadcast + Postgres row change listener
       realtimeChannel = supabaseClient.channel('silo1-datapad-sync')
         .on('broadcast', { event: 'state_update' }, (msg) => {
           if (msg && msg.payload) {
@@ -1029,15 +1058,12 @@
             setDbBadge("DB: LIVE SYNC ✓", "ok");
           }
         })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'datapad_state' }, (payload) => {
-          if (payload.new && payload.new.payload) {
-            applyStatePayload(payload.new.payload);
-            setDbBadge("DB: LIVE SYNC ✓", "ok");
-          }
-        })
         .subscribe();
     } else {
-      setDbBadge("LOCAL ONLY", "warn");
+      // Auto-sync fallback for iPad hvis CDN-scriptet blev blokeret af Safari
+      setInterval(() => {
+        fetchStateFromSupabase();
+      }, 5000);
     }
   }
 
