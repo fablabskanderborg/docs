@@ -163,6 +163,7 @@
     text-transform: uppercase;
     letter-spacing: 1px;
     user-select: none;
+    -webkit-user-select: none;
   }
   body.questis-skin button {
     background: rgba(24, 55, 95, 0.65);
@@ -282,6 +283,7 @@
     transition: all 0.12s ease;
     background: rgba(255,255,255,0.01);
     user-select: none;
+    -webkit-user-select: none;
   }
   .file-item:hover {
     border-color: var(--border-highlight);
@@ -514,70 +516,84 @@
     border-radius: var(--border-radius);
     background: rgba(0,0,0,0.45);
     user-select: none;
+    -webkit-user-select: none;
   }
   .hex-cell:hover { border-color: var(--border-highlight); }
   .hex-cell.matched { background: var(--border-highlight); color: #000; }
   .hex-cell.wrong-flash { background: var(--alert-red) !important; color: #fff !important; }
 
-  /* Minigame B: Drag & Drop Packet Routing Canvas */
+  /* Minigame B: Drag & Drop Packet Routing Canvas (iPad Touch Optimized) */
   .routing-arena {
     position: relative;
     width: 100%;
-    height: 230px;
+    height: 240px;
     background: #04080c;
-    border: 1px solid var(--border-highlight);
+    border: 2px solid var(--border-highlight);
     border-radius: var(--border-radius);
     margin: 10px 0;
     overflow: hidden;
-    touch-action: none;
+    touch-action: none !important;
     user-select: none;
+    -webkit-user-select: none;
   }
   .packet-node {
     position: absolute;
-    width: 56px;
-    height: 36px;
+    width: 68px;
+    height: 44px;
     border: 2px solid var(--accent-cyan);
-    background: rgba(0, 229, 255, 0.2);
+    background: rgba(0, 229, 255, 0.28);
+    box-shadow: 0 0 12px rgba(0, 229, 255, 0.35);
     color: #fff;
-    font-size: 0.72rem;
+    font-size: 0.78rem;
     font-weight: bold;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: grab;
-    border-radius: 4px;
-    z-index: 10;
-    touch-action: none;
+    border-radius: 6px;
+    z-index: 20;
+    touch-action: none !important;
     user-select: none;
+    -webkit-user-select: none;
+  }
+  .packet-node.dragging {
+    background: var(--accent-cyan);
+    color: #000;
+    transform: scale(1.08);
+    z-index: 30;
   }
   .packet-node.locked {
     background: var(--border-highlight);
     border-color: #fff;
     color: #000;
     cursor: default;
+    box-shadow: none;
   }
   .socket-node {
     position: absolute;
-    right: 14px;
-    width: 72px;
-    height: 42px;
+    right: 12px;
+    width: 78px;
+    height: 48px;
     border: 2px dashed var(--text-Bright);
-    background: rgba(46, 230, 138, 0.08);
+    background: rgba(46, 230, 138, 0.1);
     color: var(--text-Bright);
-    font-size: 0.7rem;
+    font-size: 0.72rem;
+    font-weight: bold;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 4px;
+    border-radius: 6px;
+    z-index: 5;
   }
   .firewall-bar {
     position: absolute;
     width: 18px;
-    height: 64px;
+    height: 66px;
     background: var(--alert-red);
-    box-shadow: 0 0 10px var(--alert-red);
-    border-radius: 2px;
+    box-shadow: 0 0 12px var(--alert-red);
+    border-radius: 3px;
     pointer-events: none;
+    z-index: 10;
   }
 
   /* Minigame C: Pattern Nodes */
@@ -599,6 +615,7 @@
     cursor: pointer;
     border-radius: var(--border-radius);
     user-select: none;
+    -webkit-user-select: none;
   }
   .pattern-node.lit {
     background: var(--accent-cyan);
@@ -637,6 +654,7 @@
     </div>
 
     <div class="controls-block">
+      <span id="db-status-badge" class="badge" title="Supabase Connection Status">DB: INIT...</span>
       <input type="text" id="pass-input" placeholder="ENTER PASSCODE..." onkeydown="if(event.key==='Enter') submitPassword()">
       <button onclick="submitPassword()">AUTHORIZE</button>
       <button onclick="toggleAurebesh()" id="aurebesh-btn">AUREBESH: OFF</button>
@@ -727,16 +745,6 @@
 </div>
 
 <script>
-  // Prevent iPad Safari double-tap zoom globally
-  let lastTouchEnd = 0;
-  document.addEventListener('touchend', function (event) {
-    const now = Date.now();
-    if (now - lastTouchEnd <= 300) {
-      event.preventDefault();
-    }
-    lastTouchEnd = now;
-  }, { passive: false });
-
   // ============================================================================
   // 1. SUPABASE DATABASE & STORAGE CONFIGURATION
   // ============================================================================
@@ -746,6 +754,25 @@
 
   let supabaseClient = null;
   let realtimeChannel = null;
+
+  function setDbBadge(text, status) {
+    const el = document.getElementById("db-status-badge");
+    if (!el) return;
+    el.innerText = text;
+    if (status === "ok") {
+      el.className = "badge unlocked";
+      el.style.borderColor = "var(--text-Bright)";
+      el.style.color = "var(--text-Bright)";
+    } else if (status === "err") {
+      el.className = "badge";
+      el.style.borderColor = "var(--alert-red)";
+      el.style.color = "var(--alert-red)";
+    } else {
+      el.className = "badge";
+      el.style.borderColor = "var(--warn-amber)";
+      el.style.color = "var(--warn-amber)";
+    }
+  }
 
   function getHoloUrl(filename) {
     if (filename.startsWith("http://") || filename.startsWith("https://")) return filename;
@@ -767,7 +794,7 @@
   let gmModeUnlocked = false;
   let gmBonusSeconds = 0;
   let currentFileId = "log_kaelen";
-  let expandedHoloIndex = null; // null = grid view, number = expanded full-viewport holo
+  let expandedHoloIndex = null;
 
   // Facility Control States
   let aaTurretsActive = true;
@@ -813,7 +840,6 @@
 
   let batch17 = getDefaultBatch17();
 
-  // Your 3 base holos are read directly from HTML so your edits ALWAYS take effect immediately on deploy!
   const baseHoloGallery = [
     {
       code: "IMG_001_CSILLA_ACROPOLIS.HOLO",
@@ -835,7 +861,6 @@
     }
   ];
 
-  // Additional holos added dynamically via GM tool
   let customHoloGallery = [];
 
   function getAllHolos() {
@@ -843,12 +868,13 @@
   }
 
   // ============================================================================
-  // 3. PERSISTENCE ENGINE (SUPABASE DB + LOCALSTORAGE + 'FORFRA' RESET)
+  // 3. PERSISTENCE ENGINE (SUPABASE DB + LOCALSTORAGE + DIAGNOSTICS)
   // ============================================================================
-  const LOCAL_STORAGE_KEY = "silo1_questis_state_v3";
+  const LOCAL_STORAGE_KEY = "silo1_questis_state_v4";
 
   function buildStatePayload() {
     return {
+      updatedAt: Date.now(),
       clearanceLvl1,
       clearanceLvl2,
       depotUnlocked,
@@ -875,7 +901,7 @@
     if (typeof data.blastDoorCodeUnlocked === "boolean") blastDoorCodeUnlocked = data.blastDoorCodeUnlocked;
     if (data.unlockedLockers) unlockedLockers = data.unlockedLockers;
 
-    if (Array.isArray(data.batch17) && data.batch17.length === batch17.length) {
+    if (Array.isArray(data.batch17) && data.batch17.length === 14) {
       batch17 = data.batch17.map(item => ({ ...item }));
     }
     if (Array.isArray(data.customHoloGallery)) {
@@ -894,19 +920,29 @@
     } catch (e) {}
 
     if (realtimeChannel) {
-      realtimeChannel.send({ type: 'broadcast', event: 'state_update', payload });
+      try {
+        realtimeChannel.send({ type: 'broadcast', event: 'state_update', payload });
+      } catch (e) {}
     }
+
     if (supabaseClient) {
+      setDbBadge("DB: SAVING...", "warn");
       try {
         const { error } = await supabaseClient
           .from('datapad_state')
-          .upsert({ id: 1, payload, updated_at: new Date().toISOString() }, { onConflict: 'id' });
+          .upsert({ id: 1, payload: payload }, { onConflict: 'id' });
+
         if (error) {
-          console.error("Supabase Save Error:", error);
-          logMsg(`DB WARNING: Could not save to Supabase (${error.message}). Saved locally.`);
+          console.error("Supabase Upsert Error:", error);
+          setDbBadge("DB ERROR (SEE LOG)", "err");
+          logMsg(`SUPABASE SAVE ERROR: ${error.message} (Code: ${error.code || 'N/A'}). Make sure table 'datapad_state' exists and RLS is disabled!`);
+        } else {
+          setDbBadge("DB: SAVED ✓", "ok");
         }
       } catch (e) {
-        console.error("Supabase Exception:", e);
+        console.error("Supabase Network Exception:", e);
+        setDbBadge("DB: OFFLINE", "err");
+        logMsg(`SUPABASE NETWORK ERROR: ${e.message}`);
       }
     }
   }
@@ -932,6 +968,7 @@
 
     try {
       localStorage.removeItem("silo1_questis_state_v2");
+      localStorage.removeItem("silo1_questis_state_v3");
       localStorage.removeItem(LOCAL_STORAGE_KEY);
     } catch (e) {}
 
@@ -943,15 +980,20 @@
   }
 
   async function initPersistence() {
-    // 1. Load local cache first
+    // 1. Load local cache first as immediate fallback
+    let localPayload = null;
     try {
-      const localData = localStorage.getItem(LOCAL_STORAGE_KEY);
-      if (localData) applyStatePayload(JSON.parse(localData));
+      const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (raw) {
+        localPayload = JSON.parse(raw);
+        applyStatePayload(localPayload);
+      }
     } catch (e) {}
 
-    // 2. Connect to Supabase and overwrite with authoritative DB row
+    // 2. Connect to Supabase and fetch authoritative row
     if (SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase) {
       supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      setDbBadge("DB: CONNECTING...", "warn");
 
       try {
         const { data, error } = await supabaseClient
@@ -960,21 +1002,42 @@
           .eq('id', 1)
           .maybeSingle();
 
-        if (!error && data && data.payload && Object.keys(data.payload).length > 0) {
+        if (error) {
+          setDbBadge("DB ERROR (SEE LOG)", "err");
+          logMsg(`SUPABASE READ ERROR: ${error.message}. Run the SQL setup in Supabase SQL Editor!`);
+        } else if (data && data.payload && Object.keys(data.payload).length > 0) {
           applyStatePayload(data.payload);
           try {
             localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data.payload));
           } catch (e) {}
+          setDbBadge("DB: SYNCED ✓", "ok");
           logMsg("SUPABASE DB SYNC: Persistent campaign & Cranial Telemetry state loaded.");
+        } else {
+          // Table is empty -> push initial state to row 1
+          await savePersistentState();
+          setDbBadge("DB: READY ✓", "ok");
         }
-      } catch (e) {}
+      } catch (e) {
+        setDbBadge("DB: OFFLINE", "err");
+      }
 
-      realtimeChannel = supabaseClient.channel('silo1-datapad-sync');
-      realtimeChannel
+      // Realtime broadcast + Postgres row change listener
+      realtimeChannel = supabaseClient.channel('silo1-datapad-sync')
         .on('broadcast', { event: 'state_update' }, (msg) => {
-          applyStatePayload(msg.payload);
+          if (msg && msg.payload) {
+            applyStatePayload(msg.payload);
+            setDbBadge("DB: LIVE SYNC ✓", "ok");
+          }
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'datapad_state' }, (payload) => {
+          if (payload.new && payload.new.payload) {
+            applyStatePayload(payload.new.payload);
+            setDbBadge("DB: LIVE SYNC ✓", "ok");
+          }
         })
         .subscribe();
+    } else {
+      setDbBadge("LOCAL ONLY", "warn");
     }
   }
 
@@ -1071,7 +1134,6 @@
     activeTrackId = trackNum;
     activeSongSection = "A";
 
-    // Sub-bass glacial resonance drone (shifts pitch between Verse A and Chorus B)
     droneOsc = ctx.createOscillator();
     droneGain = ctx.createGain();
     droneOsc.type = trackNum === 3 ? 'sawtooth' : 'sine';
@@ -1084,7 +1146,6 @@
     let step = 0;
 
     if (trackNum === 1) {
-      // Track 1: Fibonacci Crystal Harp (Verse A: C-minor crystal arpeggio | Chorus B: Soaring Ab/F harmonic)
       const verseA =  [261.63, 311.13, 392.00, 523.25, 622.25, 523.25, 392.00, 311.13];
       const chorusB = [415.30, 523.25, 622.25, 830.61, 783.99, 698.46, 622.25, 523.25];
       musicInterval = setInterval(() => {
@@ -1104,7 +1165,6 @@
       logMsg("QUESTIS AUDIO: Playing 01 // 'Third Harmony of the Tah'nuhna Glacier' (A/B Arrangement)");
     } 
     else if (trackNum === 2) {
-      // Track 2: Csaplar Nocturne (Verse A: Deep glacial chords | Chorus B: Radiant solar aurora shimmer)
       const verseA =  [196.00, 246.94, 293.66, 369.99, 220.00, 293.66, 329.63, 246.94];
       const chorusB = [293.66, 369.99, 440.00, 587.33, 659.25, 587.33, 493.88, 369.99];
       musicInterval = setInterval(() => {
@@ -1124,7 +1184,6 @@
       logMsg("QUESTIS AUDIO: Playing 02 // 'Vacuum & Red Light (Csaplar Nocturne)' (A/B Arrangement)");
     } 
     else if (trackNum === 3) {
-      // Track 3: Overclocked Motivator (Verse A: 148 BPM bass drive | Chorus B: High-octave slicer synth lead + bass)
       const verseBass  = [110, 110, 146.83, 110, 164.81, 146.83, 130.81, 98];
       const chorusLead = [440, 523.25, 659.25, 587.33, 440, 659.25, 783.99, 659.25];
       musicInterval = setInterval(() => {
@@ -1146,7 +1205,6 @@
       logMsg("QUESTIS AUDIO: Playing 03 // 'Overclocked Motivator (Nar Shaddaa Edit)' (A/B Arrangement)");
     } 
     else if (trackNum === 4) {
-      // Track 4: Ozyly-Esehem Lullaby (Verse A: Gentle solo hum | Chorus B: Dual-voice Skywalker starlight duet)
       const verseA  = [392.00, 440.00, 523.25, 659.25, 587.33, 523.25, 440.00, 392.00];
       const chorusB = [523.25, 659.25, 783.99, 880.00, 783.99, 659.25, 587.33, 523.25];
       musicInterval = setInterval(() => {
@@ -1670,7 +1728,6 @@
   function renderHoloGallery() {
     const allHolos = getAllHolos();
 
-    // If a holo image is clicked, fill the entire right viewport with that holo!
     if (expandedHoloIndex !== null && allHolos[expandedHoloIndex]) {
       const h = allHolos[expandedHoloIndex];
       const imgUrl = getHoloUrl(h.file);
@@ -1680,7 +1737,7 @@
             <strong style="color:var(--accent-cyan); font-size:1.05rem;">${h.code} // FULL OPTICAL PROJECTION</strong>
             <button onclick="closeHoloFullView()">[&larr; BACK TO HOLO ARCHIVE]</button>
           </div>
-          <div class="holo-expanded-img-box" onclick="closeHoloFullView()" title="Click to return to gallery">
+          <div class="holo-expanded-img-box" onclick="closeHoloFullView()" title="Tap to return to gallery">
             <img src="${imgUrl}" alt="${h.code}">
           </div>
           <div>
@@ -1694,7 +1751,7 @@
     const cards = allHolos.map((h, idx) => {
       const imgUrl = getHoloUrl(h.file);
       return `
-        <div class="holo-card" onclick="openHoloFullView(${idx})" title="Click to expand holo in full viewport">
+        <div class="holo-card" onclick="openHoloFullView(${idx})" title="Tap to expand holo in full viewport">
           <div class="holo-img-wrap">
             <img src="${imgUrl}" alt="${h.code}" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
             <div style="display:none; padding:12px; text-align:center; color:var(--accent-cyan); font-size:0.75rem;">
@@ -1730,7 +1787,7 @@
     }
 
     return `
-      <p><strong>STORED HOLOGRAPHIC CAPTURES // QUESTIS OPTICAL MATRIX</strong> <em>(Click any holo-card to enlarge)</em></p>
+      <p><strong>STORED HOLOGRAPHIC CAPTURES // QUESTIS OPTICAL MATRIX</strong> <em>(Tap any holo-card to enlarge)</em></p>
       <div class="holo-grid">${cards}</div>
       ${gmAddSection}
     `;
@@ -1789,7 +1846,7 @@
 
     return `
       <p><strong>CHISS ACOUSTIC FOCUS FREQUENCIES // SUB-HARMONIC SYNTHESIZER</strong><br>
-      <em>Click [PLAY RESONANCE] on any track to generate live multi-part (Verse A & Chorus B) Chiss audio frequencies while slicing.</em></p>
+      <em>Tap [PLAY RESONANCE] on any track to generate live multi-part (Verse A & Chorus B) Chiss audio frequencies while slicing.</em></p>
       ${activeBanner}
       ${tracks.map(t => `
         <div class="track-card ${activeTrackId === t.num ? 'playing' : ''}">
@@ -1887,7 +1944,7 @@
         <tr>
           <td><strong>${s.id}</strong></td>
           <td><strong>${s.name}</strong></td>
-          <td style="cursor:pointer;" title="Click to cycle: SILO 1 -> SILO 2 -> IN TRANSFER -> ORBIT" onclick="cycleLocation(${idx})">
+          <td style="cursor:pointer;" title="Tap to cycle: SILO 1 -> SILO 2 -> IN TRANSFER -> ORBIT" onclick="cycleLocation(${idx})">
             <span class="${locClass}">${s.loc} &#8644;</span>
           </td>
           <td>${s.state === 'TERMINATED' ? '0 BPM (FLATLINE)' : `${s.bpm} BPM | ${s.bp} | ${s.temp}`}</td>
@@ -2070,13 +2127,11 @@
 
     if (!rawCode) return;
 
-    // Campaign Reset Code ("FORFRA")
     if (upperCode === "FORFRA") {
       resetAllToDefault();
       return;
     }
 
-    // GM Local Code
     if (rawCode.toLowerCase() === "gung@n4x4svampesporer") {
       gmModeUnlocked = !gmModeUnlocked;
       playUnlockSound();
@@ -2175,7 +2230,7 @@
   }
 
   // ============================================================================
-  // 12. SLICING MINIGAME ENGINE (WITH NEW DRAG-AND-DROP PACKET ROUTING)
+  // 12. SLICING MINIGAME ENGINE (WITH NATIVE IPAD TOUCH DRAG-AND-DROP)
   // ============================================================================
   let sliceTimer = null;
   let routingAnimFrame = null;
@@ -2377,28 +2432,28 @@
     }).join(" - ");
   }
 
-  // --- MINIGAME B: TOUCH/MOUSE DRAG-AND-DROP PACKET ROUTING ---
+  // --- MINIGAME B: NATIVE IPAD TOUCH & MOUSE DRAG-AND-DROP PACKET ROUTING ---
   function setupDragPacketGame() {
     document.getElementById("minigame-title").innerText = "MINIGAME B // CRYSTALLINE PACKET ROUTING";
-    document.getElementById("minigame-desc").innerText = "Drag all 3 data-packets (ALPHA, BETA, GAMMA) from the left and drop them into their matching sockets on the right! Avoid the moving red Imperial Firewall bars (-2.5s penalty on hit).";
-    startTimer(19.0);
+    document.getElementById("minigame-desc").innerText = "Slide all 3 data-packets (ALPHA, BETA, GAMMA) with your finger or mouse into their matching ports on the right! Avoid the moving red Firewall bars (-2.5s penalty).";
+    startTimer(20.0);
 
     const area = document.getElementById("minigame-area");
     area.innerHTML = `
       <div class="routing-arena" id="routing-arena">
         <!-- Target Sockets on the right -->
         <div class="socket-node" id="sock-0" style="top: 18px;">PORT ALPHA</div>
-        <div class="socket-node" id="sock-1" style="top: 94px;">PORT BETA</div>
-        <div class="socket-node" id="sock-2" style="top: 170px;">PORT GAMMA</div>
+        <div class="socket-node" id="sock-1" style="top: 96px;">PORT BETA</div>
+        <div class="socket-node" id="sock-2" style="top: 174px;">PORT GAMMA</div>
 
         <!-- Moving Red Firewall Obstacles -->
         <div class="firewall-bar" id="fw-0" style="left: 38%; top: 10px;"></div>
         <div class="firewall-bar" id="fw-1" style="left: 64%; top: 140px;"></div>
 
         <!-- Draggable Data Packets on the left -->
-        <div class="packet-node" id="pkt-0" style="left: 14px; top: 172px;">ALPHA</div>
+        <div class="packet-node" id="pkt-0" style="left: 14px; top: 176px;">ALPHA</div>
         <div class="packet-node" id="pkt-1" style="left: 14px; top: 20px;">BETA</div>
-        <div class="packet-node" id="pkt-2" style="left: 14px; top: 96px;">GAMMA</div>
+        <div class="packet-node" id="pkt-2" style="left: 14px; top: 98px;">GAMMA</div>
       </div>
     `;
 
@@ -2407,85 +2462,129 @@
     const fw1 = document.getElementById("fw-1");
 
     let fwState = [
-      { el: fw0, y: 10, dir: 1, speed: currentTier === 2 ? 2.6 : 1.9 },
-      { el: fw1, y: 150, dir: -1, speed: currentTier === 2 ? 3.0 : 2.2 }
+      { el: fw0, y: 10, dir: 1, speed: currentTier === 2 ? 2.4 : 1.7 },
+      { el: fw1, y: 150, dir: -1, speed: currentTier === 2 ? 2.8 : 2.0 }
     ];
 
     const startPositions = [
-      { left: 14, top: 172 },
+      { left: 14, top: 176 },
       { left: 14, top: 20 },
-      { left: 14, top: 96 }
+      { left: 14, top: 98 }
     ];
     let lockedPackets = [false, false, false];
     let activeDragIdx = null;
     let dragOffsetX = 0;
     let dragOffsetY = 0;
 
-    // Setup pointer events (works seamlessly with both iPad touch and PC mouse without zooming!)
+    function startDrag(idx, clientX, clientY) {
+      if (lockedPackets[idx]) return;
+      activeDragIdx = idx;
+      const pkt = document.getElementById(`pkt-${idx}`);
+      if (!pkt) return;
+      pkt.classList.add("dragging");
+      const rect = pkt.getBoundingClientRect();
+      dragOffsetX = clientX - rect.left;
+      dragOffsetY = clientY - rect.top;
+      playClickSound(700 + idx * 80);
+    }
+
+    function moveDrag(clientX, clientY) {
+      if (activeDragIdx === null) return;
+      const idx = activeDragIdx;
+      if (lockedPackets[idx]) return;
+
+      const pkt = document.getElementById(`pkt-${idx}`);
+      if (!pkt || !arena) return;
+
+      const arenaRect = arena.getBoundingClientRect();
+      let newX = clientX - arenaRect.left - dragOffsetX;
+      let newY = clientY - arenaRect.top - dragOffsetY;
+
+      newX = Math.max(4, Math.min(arenaRect.width - 72, newX));
+      newY = Math.max(4, Math.min(arenaRect.height - 48, newY));
+
+      pkt.style.left = newX + "px";
+      pkt.style.top = newY + "px";
+
+      // Check socket overlap
+      const sock = document.getElementById(`sock-${idx}`);
+      const pktRect = pkt.getBoundingClientRect();
+      const sockRect = sock.getBoundingClientRect();
+
+      const overlap = !(pktRect.right < sockRect.left || 
+                        pktRect.left > sockRect.right || 
+                        pktRect.bottom < sockRect.top || 
+                        pktRect.top > sockRect.bottom);
+
+      if (overlap) {
+        lockedPackets[idx] = true;
+        activeDragIdx = null;
+        pkt.classList.remove("dragging");
+        pkt.classList.add("locked");
+        pkt.style.left = (arenaRect.width - 84) + "px";
+        pkt.style.top = (parseInt(sock.style.top, 10) + 2) + "px";
+        playClickSound(1050);
+
+        if (lockedPackets.every(Boolean)) {
+          advanceOrFinishStage();
+        }
+      }
+    }
+
+    function endDrag() {
+      if (activeDragIdx !== null) {
+        const pkt = document.getElementById(`pkt-${activeDragIdx}`);
+        if (pkt) pkt.classList.remove("dragging");
+        activeDragIdx = null;
+      }
+    }
+
+    // Bind dedicated Touch AND Mouse listeners for 100% iPad Safari reliability
     [0, 1, 2].forEach(idx => {
       const pkt = document.getElementById(`pkt-${idx}`);
-      pkt.addEventListener("pointerdown", (e) => {
+
+      // Touch start on packet
+      pkt.addEventListener("touchstart", (e) => {
+        if (lockedPackets[idx]) return;
+        e.stopPropagation();
+        if (e.cancelable) e.preventDefault();
+        const t = e.touches[0];
+        startDrag(idx, t.clientX, t.clientY);
+      }, { passive: false });
+
+      // Mouse down on packet
+      pkt.addEventListener("mousedown", (e) => {
         if (lockedPackets[idx]) return;
         e.preventDefault();
-        activeDragIdx = idx;
-        pkt.setPointerCapture(e.pointerId);
-        const rect = pkt.getBoundingClientRect();
-        dragOffsetX = e.clientX - rect.left;
-        dragOffsetY = e.clientY - rect.top;
-        playClickSound(700 + idx * 80);
-      });
-
-      pkt.addEventListener("pointermove", (e) => {
-        if (activeDragIdx !== idx || lockedPackets[idx]) return;
-        e.preventDefault();
-        const arenaRect = arena.getBoundingClientRect();
-        let newX = e.clientX - arenaRect.left - dragOffsetX;
-        let newY = e.clientY - arenaRect.top - dragOffsetY;
-
-        newX = Math.max(4, Math.min(arenaRect.width - 60, newX));
-        newY = Math.max(4, Math.min(arenaRect.height - 40, newY));
-
-        pkt.style.left = newX + "px";
-        pkt.style.top = newY + "px";
-
-        // Check if dropped inside matching socket
-        const sock = document.getElementById(`sock-${idx}`);
-        const pktRect = pkt.getBoundingClientRect();
-        const sockRect = sock.getBoundingClientRect();
-
-        const overlap = !(pktRect.right < sockRect.left || 
-                          pktRect.left > sockRect.right || 
-                          pktRect.bottom < sockRect.top || 
-                          pktRect.top > sockRect.bottom);
-
-        if (overlap) {
-          lockedPackets[idx] = true;
-          activeDragIdx = null;
-          pkt.classList.add("locked");
-          pkt.style.left = (arenaRect.width - 78) + "px";
-          pkt.style.top = sock.style.top;
-          playClickSound(1050);
-
-          if (lockedPackets.every(Boolean)) {
-            advanceOrFinishStage();
-          }
-        }
-      });
-
-      pkt.addEventListener("pointerup", () => {
-        if (activeDragIdx === idx) activeDragIdx = null;
-      });
-      pkt.addEventListener("pointercancel", () => {
-        if (activeDragIdx === idx) activeDragIdx = null;
+        startDrag(idx, e.clientX, e.clientY);
       });
     });
+
+    // Arena-wide touchmove / mousemove so fast finger movements never lose the box
+    arena.addEventListener("touchmove", (e) => {
+      if (activeDragIdx === null) return;
+      if (e.cancelable) e.preventDefault();
+      const t = e.touches[0];
+      moveDrag(t.clientX, t.clientY);
+    }, { passive: false });
+
+    arena.addEventListener("touchend", () => endDrag());
+    arena.addEventListener("touchcancel", () => endDrag());
+
+    arena.addEventListener("mousemove", (e) => {
+      if (activeDragIdx === null) return;
+      e.preventDefault();
+      moveDrag(e.clientX, e.clientY);
+    });
+    arena.addEventListener("mouseup", () => endDrag());
+    arena.addEventListener("mouseleave", () => endDrag());
 
     function animateFirewalls() {
       if (!document.getElementById("routing-arena")) return;
       fwState.forEach(fw => {
         fw.y += fw.dir * fw.speed;
         if (fw.y <= 4) { fw.y = 4; fw.dir = 1; }
-        if (fw.y >= 162) { fw.y = 162; fw.dir = -1; }
+        if (fw.y >= 168) { fw.y = 168; fw.dir = -1; }
         fw.el.style.top = fw.y + "px";
 
         // Check collision with currently dragged packet
@@ -2499,8 +2598,8 @@
                         pktRect.bottom < fwRect.top || 
                         pktRect.top > fwRect.bottom);
           if (hit) {
-            // Reset packet to start position & apply penalty
             const resetIdx = activeDragIdx;
+            pkt.classList.remove("dragging");
             activeDragIdx = null;
             pkt.style.left = startPositions[resetIdx].left + "px";
             pkt.style.top = startPositions[resetIdx].top + "px";
