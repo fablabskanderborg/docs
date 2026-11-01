@@ -2,9 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>IMPERIAL DATAPAD // SILO-1 TERMINAL</title>
-<!-- Optional Supabase SDK for Realtime Sync between GM and Player -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IMPERIAL DATAPAD // SILO-1 & QUESTIS TERMINAL</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap');
@@ -24,16 +23,17 @@
     --alert-red: #ff2a2a;
     --warn-amber: #ffae00;
     --orbital-purple: #c084fc;
+    --transfer-blue: #38bdf8;
     --font-family: 'Share Tech Mono', 'Courier New', monospace;
     --border-radius: 0px;
     --panel-shadow: inset 0 0 15px rgba(46, 230, 138, 0.06);
-    --scanline-opacity: 0.18;
+    --scanline-opacity: 0.16;
   }
 
   /* SKIN 2: CHISS QUESTIS (MODERN, SOFT, BIOLUMINESCENT BLUE) */
   body.questis-skin {
     --bg-main: #040914;
-    --bg-panel: rgba(11, 25, 48, 0.85);
+    --bg-panel: rgba(11, 25, 48, 0.86);
     --bg-header: rgba(16, 37, 71, 0.90);
     --bg-row-even: rgba(15, 32, 60, 0.55);
     --border-color: rgba(56, 189, 248, 0.30);
@@ -45,8 +45,9 @@
     --alert-red: #f43f5e;
     --warn-amber: #fbbf24;
     --orbital-purple: #d8b4fe;
+    --transfer-blue: #38bdf8;
     --font-family: 'Exo 2', sans-serif;
-    --border-radius: 14px;
+    --border-radius: 10px;
     --panel-shadow: 0 8px 32px rgba(0, 195, 255, 0.18), inset 0 0 20px rgba(56, 189, 248, 0.12);
     --scanline-opacity: 0;
   }
@@ -59,11 +60,7 @@
     filter: contrast(1.4);
   }
 
-  * {
-    box-sizing: border-box;
-    -webkit-tap-highlight-color: transparent;
-    touch-action: manipulation;
-  }
+  * { box-sizing: border-box; }
 
   body {
     background-color: var(--bg-main);
@@ -72,12 +69,11 @@
     margin: 0;
     padding: 12px;
     min-height: 100vh;
-    transition: background-color 0.5s ease, color 0.4s ease;
+    transition: background-color 0.4s ease, color 0.3s ease;
     position: relative;
     overflow-x: hidden;
   }
 
-  /* CRT Scanlines (Imperial only) */
   body::after {
     content: " ";
     display: block;
@@ -89,19 +85,17 @@
     background-size: 100% 3px, 6px 100%;
     pointer-events: none;
     opacity: var(--scanline-opacity);
-    transition: opacity 0.5s ease;
   }
 
   .app-container {
-    max-width: 1320px;
+    max-width: 1360px;
     margin: 0 auto;
     border: 2px solid var(--border-highlight);
     border-radius: var(--border-radius);
     background: var(--bg-panel);
     box-shadow: var(--panel-shadow);
     backdrop-filter: blur(12px);
-    padding: 16px;
-    transition: all 0.5s ease;
+    padding: 14px;
   }
 
   /* TOP HEADER */
@@ -114,20 +108,20 @@
     border: 1px solid var(--border-color);
     border-bottom: 2px solid var(--border-highlight);
     border-radius: var(--border-radius);
-    padding: 12px 16px;
-    margin-bottom: 14px;
-    gap: 12px;
+    padding: 10px 14px;
+    margin-bottom: 10px;
+    gap: 10px;
   }
 
   .title-block h1 {
     margin: 0;
-    font-size: 1.3rem;
+    font-size: 1.25rem;
     color: var(--text-Bright);
     letter-spacing: 2px;
     text-transform: uppercase;
   }
   .title-block .subtitle {
-    font-size: 0.78rem;
+    font-size: 0.74rem;
     color: var(--text-dim);
   }
 
@@ -135,135 +129,132 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
   }
 
-  /* TOUCH-FRIENDLY INPUTS & BUTTONS */
   input[type="text"] {
-    background: rgba(0,0,0,0.6);
+    background: rgba(0,0,0,0.55);
     border: 1px solid var(--border-color);
     color: var(--text-Bright);
     font-family: inherit;
-    padding: 10px 12px;
-    min-height: 44px;
-    font-size: 0.92rem;
+    padding: 6px 10px;
+    font-size: 0.82rem;
     border-radius: var(--border-radius);
     outline: none;
   }
   input[type="text"]:focus {
     border-color: var(--border-highlight);
-    box-shadow: 0 0 8px rgba(46, 230, 138, 0.35);
   }
 
   button {
-    background: rgba(15, 30, 25, 0.8);
+    background: rgba(15, 30, 25, 0.75);
     color: var(--text-Bright);
     border: 1px solid var(--border-highlight);
-    padding: 10px 14px;
-    min-height: 44px;
+    padding: 6px 11px;
     font-family: inherit;
-    font-size: 0.84rem;
+    font-size: 0.78rem;
     cursor: pointer;
     border-radius: var(--border-radius);
     transition: all 0.15s ease;
     text-transform: uppercase;
     letter-spacing: 1px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
   }
   body.questis-skin button {
-    background: rgba(24, 55, 95, 0.7);
-    border-radius: 10px;
+    background: rgba(24, 55, 95, 0.65);
+    border-radius: 6px;
   }
-  button:hover, button:active {
+  button:hover {
     background: var(--border-highlight);
     color: #000;
     font-weight: bold;
   }
-  button.danger {
-    border-color: var(--alert-red);
-    color: var(--alert-red);
-  }
-  button.danger:hover, button.danger:active {
-    background: var(--alert-red);
-    color: #fff;
-  }
-  button.warn {
-    border-color: var(--warn-amber);
-    color: var(--warn-amber);
-  }
-  button.warn:hover, button.warn:active {
-    background: var(--warn-amber);
-    color: #000;
-  }
+  button.danger { border-color: var(--alert-red); color: var(--alert-red); }
+  button.danger:hover { background: var(--alert-red); color: #fff; }
+  button.warn { border-color: var(--warn-amber); color: var(--warn-amber); }
+  button.warn:hover { background: var(--warn-amber); color: #000; }
   button.questis-btn {
     border-color: var(--accent-cyan);
     color: var(--accent-cyan);
-    box-shadow: 0 0 10px rgba(0, 229, 255, 0.25);
+    box-shadow: 0 0 8px rgba(0, 229, 255, 0.25);
   }
 
-  /* SECURITY CLEARANCE BAR */
-  .clearance-bar {
+  /* MODE TABS BAR & SECURITY CLEARANCE */
+  .sub-bar {
     display: flex;
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
     gap: 10px;
-    padding: 10px 14px;
-    margin-bottom: 14px;
+    padding: 7px 12px;
+    margin-bottom: 12px;
     border: 1px solid var(--border-color);
-    background: rgba(0,0,0,0.35);
+    background: rgba(0,0,0,0.3);
     border-radius: var(--border-radius);
-    font-size: 0.84rem;
+    font-size: 0.8rem;
+  }
+  .tab-group {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .tab-btn {
+    padding: 6px 14px;
+    font-weight: bold;
+    border: 1px solid var(--border-color);
+    background: rgba(0,0,0,0.4);
+    color: var(--text-dim);
+  }
+  .tab-btn.active-tab {
+    border-color: var(--border-highlight);
+    background: var(--border-highlight);
+    color: #000;
   }
   .badge {
-    display: inline-block;
-    padding: 5px 10px;
-    margin: 2px;
+    padding: 3px 8px;
     border: 1px solid var(--text-dim);
     color: var(--text-dim);
     border-radius: var(--border-radius);
-    font-size: 0.76rem;
+    font-size: 0.72rem;
   }
   .badge.unlocked {
     border-color: var(--text-Bright);
     color: var(--text-Bright);
-    background: rgba(46, 230, 138, 0.14);
+    background: rgba(46, 230, 138, 0.12);
   }
   body.questis-skin .badge.unlocked {
-    background: rgba(56, 189, 248, 0.20);
+    background: rgba(56, 189, 248, 0.18);
   }
 
-  /* MAIN LAYOUT GRID */
+  /* DESKTOP & IPAD LANDSCAPE SIDE-BY-SIDE GRID */
   .main-grid {
     display: grid;
-    grid-template-columns: 320px 1fr;
-    gap: 16px;
+    grid-template-columns: 290px 1fr;
+    gap: 14px;
+    align-items: stretch;
   }
-  @media (max-width: 960px) {
+  @media (max-width: 680px) {
     .main-grid { grid-template-columns: 1fr; }
   }
 
-  /* SIDEBAR NAVIGATION & SEARCH */
+  /* LEFT SIDEBAR */
   .sidebar {
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
-    padding: 12px;
+    padding: 10px;
     background: rgba(0,0,0,0.25);
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
   }
   .search-box { width: 100%; }
   .nav-category {
-    font-size: 0.75rem;
+    font-size: 0.71rem;
     color: var(--text-dim);
     text-transform: uppercase;
-    letter-spacing: 1.5px;
-    margin-top: 8px;
+    letter-spacing: 1.4px;
+    margin-top: 6px;
     border-bottom: 1px solid var(--border-color);
-    padding-bottom: 4px;
+    padding-bottom: 3px;
   }
   .file-list {
     list-style: none;
@@ -271,24 +262,23 @@
     margin: 0;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 4px;
   }
   .file-item {
-    padding: 12px 12px;
-    min-height: 46px;
+    padding: 8px 10px;
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
     cursor: pointer;
-    font-size: 0.85rem;
+    font-size: 0.79rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    transition: all 0.15s ease;
+    transition: all 0.12s ease;
     background: rgba(255,255,255,0.01);
   }
-  .file-item:hover, .file-item:active {
+  .file-item:hover {
     border-color: var(--border-highlight);
-    background: rgba(46, 230, 138, 0.08);
+    background: rgba(46, 230, 138, 0.07);
   }
   .file-item.active {
     background: var(--border-highlight);
@@ -298,16 +288,16 @@
   .file-item.locked {
     color: var(--alert-red);
     border-color: rgba(255, 42, 42, 0.35);
-    opacity: 0.85;
+    opacity: 0.82;
   }
 
-  /* CONTENT VIEWPORT */
+  /* RIGHT VIEWPORT */
   .viewport {
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
-    padding: 18px;
+    padding: 16px;
     background: rgba(0,0,0,0.25);
-    min-height: 560px;
+    min-height: 550px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -315,10 +305,9 @@
   }
   .doc-header {
     border-bottom: 1px solid var(--border-color);
-    padding-bottom: 10px;
-    margin-bottom: 15px;
+    padding-bottom: 8px;
+    margin-bottom: 12px;
     display: flex;
-    flex-wrap: wrap;
     justify-content: space-between;
     align-items: flex-start;
     gap: 10px;
@@ -326,63 +315,51 @@
   .doc-header h2 {
     margin: 0;
     color: var(--text-Bright);
-    font-size: 1.2rem;
+    font-size: 1.15rem;
   }
   .doc-meta {
-    font-size: 0.78rem;
+    font-size: 0.74rem;
     color: var(--text-dim);
-    margin-top: 4px;
+    margin-top: 3px;
   }
   .doc-body {
-    line-height: 1.6;
-    font-size: 0.92rem;
+    line-height: 1.52;
+    font-size: 0.87rem;
     overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
   }
 
-  /* TABLES IN VIEWPORT */
+  /* TABLES */
   table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.84rem;
-    margin-top: 10px;
-    min-width: 580px;
+    font-size: 0.79rem;
+    margin-top: 8px;
   }
   th, td {
     border: 1px solid var(--border-color);
-    padding: 10px 9px;
+    padding: 6px 8px;
     text-align: left;
-    vertical-align: middle;
   }
   th {
     background: var(--bg-header);
     color: var(--text-Bright);
     text-transform: uppercase;
-    font-size: 0.76rem;
+    font-size: 0.72rem;
   }
   tr:nth-child(even) { background: var(--bg-row-even); }
-
-  .action-btn-group {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-  }
-  .action-btn-group button {
-    min-height: 38px;
-    padding: 6px 10px;
-    font-size: 0.76rem;
-  }
 
   .status-armed { color: var(--alert-red); font-weight: bold; }
   .status-safe { color: var(--text-Bright); font-weight: bold; }
   .status-orbit { color: var(--orbital-purple); font-weight: bold; }
+  .status-transfer { color: var(--transfer-blue); font-weight: bold; }
+  .status-silo2 { color: var(--warn-amber); font-weight: bold; }
   .status-dead { color: #666; text-decoration: line-through; }
 
   .callout-box {
     border-left: 3px solid var(--border-highlight);
     background: rgba(46, 230, 138, 0.06);
-    padding: 14px 16px;
-    margin: 14px 0;
+    padding: 10px 14px;
+    margin: 12px 0;
     border-radius: var(--border-radius);
   }
   .callout-box.danger {
@@ -390,18 +367,71 @@
     background: rgba(255, 42, 42, 0.08);
   }
 
+  /* HOLO GALLERY CARDS */
+  .holo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 14px;
+    margin-top: 10px;
+  }
+  .holo-card {
+    border: 1px solid var(--border-highlight);
+    border-radius: var(--border-radius);
+    background: rgba(8, 22, 38, 0.65);
+    overflow: hidden;
+    box-shadow: 0 0 15px rgba(0, 229, 255, 0.12);
+  }
+  .holo-img-wrap {
+    position: relative;
+    width: 100%;
+    height: 170px;
+    background: radial-gradient(circle, rgba(16,45,75,0.8), #03070e);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-bottom: 1px solid var(--border-color);
+  }
+  .holo-img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: hue-rotate(175deg) saturate(1.4) contrast(1.15);
+    opacity: 0.9;
+  }
+  .holo-body {
+    padding: 10px 12px;
+    font-size: 0.8rem;
+  }
+
+  /* AUDIO TRACK CARDS */
+  .track-card {
+    border: 1px solid var(--border-color);
+    background: rgba(0,0,0,0.35);
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    border-radius: var(--border-radius);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+  .track-card.playing {
+    border-color: var(--accent-cyan);
+    box-shadow: inset 0 0 12px rgba(0, 229, 255, 0.15);
+  }
+
   /* TERMINAL LOG FOOTER */
   .sys-log {
-    margin-top: 18px;
+    margin-top: 14px;
     background: #030506;
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
-    padding: 10px 14px;
-    height: 115px;
+    padding: 8px 12px;
+    height: 95px;
     overflow-y: auto;
-    font-size: 0.8rem;
+    font-size: 0.76rem;
     color: var(--text-Bright);
-    -webkit-overflow-scrolling: touch;
   }
 
   /* SLICING MINIGAME MODAL */
@@ -419,91 +449,130 @@
     background: var(--bg-panel);
     border: 2px solid var(--border-highlight);
     border-radius: var(--border-radius);
-    max-width: 560px;
+    max-width: 580px;
     width: 100%;
-    padding: 20px;
+    padding: 18px;
     box-shadow: 0 0 35px rgba(0,0,0,0.95);
   }
 
-  /* Minigame 1: Hex Grid */
+  /* Minigame A: Hex Grid */
   .hex-grid {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    gap: 8px;
-    margin: 15px 0;
+    gap: 6px;
+    margin: 12px 0;
   }
   .hex-cell {
     border: 1px solid var(--border-color);
-    min-height: 52px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    padding: 10px 4px;
+    text-align: center;
     cursor: pointer;
     font-weight: bold;
-    font-size: 1rem;
+    font-size: 0.9rem;
     border-radius: var(--border-radius);
     background: rgba(0,0,0,0.45);
-    transition: background-color 0.15s;
     user-select: none;
   }
-  .hex-cell:hover, .hex-cell:active { border-color: var(--border-highlight); }
+  .hex-cell:hover { border-color: var(--border-highlight); }
   .hex-cell.matched { background: var(--border-highlight); color: #000; }
   .hex-cell.wrong-flash { background: var(--alert-red) !important; color: #fff !important; }
 
-  /* Minigame 2: Frequency Sliders */
-  .freq-row {
-    margin: 14px 0;
-    padding: 10px;
-    border: 1px solid var(--border-color);
-    background: rgba(0,0,0,0.35);
+  /* Minigame B: Rotary Phase Dials */
+  .dials-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin: 12px 0;
   }
-  .freq-row input[type="range"] {
-    width: 100%;
-    height: 32px;
-    accent-color: var(--border-highlight);
-    cursor: pointer;
+  .dial-card {
+    border: 1px solid var(--border-color);
+    background: rgba(0,0,0,0.45);
+    padding: 10px;
+    text-align: center;
+    border-radius: var(--border-radius);
+  }
+  .dial-wheel {
+    width: 84px;
+    height: 84px;
+    border: 2px solid var(--border-highlight);
+    border-radius: 50%;
+    margin: 8px auto;
+    position: relative;
+    background: radial-gradient(circle, rgba(46,230,138,0.12), #000);
+  }
+  .dial-pointer {
+    width: 3px;
+    height: 36px;
+    background: var(--accent-cyan);
+    position: absolute;
+    left: calc(50% - 1.5px);
+    bottom: 50%;
+    transform-origin: bottom center;
+    transition: transform 0.15s ease;
+  }
+  .dial-target-marker {
+    width: 6px;
+    height: 10px;
+    background: var(--alert-red);
+    position: absolute;
+    left: calc(50% - 3px);
+    top: -5px;
+    transform-origin: 50% 47px;
+  }
+  .dial-btn-row {
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+    margin-top: 6px;
+  }
+  .dial-btn-row button {
+    padding: 4px 6px;
+    font-size: 0.72rem;
   }
 
-  /* Minigame 3: Pattern Nodes */
+  /* Minigame C: Pattern Nodes */
   .pattern-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-    margin: 15px 0;
+    gap: 10px;
+    margin: 12px 0;
   }
   .pattern-node {
-    min-height: 68px;
+    height: 56px;
     border: 2px solid var(--border-color);
     background: rgba(0,0,0,0.5);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.1rem;
+    font-size: 0.95rem;
     font-weight: bold;
     cursor: pointer;
     border-radius: var(--border-radius);
     user-select: none;
-    transition: all 0.15s ease;
   }
   .pattern-node.lit {
     background: var(--accent-cyan);
     border-color: #fff;
     color: #000;
-    box-shadow: 0 0 18px var(--accent-cyan);
+    box-shadow: 0 0 16px var(--accent-cyan);
   }
-  .pattern-node.matched {
-    background: var(--border-highlight);
-    color: #000;
-  }
-  .pattern-node.wrong-flash {
-    background: var(--alert-red) !important;
-    color: #fff !important;
-  }
+  .pattern-node.matched { background: var(--border-highlight); color: #000; }
+  .pattern-node.wrong-flash { background: var(--alert-red) !important; color: #fff !important; }
 
   .timer-bar {
-    font-size: 1.2rem;
+    font-size: 1.15rem;
     color: var(--alert-red);
     font-weight: bold;
+  }
+
+  /* GM CONTROL PANEL INSIDE MODAL */
+  .gm-slice-box {
+    display: none;
+    margin: 10px 0;
+    padding: 8px 10px;
+    border: 1px dashed var(--warn-amber);
+    background: rgba(255, 174, 0, 0.08);
+    font-size: 0.76rem;
   }
 </style>
 </head>
@@ -521,38 +590,34 @@
       <input type="text" id="pass-input" placeholder="ENTER PASSCODE..." onkeydown="if(event.key==='Enter') submitPassword()">
       <button onclick="submitPassword()">AUTHORIZE</button>
       <button onclick="toggleAurebesh()" id="aurebesh-btn">AUREBESH: OFF</button>
-      <!-- HIDDEN QUESTIS BUTTON (UNLOCKED VIA CODE: IRIZI-QUESTIS) -->
-      <button id="skin-toggle-btn" class="questis-btn" style="display:none;" onclick="toggleSkin()">SWITCH OS: QUESTIS</button>
+      <button id="skin-toggle-btn" class="questis-btn" style="display:none;" onclick="toggleSkin()">SWITCH SKIN: QUESTIS</button>
     </div>
   </div>
 
-  <!-- SECURITY CLEARANCE BAR -->
-  <div class="clearance-bar">
-    <div>
-      <strong>SECURITY CLEARANCE:</strong>
-      <span class="badge unlocked">OPEN FILES [ACTIVE]</span>
-      <span class="badge" id="badge-lvl1">LEVEL 1: CLASSIFIED [LOCKED]</span>
-      <span class="badge" id="badge-lvl2">LEVEL 2: OMEGA-BLACK [LOCKED]</span>
+  <!-- NAVIGATION TABS & CLEARANCE BAR -->
+  <div class="sub-bar">
+    <div class="tab-group">
+      <button class="tab-btn active-tab" id="tab-silo1" onclick="switchMainTab('silo1')">[SILO-1 - LOGS]</button>
+      <button class="tab-btn" id="tab-personal" style="display:none;" onclick="switchMainTab('personal')">[PERSONAL DATA // QUESTIS]</button>
+      <span id="gm-active-indicator" class="badge unlocked" style="display:none; border-color:var(--warn-amber); color:var(--warn-amber);">GM OVERRIDE ACTIVE</span>
     </div>
-    <div>
-      <button class="warn" onclick="openSlicingModal()">[INITIATE SLICING BYPASS]</button>
+
+    <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+      <span class="badge unlocked">LEVEL 0 [OPEN]</span>
+      <span class="badge" id="badge-lvl1">LEVEL 1 [LOCKED]</span>
+      <span class="badge" id="badge-lvl2">LEVEL 2 [LOCKED]</span>
+      <button class="warn" onclick="openSlicingModal()">[SLICING BYPASS]</button>
     </div>
   </div>
 
-  <!-- MAIN INTERFACE -->
+  <!-- MAIN SIDE-BY-SIDE INTERFACE -->
   <div class="main-grid">
     <!-- LEFT SIDEBAR -->
     <div class="sidebar">
-      <input type="text" class="search-box" id="search-input" placeholder="Search decrypted database..." oninput="renderFileList()">
-      
-      <div class="nav-category">Open Operations Logs (Level 0)</div>
-      <ul class="file-list" id="list-lvl0"></ul>
-
-      <div class="nav-category">Classified Data (Level 1)</div>
-      <ul class="file-list" id="list-lvl1"></ul>
-
-      <div class="nav-category">Omega-Black Archives (Level 2)</div>
-      <ul class="file-list" id="list-lvl2"></ul>
+      <input type="text" class="search-box" id="search-input" placeholder="Search entries..." oninput="renderFileList()">
+      <div id="sidebar-sections">
+        <!-- Dynamically populated based on active tab -->
+      </div>
     </div>
 
     <!-- RIGHT VIEWPORT -->
@@ -573,28 +638,40 @@
 <!-- SLICING MINIGAME MODAL -->
 <div class="modal-overlay" id="slicing-modal">
   <div class="modal-box">
-    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
       <div>
         <h3 id="minigame-title" style="margin:0; color:var(--text-Bright);">SECURITY BYPASS PROTOCOL</h3>
-        <div id="minigame-stage-indicator" style="font-size:0.78rem; color:var(--accent-cyan);">STAGE 1 OF 1</div>
+        <div id="minigame-stage-indicator" style="font-size:0.74rem; color:var(--accent-cyan);">STAGE 1 OF 1</div>
       </div>
-      <span class="timer-bar" id="slice-timer">15.0s</span>
+      <span class="timer-bar" id="slice-timer">16.0s</span>
     </div>
 
-    <p id="minigame-desc" style="font-size:0.84rem; color:var(--text-dim); margin:10px 0;">
-      Select security target and press START to initialize slicing sequence. Warning: Incorrect inputs incur a -2.5s trace penalty!
+    <!-- LOCAL GM TIME ADJUSTMENT BAR (UNLOCKED VIA CODE: Gung@n4x4svampesporer) -->
+    <div class="gm-slice-box" id="gm-slice-box">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+        <strong>GM TIME MODIFIER (BASE: <span id="gm-offset-label">+0s</span>):</strong>
+        <div style="display:flex; gap:4px;">
+          <button class="danger" onclick="adjustSliceTime(-10)">-10s</button>
+          <button class="danger" onclick="adjustSliceTime(-5)">-5s</button>
+          <button onclick="adjustSliceTime(5)">+5s</button>
+          <button onclick="adjustSliceTime(10)">+10s</button>
+          <button onclick="adjustSliceTime(20)">+20s</button>
+        </div>
+      </div>
+    </div>
+
+    <p id="minigame-desc" style="font-size:0.8rem; color:var(--text-dim); margin:8px 0;">
+      Select security target and press START BYPASS. Level 2 requires completing TWO consecutive slicing stages! Wrong inputs incur a -2.5s penalty.
     </p>
 
-    <div id="minigame-area">
-      <!-- Dynamic Minigame UI injected here -->
-    </div>
+    <div id="minigame-area"></div>
 
-    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-top:14px;">
-      <select id="slice-tier-select" style="background:#000; color:var(--text-Bright); border:1px solid var(--border-color); padding:10px; min-height:44px; font-family:inherit;">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-top:12px;">
+      <select id="slice-tier-select" style="background:#000; color:var(--text-Bright); border:1px solid var(--border-color); padding:6px; font-family:inherit;">
         <option value="1">Target: Level 1 Classified (1 Stage)</option>
         <option value="2">Target: Level 2 Omega-Black (2 Stages Required)</option>
       </select>
-      <div style="display:flex; gap:8px;">
+      <div style="display:flex; gap:6px;">
         <button onclick="startSlicingRun()">START BYPASS</button>
         <button class="danger" onclick="closeSlicingModal()">ABORT</button>
       </div>
@@ -604,148 +681,52 @@
 
 <script>
   // ============================================================================
-  // 1. SUPABASE REALTIME CONFIGURATION (OPTIONAL)
-  // Paste your Supabase URL and Anon Key below for real-time sync between GM
-  // and player. If left blank, the datapad runs 100% locally without errors.
+  // 1. SUPABASE DATABASE & STORAGE CONFIGURATION
+  // Paste your Supabase Project URL and Anon Key below.
+  // If left empty, the terminal saves state in localStorage automatically.
   // ============================================================================
-  const SUPABASE_URL = ""; 
-  const SUPABASE_ANON_KEY = "";
+  const SUPABASE_URL = "https://gaedntdevwkqmhaecggd.supabase.co"; 
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdhZWRudGRldndrcW1oYWVjZ2dkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE1MzMwNTcsImV4cCI6MjEwNzEwOTA1N30.uyTzp1mHC30r_LjRfitxaLFpTyS4txOgd1BitoFOMl0";
+  // Optional: Folder/Bucket URL for holo1.jpg, holo2.jpg, holo3.jpg
+  // If SUPABASE_URL is filled, it defaults to: `${SUPABASE_URL}/storage/v1/object/public/holos/`
+  const CUSTOM_HOLO_BASE_URL = "";
+
   let supabaseClient = null;
   let realtimeChannel = null;
 
-  if (SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase) {
-    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    realtimeChannel = supabaseClient.channel('silo1-datapad-sync');
-    realtimeChannel
-      .on('broadcast', { event: 'state_update' }, (payload) => {
-        applyRemoteState(payload.payload);
-      })
-      .subscribe();
-  }
-
-  function broadcastState() {
-    if (!realtimeChannel) return;
-    realtimeChannel.send({
-      type: 'broadcast',
-      event: 'state_update',
-      payload: {
-        clearanceLvl1,
-        clearanceLvl2,
-        depotUnlocked,
-        questisUnlocked,
-        aaTurretsActive,
-        hangarDoorsOpen,
-        containmentLocks,
-        blastDoorCodeUnlocked,
-        unlockedLockers,
-        batch17
-      }
-    });
-  }
-
-  function applyRemoteState(data) {
-    if (!data) return;
-    clearanceLvl1 = data.clearanceLvl1;
-    clearanceLvl2 = data.clearanceLvl2;
-    depotUnlocked = data.depotUnlocked;
-    questisUnlocked = data.questisUnlocked;
-    aaTurretsActive = data.aaTurretsActive;
-    hangarDoorsOpen = data.hangarDoorsOpen;
-    containmentLocks = data.containmentLocks;
-    blastDoorCodeUnlocked = data.blastDoorCodeUnlocked;
-    if (data.unlockedLockers) unlockedLockers = data.unlockedLockers;
-    if (data.batch17) {
-      data.batch17.forEach((remoteSub, i) => {
-        if (batch17[i]) Object.assign(batch17[i], remoteSub);
-      });
-    }
-    updateClearanceBadges();
-    renderFileList();
-    selectFile(currentFileId, true);
+  function getHoloUrl(filename) {
+    if ( filename.startsWith("http://") || filename.startsWith("https://") ) return filename;
+    if (CUSTOM_HOLO_BASE_URL) return CUSTOM_HOLO_BASE_URL.replace(/\/?$/, "/") + filename;
+    if (SUPABASE_URL) return `${SUPABASE_URL.replace(/\/?$/, "")}/storage/v1/object/public/holos/${filename}`;
+    return filename; // Local relative path fallback
   }
 
   // ============================================================================
-  // 2. WEB AUDIO SYNTHESIZER (WARNING BUZZERS & CONFIRMATION BEEPS)
+  // 2. SYSTEM STATE & PERSISTENT DATA
   // ============================================================================
-  let audioCtx = null;
-  function getAudioCtx() {
-    if (!audioCtx) {
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      audioCtx = new AudioContext();
-    }
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-    return audioCtx;
-  }
-
-  // Harsh dual low-frequency Imperial buzzer on wrong password or slicing error
-  function playWarningSound() {
-    try {
-      const ctx = getAudioCtx();
-      const now = ctx.currentTime;
-      [0, 0.16].forEach(offset => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(145, now + offset);
-        osc.frequency.linearRampToValueAtTime(92, now + offset + 0.13);
-        gain.gain.setValueAtTime(0.25, now + offset);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.14);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start(now + offset);
-        osc.stop(now + offset + 0.15);
-      });
-    } catch (e) {}
-  }
-
-  // Short crisp digital beep
-  function playClickSound(freq = 880) {
-    try {
-      const ctx = getAudioCtx();
-      const now = ctx.currentTime;
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, now);
-      gain.gain.setValueAtTime(0.14, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start(now);
-      osc.stop(now + 0.09);
-    } catch (e) {}
-  }
-
-  // Ascending unlock chime
-  function playUnlockSound() {
-    playClickSound(587.33);
-    setTimeout(() => playClickSound(880), 90);
-    setTimeout(() => playClickSound(1174.66), 180);
-  }
-
-  // ============================================================================
-  // 3. SYSTEM STATE, DEPOT LOCKERS & BATCH 17 TELEMETRY
-  // ============================================================================
+  let activeMainTab = "silo1"; // 'silo1' or 'personal'
   let clearanceLvl1 = false;
   let clearanceLvl2 = false;
   let depotUnlocked = false;
   let questisUnlocked = false;
   let isQuestisSkin = false;
   let isAurebesh = false;
+  let gmModeUnlocked = false;
+  let gmBonusSeconds = 0;
   let currentFileId = "log_kaelen";
 
   // Facility Control States
   let aaTurretsActive = true;
   let hangarDoorsOpen = false;
   let containmentLocks = true;
-  let blastDoorCodeUnlocked = false; // Requires KREEL-LOCK-9 via Computers check
+  let blastDoorCodeUnlocked = false;
 
-  // Depot Section 2 Lockers (01 to 12) - Expanded with previous batches' loot
+  // Depot Section 2 Lockers (01 to 12)
   let unlockedLockers = {};
   const depotLockers = [
     { box: "01", batch: "Batch 01 (Mixed Miners)", desc: "Heavy mining overalls, 2x industrial plasma-cutters (depleted power cells), 1x battered vibro-pick, pouch with 85 Imperial credits." },
     { box: "02", batch: "Batch 03 (Human Group)", desc: "Confiscated spacer jackets, 1x Medpac (contains 2 intact Bacta Stimpacks), personal comlinks (frequencies wiped), 1x magnetic glowrod." },
-    { box: "03", batch: "Batch 04 & 05 (Rodian / Twi'lek)", desc: "2x HoldoutBlaster Pistols (ammunition clips removed and stored in Box 09), 1x fine Rylothian silk cloak, 3x Sabacc decks." },
+    { box: "03", batch: "Batch 04 & 05 (Rodian / Twi'lek)", desc: "2x Holdout Blaster Pistols (ammunition clips removed and stored in Box 09), 1x fine Rylothian silk cloak, 3x Sabacc decks." },
     { box: "04", batch: "Batch 06 (Bothan Operatives)", desc: "1x encrypted Bothan holo-recorder, 1x Electronic Lock Breaker (grants Boost die to Skulduggery checks), 2x concealed vibro-knives." },
     { box: "05", batch: "Batch 07 & 08 (Trandoshan / Wookiee)", desc: "1x heavy Trandoshan Jagannath blade, braided Wookiee bandolier, 2x Frag Grenades (safety pins Magna-sealed)." },
     { box: "06", batch: "Batch 17 (B17-01 & B17-02)", desc: "Confiscated formal diplomatic robes, tunic, and heavy cloak belonging to Subject B17-01 (Thzaron) and Subject B17-02 (Charinn) — routinely bio-scanned with no anomalies detected and sealed in textile storage bag." },
@@ -757,6 +738,7 @@
     { box: "12", batch: "Unclaimed / Quarantine Salvage", desc: "3x Emergency Med-Patches, 1x spool of high-tensile ascension cable with grappling hook, 2x ration packs." }
   ];
 
+  // Batch 17 Cranial Telemetry (4 Location States: SILO 1, SILO 2, IN TRANSFER, ORBIT)
   const batch17 = [
     { id: "B17-01", name: "Thzaron", loc: "SILO 1", bpm: 62, bp: "112/70", temp: "35.4°C", stress: "18%", state: "ARMED" },
     { id: "B17-02", name: "Charinn", loc: "SILO 1", bpm: 84, bp: "126/82", temp: "35.7°C", stress: "46%", state: "ARMED" },
@@ -774,13 +756,282 @@
     { id: "B17-14", name: "Kreln",   loc: "SILO 1", bpm: 82, bp: "124/80", temp: "35.6°C", stress: "44%", state: "ARMED" }
   ];
 
+  // Kethani Personal Holo Gallery (Supports dynamic additions saved to Supabase)
+  let holoGallery = [
+    {
+      code: "IMG_001_CSILLA_ACROPOLIS.HOLO",
+      file: "holo1.jpg",
+      desc: "A sharp, blue-tinted panoramic holo of the House Irizi ice-palace in Csaplar on Csilla, bathed in the cold, pale glow of orbital glacier-reflectors.",
+      meta: "Recorded 4 years prior to exile. Attached note: 'Cold, pure, immutable. And full of lies.'"
+    },
+    {
+      code: "IMG_002_LORAN_CEDF.HOLO",
+      file: "holo2.jpg",
+      desc: "A slightly blurred capture of a young male Chiss (Loran) in an immaculate black Chiss Expansionary Defense Fleet uniform, smiling crookedly and informally toward the lens inside a cruiser hangar while Kethani's finger partially obscures the corner.",
+      meta: "Recorded at the Tah'nuhna Fleet Academy. Biometric Lock: Kethani Eyes Only."
+    },
+    {
+      code: "IMG_003_MOD_SCHEMATIC_X7.DIAG",
+      file: "holo3.jpg",
+      desc: "An intricately detailed, three-dimensional crystalline schematic of the fatal hyperdrive motivator coil. A specific junction near the fuel-injector is highlighted with a pulsing crimson circle alongside hundreds of handwritten Cheunh calculus annotations.",
+      meta: "Simulation Run #842. Conclusion: External harmonic sabotage (Probability: 94.7%)."
+    }
+  ];
+
   // ============================================================================
-  // 4. DATABASE FILES (ALL IN ENGLISH)
+  // 3. PERSISTENCE ENGINE (SUPABASE DB + LOCALSTORAGE FALLBACK)
+  // ============================================================================
+  function buildStatePayload() {
+    return {
+      clearanceLvl1,
+      clearanceLvl2,
+      depotUnlocked,
+      questisUnlocked,
+      aaTurretsActive,
+      hangarDoorsOpen,
+      containmentLocks,
+      blastDoorCodeUnlocked,
+      unlockedLockers,
+      batch17,
+      holoGallery
+    };
+  }
+
+  function applyStatePayload(data) {
+    if (!data || Object.keys(data).length === 0) return;
+    if (typeof data.clearanceLvl1 === "boolean") clearanceLvl1 = data.clearanceLvl1;
+    if (typeof data.clearanceLvl2 === "boolean") clearanceLvl2 = data.clearanceLvl2;
+    if (typeof data.depotUnlocked === "boolean") depotUnlocked = data.depotUnlocked;
+    if (typeof data.questisUnlocked === "boolean") questisUnlocked = data.questisUnlocked;
+    if (typeof data.aaTurretsActive === "boolean") aaTurretsActive = data.aaTurretsActive;
+    if (typeof data.hangarDoorsOpen === "boolean") hangarDoorsOpen = data.hangarDoorsOpen;
+    if (typeof data.containmentLocks === "boolean") containmentLocks = data.containmentLocks;
+    if (typeof data.blastDoorCodeUnlocked === "boolean") blastDoorCodeUnlocked = data.blastDoorCodeUnlocked;
+    if (data.unlockedLockers) unlockedLockers = data.unlockedLockers;
+    if (Array.isArray(data.batch17)) {
+      data.batch17.forEach((remoteSub, i) => {
+        if (batch17[i]) Object.assign(batch17[i], remoteSub);
+      });
+    }
+    if (Array.isArray(data.holoGallery) && data.holoGallery.length > 0) {
+      holoGallery = data.holoGallery;
+    }
+    updateClearanceBadges();
+    renderFileList();
+    selectFile(currentFileId, true);
+  }
+
+  async function savePersistentState() {
+    const payload = buildStatePayload();
+    try {
+      localStorage.setItem("silo1_questis_state_v2", JSON.stringify(payload));
+    } catch (e) {}
+
+    if (realtimeChannel) {
+      realtimeChannel.send({ type: 'broadcast', event: 'state_update', payload });
+    }
+    if (supabaseClient) {
+      try {
+        await supabaseClient
+          .from('datapad_state')
+          .upsert({ id: 1, payload, updated_at: new Date().toISOString() });
+      } catch (e) {}
+    }
+  }
+
+  async function initPersistence() {
+    // 1. Load local cache immediately
+    try {
+      const localData = localStorage.getItem("silo1_questis_state_v2");
+      if (localData) applyStatePayload(JSON.parse(localData));
+    } catch (e) {}
+
+    // 2. Connect to Supabase if configured
+    if (SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase) {
+      supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+      // Load latest row from DB
+      try {
+        const { data, error } = await supabaseClient
+          .from('datapad_state')
+          .select('payload')
+          .eq('id', 1)
+          .single();
+        if (!error && data && data.payload && Object.keys(data.payload).length > 0) {
+          applyStatePayload(data.payload);
+          logMsg("SUPABASE DB SYNC: Persistent campaign state loaded.");
+        }
+      } catch (e) {}
+
+      // Subscribe to Realtime broadcast & DB changes
+      realtimeChannel = supabaseClient.channel('silo1-datapad-sync');
+      realtimeChannel
+        .on('broadcast', { event: 'state_update' }, (msg) => {
+          applyStatePayload(msg.payload);
+        })
+        .subscribe();
+    }
+  }
+
+  // ============================================================================
+  // 4. WEB AUDIO ENGINE (WARNINGS, CLICKS & CHISS AMBIENT MUSIC SYNTHESIZER)
+  // ============================================================================
+  let audioCtx = null;
+  function getAudioCtx() {
+    if (!audioCtx) {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AudioContext();
+    }
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
+
+  function playWarningSound() {
+    try {
+      const ctx = getAudioCtx();
+      const now = ctx.currentTime;
+      [0, 0.16].forEach(offset => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(145, now + offset);
+        osc.frequency.linearRampToValueAtTime(92, now + offset + 0.13);
+        gain.gain.setValueAtTime(0.24, now + offset);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.14);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now + offset);
+        osc.stop(now + offset + 0.15);
+      });
+    } catch (e) {}
+  }
+
+  function playClickSound(freq = 880) {
+    try {
+      const ctx = getAudioCtx();
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now);
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.09);
+    } catch (e) {}
+  }
+
+  function playUnlockSound() {
+    playClickSound(587.33);
+    setTimeout(() => playClickSound(880), 90);
+    setTimeout(() => playClickSound(1174.66), 180);
+  }
+
+  // --- CHISS PROCEDURAL MUSIC SYNTHESIZER (4 TRACKS) ---
+  let activeTrackId = null;
+  let musicInterval = null;
+  let droneOsc = null;
+  let droneGain = null;
+
+  function stopChissMusic() {
+    if (musicInterval) { clearInterval(musicInterval); musicInterval = null; }
+    if (droneOsc) {
+      try { droneOsc.stop(); droneOsc.disconnect(); } catch (e) {}
+      droneOsc = null;
+    }
+    activeTrackId = null;
+    if (currentFileId === "questis_music") selectFile("questis_music", true);
+  }
+
+  function toggleChissTrack(trackNum) {
+    if (activeTrackId === trackNum) {
+      stopChissMusic();
+      logMsg("QUESTIS AUDIO: Playback halted.");
+      return;
+    }
+    stopChissMusic();
+    const ctx = getAudioCtx();
+    activeTrackId = trackNum;
+
+    // Sub-bass glacial resonance drone
+    droneOsc = ctx.createOscillator();
+    droneGain = ctx.createGain();
+    droneOsc.type = trackNum === 3 ? 'sawtooth' : 'sine';
+    droneOsc.frequency.setValueAtTime(trackNum === 3 ? 55 : 65.41, ctx.currentTime);
+    droneGain.gain.setValueAtTime(trackNum === 3 ? 0.05 : 0.08, ctx.currentTime);
+    droneOsc.connect(droneGain);
+    droneGain.connect(ctx.destination);
+    droneOsc.start();
+
+    let step = 0;
+    if (trackNum === 1) {
+      // Track 1: Fibonacci Crystal Harp arpeggios
+      const freqs = [261.63, 329.63, 440.00, 523.25, 659.25, 880.00, 523.25, 392.00];
+      musicInterval = setInterval(() => {
+        const f = freqs[step % freqs.length];
+        playBellNote(f, 0.45, 'triangle');
+        step++;
+      }, 420);
+      logMsg("QUESTIS AUDIO: Playing 01 // 'Third Harmony of the Tah'nuhna Glacier'");
+    } else if (trackNum === 2) {
+      // Track 2: Csaplar Nocturne (Slow deep ambient chords)
+      const freqs = [196.00, 246.94, 293.66, 369.99, 220.00, 329.63];
+      musicInterval = setInterval(() => {
+        const f = freqs[step % freqs.length];
+        playBellNote(f, 1.1, 'sine');
+        step++;
+      }, 950);
+      logMsg("QUESTIS AUDIO: Playing 02 // 'Vacuum & Red Light (Csaplar Nocturne)'");
+    } else if (trackNum === 3) {
+      // Track 3: Overclocked Motivator (Nar Shaddaa 148 BPM synth pulse)
+      const bass = [110, 110, 146.83, 110, 164.81, 146.83, 130.81, 98];
+      musicInterval = setInterval(() => {
+        const f = bass[step % bass.length];
+        playBellNote(f * 2, 0.16, 'square');
+        step++;
+      }, 202);
+      logMsg("QUESTIS AUDIO: Playing 03 // 'Overclocked Motivator (Nar Shaddaa Edit)'");
+    } else if (trackNum === 4) {
+      // Track 4: Ozyly-Esehem Lullaby for Skywalkers
+      const lullaby = [392.00, 440.00, 523.25, 659.25, 587.33, 523.25, 440.00, 392.00];
+      musicInterval = setInterval(() => {
+        const f = lullaby[step % lullaby.length];
+        playBellNote(f, 0.85, 'sine');
+        step++;
+      }, 700);
+      logMsg("QUESTIS AUDIO: Playing 04 // 'Ozyly-Esehem (Lullaby for Star-Walkers)'");
+    }
+
+    if (currentFileId === "questis_music") selectFile("questis_music", true);
+  }
+
+  function playBellNote(freq, duration, wave = 'sine') {
+    try {
+      const ctx = getAudioCtx();
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = wave;
+      osc.frequency.setValueAtTime(freq, now);
+      gain.gain.setValueAtTime(0.09, now);
+      gain.gain.exponentialRampToValueAtTime(0.0008, now + duration);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + duration + 0.02);
+    } catch (e) {}
+  }
+
+  // ============================================================================
+  // 5. DATABASE FILES (SILO-1 LOGS & PERSONAL QUESTIS DATA)
   // ============================================================================
   const files = [
-    // --- LEVEL 0: OPEN FILES ---
+    // --- TAB 1: SILO-1 LOGS (LEVEL 0 OPEN) ---
     {
       id: "log_kaelen",
+      tab: "silo1",
       level: 0,
       lockedLabel: "",
       title: "MAINTENANCE LOG: TK-442 (INDUR-17)",
@@ -798,11 +1049,12 @@
     },
     {
       id: "log_vagtplan",
+      tab: "silo1",
       level: 0,
       lockedLabel: "",
       title: "DUTY ROSTER & DISCIPLINARY REPORT",
       meta: "Major Ordon Kreel // Garrison Section 2",
-      keywords: "roster kreel stormtrooper fever droids level 4 5",
+      keywords: "roster kreel stormtrooper armor filter inspection droids level 4 5",
       render: () => `
         <p><strong>GARRISON DEPLOYMENT ROSTER // SILO 1 SECURITY</strong><br>
         <strong>COMMANDING OFFICER:</strong> Major Ordon Kreel (ISB)</p>
@@ -819,12 +1071,14 @@
           </tbody>
         </table>
         <div class="callout-box danger">
-          <strong>DISCIPLINARY INCIDENT (TK-819):</strong> Trooper TK-819 was discovered unconscious at his post near the Level 2 ventilation shaft during shift change, exhibiting violent muscle tremors, dilated pupils, and a 40.4°C fever. Subject claimed to hear "a rhythmic humming inside the bulkhead walls." Confined to isolation brig for dereliction of duty. — <em>Major Kreel</em>
+          <strong>DISCIPLINARY REPRIMAND (TK-819 // EQUIPMENT NEGLECT):</strong><br>
+          During routine morning inspection on Level 2, Trooper TK-819 presented with improperly maintained plastoid armor plating and a heavily calcified helmet respirator filter that was 48 hours overdue for replacement. In a damp coastal installation, corroded neck-seals and clogged intake filters are a direct violation of Imperial Garrison Regulation 14-C. TK-819 has been assigned double maintenance shifts in the Level 2 armory and docked three days' ration privileges. — <em>Major Kreel</em>
         </div>
       `
     },
     {
       id: "log_forsyning",
+      tab: "silo1",
       level: 0,
       lockedLabel: "",
       title: "SUPPLY MANIFEST & REQUISITIONS",
@@ -841,24 +1095,26 @@
     },
     {
       id: "log_vejr",
+      tab: "silo1",
       level: 0,
       lockedLabel: "",
       title: "ATMOSPHERIC SENSOR LOG",
       meta: "Rakata Prime // Surface Radar & Orbital Uplink",
-      keywords: "storm ion blackout orbit star destroyer uplink",
+      keywords: "storm ion buffer orbit star destroyer uplink transmission",
       render: () => `
         <p><strong>METEOROLOGICAL & ORBITAL TELEMETRY // SILO 1</strong></p>
         <p>The coastal sector surrounding Silo 1 and Silo 2 continues to experience heavy electrical storm fronts moving in from the ocean. Wind gusts measured at 34 m/s across the Hangar Aurek cliffside aperture.</p>
         <div class="callout-box">
-          <strong>UPLINK INTERFERENCE (BLACKOUT WINDOWS):</strong><br>
-          Whenever ion density in the upper cloud layer exceeds threshold 4.2, the vertical data-beam linking Silo 1 (Level 3 Relay) to the Command Ship in orbit suffers periodic <strong>telemetry blackouts lasting 4 to 8 minutes</strong>. During these windows, cranial implant signals are cached locally on Level 3 before re-transmission to Dr. Vael's orbital console.
+          <strong>UPLINK INTERFERENCE NOTICE:</strong><br>
+          Due to the ongoing atmospheric ion storms, periodic signal dropouts will occur between the surface communications array and the orbital station. During storm-induced transmission blackouts, all facility sensor feeds and biometric logs are automatically written to the local Level 3 recording buffer and will be batch-transmitted to the orbital station as soon as a stable uplink is re-established.
         </div>
       `
     },
 
-    // --- LEVEL 1: CLASSIFIED FILES (OBFUSCATED IN MENU UNTIL UNLOCKED) ---
+    // --- TAB 1: SILO-1 LOGS (LEVEL 1 CLASSIFIED) ---
     {
       id: "batch_17_live",
+      tab: "silo1",
       level: 1,
       lockedLabel: "[ENCRYPTED // SEC-1_NODE_01]",
       title: "BATCH 17 // CRANIAL TELEMETRY (LIVE)",
@@ -868,6 +1124,7 @@
     },
     {
       id: "batch_01_16_log",
+      tab: "silo1",
       level: 1,
       lockedLabel: "[ENCRYPTED // SEC-1_NODE_02]",
       title: "ARCHIVE: BATCH 01–16 (SILO 1 & 2)",
@@ -887,15 +1144,15 @@
             <tr><td><strong>Batch 04</strong></td><td>Silo 2</td><td><strong>Rodians</strong> <em>(Isolated)</em></td><td>Hyper-Mobility: Green-purple crystalline fungal growths erupt through scales. Subjects retain extreme leaping power and manic hunting instincts.</td></tr>
             <tr><td><strong>Batch 05</strong></td><td>Silo 1</td><td><strong>Twi'leks</strong> <em>(Isolated)</em></td><td>Motor Override: Pathogen invades neural pathways inside <em>lekku</em> at record speed. Triggers whipping spasms and erratic, acrobatic aggression. Dumped live into Level 5.</td></tr>
             <tr><td><strong>Batch 06</strong></td><td>Silo 2</td><td><strong>Bothans</strong> <em>(Isolated)</em></td><td>Acoustic/Olfactory Mania: Fur sheds rapidly while auditory and olfactory nerves hyper-stimulate. Subjects attack any sound source in coordinated packs.</td></tr>
-            <tr><td><strong>Batch 07</strong></td><td>Silo 1</td><td><strong>Trandoshans</strong> <em>(Isolated)</em></td><td>Crystalline Hypertrophy: Natural regeneration battles the fungus, forming heavy, armored bone-spurs (increased Soak) before internal organ failure. Deposited into Level 5.</td></tr>
-            <tr><td><strong>Batch 08</strong></td><td>Silo 2</td><td><strong>Wookiees</strong> <em>(Isolated)</em></td><td>Circulatory Collapse: Required 400% spore dosage. Achieved massive physical Brawn, but cardiac and pulmonary tissues ruptured within 36 hours.</td></tr>
+            <tr><td><strong>Batch 07</strong></td><td>Silo 1</td><td><strong>Trandoshans</strong> <em>(Isolated)</em></td><td>Crystalline Hypertrophy: Natural regeneration battles the fungus, forming heavy, armored bone-spurs before internal organ failure. Deposited into Level 5.</td></tr>
+            <tr><td><strong>Batch 08</strong></td><td>Silo 2</td><td><strong>Wookiees</strong> <em>(Isolated)</em></td><td>Circulatory Collapse: Required 400% spore dosage. Achieved massive physical strength, but cardiac and pulmonary tissues ruptured within 36 hours.</td></tr>
             <tr><td><strong>Batch 09</strong></td><td>Silo 1</td><td><strong>Gands</strong> <em>(Isolated)</em></td><td>Stagnation & Acid: Subjects fuse to floor grates as swollen spore-blisters. Secrete a highly corrosive enzymatic acid during decay. Flushed into Level 5.</td></tr>
             <tr><td><strong>Batch 10</strong></td><td>Silo 1</td><td><strong>Mon Calamari</strong> <em>(Isolated)</em></td><td>Aggressive Vitality: Moist tissue provides optimal fungal symbiosis without cellular necrosis. Remain fully mobile, tireless, and violently aggressive. Disposed into Level 5.</td></tr>
             <tr><td><strong>Batch 11</strong></td><td>Silo 1</td><td><strong>Rodians</strong> <em>(Stress Test)</em></td><td>Persistence: Subjects climb and leap across vertical conduits after days without nutrition. Transferred directly to Level 5 shaft.</td></tr>
             <tr><td><strong>Batch 12</strong></td><td>Silo 2</td><td><strong>Twi'leks</strong> <em>(Stress Test)</em></td><td>Anomaly: Under extreme sonic pressure, subjects ceased fighting one another and moved in silent synchronicity via subtle <em>lekku</em> twitches.</td></tr>
             <tr><td><strong>Batch 13</strong></td><td>Silo 1</td><td><strong>Bothans</strong> <em>(Stress Test)</em></td><td>Pack Coordination: Despite 0% higher brainwave activity, subjects stalked and ambushed test drones in coordinated formations. Dumped into Level 5.</td></tr>
             <tr><td><strong>Batch 14</strong></td><td>Silo 2</td><td><strong>Mon Calamari</strong> <em>(Thermal)</em></td><td>Thermal Asymmetry: -40°C forces both host and pathogen into stasis. Upon rapid heating (+65°C), subjects awaken in a berserk frenzy.</td></tr>
-            <tr><td><strong>Batch 15</strong></td><td>Silo 1</td><td><strong>Mobile Group</strong> <em>(Twi'lek, Rodian, Mon Cal, Bothan)</em></td><td>Lethal Endurance: Refuse to enter stasis or expire. Represent a persistent swarm of fast vectors. Dumped un-sedated into Level 5 (thermal purge postponed due to power diversion to Batch 17).</td></tr>
+            <tr><td><strong>Batch 15</strong></td><td>Silo 1</td><td><strong>Mobile Group</strong> <em>(Twi'lek, Rodian, Mon Cal, Bothan)</em></td><td>Lethal Endurance: Refuse to enter stasis or expire. Represent a persistent swarm of fast vectors. Dumped un-sedated into Level 5.</td></tr>
             <tr><td><strong>Batch 16</strong></td><td>Silo 2</td><td><strong>Wookiees & Trandoshans</strong></td><td>Gravity Centrifuge: Muscle fibers pushed far beyond biological limits until bones and tendons shattered internally. Terminated via cranial charges.</td></tr>
           </tbody>
         </table>
@@ -903,6 +1160,7 @@
     },
     {
       id: "depot_sektion2",
+      tab: "silo1",
       level: 1,
       lockedLabel: "[ENCRYPTED // SEC-1_NODE_03]",
       title: "DEPOT // SECTION 2 MANIFEST",
@@ -911,9 +1169,10 @@
       render: () => renderDepotManifest()
     },
 
-    // --- LEVEL 2: OMEGA-BLACK ARCHIVES (OBFUSCATED IN MENU UNTIL UNLOCKED) ---
+    // --- TAB 1: SILO-1 LOGS (LEVEL 2 OMEGA-BLACK) ---
     {
       id: "vael_krydssmitte",
+      tab: "silo1",
       level: 2,
       lockedLabel: "[ENCRYPTED // OMEGA_NODE_01]",
       title: "RESEARCH: CROSS-INFECTION & STATIC CORE",
@@ -935,6 +1194,7 @@
     },
     {
       id: "vael_verdant_reign",
+      tab: "silo1",
       level: 2,
       lockedLabel: "[ENCRYPTED // OMEGA_NODE_02]",
       title: "OPERATION VERDANT REIGN (BIOWEAPON)",
@@ -961,6 +1221,7 @@
     },
     {
       id: "kharlon_slave_log",
+      tab: "silo1",
       level: 2,
       lockedLabel: "[ENCRYPTED // OMEGA_NODE_03]",
       title: "DIRECTIVE: QUADANIUM LABOR FORCE",
@@ -978,19 +1239,135 @@
     },
     {
       id: "hangar_kontrol",
+      tab: "silo1",
       level: 2,
       lockedLabel: "[ENCRYPTED // OMEGA_NODE_04]",
       title: "FACILITY CONTROL: HANGAR AUREK & LOCKS",
       meta: "Omega-Black // Level 1 Surface & Containment Bulkheads",
       keywords: "hangar aurek anti-air turbolaser airlocks blast doors shuttle",
       render: () => renderFacilityControls()
+    },
+
+    // ========================================================================
+    // TAB 2: KETHANI PERSONAL DATA (QUESTIS OS)
+    // ========================================================================
+    {
+      id: "questis_doctrine",
+      tab: "personal",
+      level: 0,
+      lockedLabel: "",
+      title: "01 // SLICER DOCTRINE & FLAWS",
+      meta: "// KETH_SLICE_DOCTRINE (Crystalline vs. Binary Architecture)",
+      keywords: "slicer doctrine binary crystal resonance isb trace logs",
+      render: () => `
+        <p><strong>PERSONAL FIELD MANUAL // IRIZI'KETH'ANI</strong><br>
+        <em>Technical observations on the structural inferiority of Imperial binary networks compared to Chiss crystalline matrices.</em></p>
+
+        <div class="callout-box">
+          <strong>01 // Binary Arrogance vs. Crystalline Resonance:</strong><br>
+          "Imperial system architects build networks the exact same way they build their warships: heavy, linear, and blinded by the belief that brute mass can substitute for elegance. An Imperial firewall is a durasteel wall. You do not blast through it — you leave it standing and route your data-stream straight through its own ventilation shafts. Where a Questis utilizes multi-dimensional crystalline matrices, an Imperial main circuit thinks strictly in zeros and ones. Feed it a floating-point fraction disguised as a kernel authorization, and the wall opens itself."
+        </div>
+
+        <div class="callout-box">
+          <strong>04 // Bypassing ISB Trace Algorithms:</strong><br>
+          "The Imperial Security Bureau (ISB) always hunts for unauthorized external signatures. The safest hiding place inside an Imperial mainframe is within their own bureaucratic error logs. Conceal your decompilation routines inside unfinished mess-hall requisitions or technical maintenance complaints (search for recurring technician IDs with low security clearance). No officer above the rank of lieutenant ever reads maintenance reports from the lower decks."
+        </div>
+      `
+    },
+    {
+      id: "questis_contacts",
+      tab: "personal",
+      level: 0,
+      lockedLabel: "",
+      title: "02 // ENCRYPTED CONTACT LEDGER",
+      meta: "// CONTACT_LEDGER_ENC (Ascendancy & Lesser Space)",
+      keywords: "contacts loran stalvo irizi mitth stylla taris",
+      render: () => `
+        <p><strong>ENCRYPTED CONTACT DIRECTORY // CHEUNH CIPHER</strong></p>
+
+        <div class="callout-box">
+          <strong>Irizi’lor’anno ("Loran") — [STATUS: UNKNOWN // LAST SEEN: CEDF SECTOR 4]</strong><br>
+          <strong>Relation:</strong> Half-brother (Defense & Shield Operator).<br>
+          <strong>Note:</strong> "The only soul on Csilla who did not turn his back on me when the Family Council handed down the sentence. He lacks the cold Irizi blood on his father's side; he feels too much and hesitates half a second when shield matrices overload. I have blocked his comm-frequency three times so as not to drag my disgrace down upon his career. If he is still serving aboard a diplomatic corvette, I pray he keeps his head down."
+        </div>
+
+        <div class="callout-box danger">
+          <strong>Aristocra Irizi’stal’voro ("Stalvo") — [STATUS: EXILE DECREE ACTIVE // CSILLA]</strong><br>
+          <strong>Relation:</strong> Uncle & Elder of the Irizi Family Council.<br>
+          <strong>Note:</strong> "The man who signed my exile decree to save the family's face before House Mitth. His final words to me in the tribunal chamber: <em>'Genius without restraint is merely a faster path to the ashes, Kethani.'</em> He was wrong. There was no flaw in my hyperdrive calculations — I am certain of it... I hope."
+        </div>
+
+        <div class="callout-box">
+          <strong>Stylla (Twi'lek) — [FREQUENCY: SHADOW-RELAY 88.4 // OUTER RIM]</strong><br>
+          <strong>Relation:</strong> Black-market broker & transponder forger.<br>
+          <strong>Note:</strong> "Talkative and greedy, but her forged Imperial freighter codes have kept me out of customs searchlights for eight months. She still owes me 1,200 credits for decrypting that Imperial supply depot near Taris. Trust her self-interest, never her loyalty."
+        </div>
+      `
+    },
+    {
+      id: "questis_logs",
+      tab: "personal",
+      level: 0,
+      lockedLabel: "",
+      title: "03 // PERSONAL LOGS (CHEUNH)",
+      meta: "// PERSONAL_LOGS_CHEUNH (Private Reflections)",
+      keywords: "personal logs scar six seconds house mitth empire",
+      render: () => `
+        <p><strong>PRIVATE ENCRYPTED JOURNAL // CHEUNH SCRIPT</strong></p>
+
+        <div class="callout-box danger">
+          <strong>LOG 401.2 // "Six Seconds and a Scar"</strong><br>
+          "The skin beneath my right eye pulls tight whenever atmospheric humidity drops. I could have paid a black-market street-surgeon on Nar Shaddaa to clone the tissue and erase the scar for the price of a single stolen data-core. I left it. On Csilla, you are taught that an Irizi only makes a mistake once. Yet the more often I run the telemetry from the accident through my Questis, the less sense the explosion makes. I modified the motivator coil to shave 6.4 seconds off the jump calculation — yes, that violated protocol. But a crystalline phase-coupling does not shatter symmetrically under overload; it melts progressively. The reconnaissance vessel only vaporizes instantaneously if someone embedded a secondary resonance loop inside the coolant system itself. Eight crew members died because I was arrogant enough to believe I was the only one tampering with that ship. And House Mitth conveniently assumed the fleet contract the week after my banishment. Coincidences do not exist in the Ascendancy."
+        </div>
+
+        <div class="callout-box">
+          <strong>LOG 418.9 // "The Empire of Men"</strong><br>
+          "I have lived among humans and 'Lesser Space' species for two standard years now. Their so-called Galactic Empire fascinates me the same way an unstable reactor fascinates an engineer: you know it is going to detonate, you are merely calculating when. They confuse fear with order. They erect colossal gray monuments to their own authority, yet their supply lines bleed data because every single Moff and lieutenant hoards information to stab his superior in the back."
+        </div>
+      `
+    },
+    {
+      id: "questis_holos",
+      tab: "personal",
+      level: 0,
+      lockedLabel: "",
+      title: "04 // HOLOGRAPHIC ARCHIVE",
+      meta: "// HOLO_GALLERY (Visual Memory Storage)",
+      keywords: "holo gallery images csilla loran motivator schematic",
+      render: () => renderHoloGallery()
+    },
+    {
+      id: "questis_music",
+      tab: "personal",
+      level: 0,
+      lockedLabel: "",
+      title: "05 // ACOUSTIC RESONANCE & MUSIC",
+      meta: "// AUDIO_RESONANCE_CHISS (Cognitive Focus Frequencies)",
+      keywords: "music audio chiss harmony glacier nocturne skywalker lullaby",
+      render: () => renderMusicPlayer()
     }
   ];
 
   // ============================================================================
-  // 5. RENDER & UI FUNCTIONS
+  // 6. RENDER & UI CONTROLLERS
   // ============================================================================
+  function switchMainTab(tabName) {
+    activeMainTab = tabName;
+    playClickSound(820);
+    document.getElementById("tab-silo1").classList.toggle("active-tab", tabName === "silo1");
+    document.getElementById("tab-personal").classList.toggle("active-tab", tabName === "personal");
+
+    // Automatically switch to default file of that tab
+    if (tabName === "personal") {
+      selectFile("questis_doctrine", true);
+    } else {
+      selectFile("log_kaelen", true);
+    }
+    renderFileList();
+  }
+
   function isFileUnlocked(file) {
+    if (file.tab === "personal") return questisUnlocked;
     if (file.level === 0) return true;
     if (file.level === 1) return clearanceLvl1 || (file.id === "depot_sektion2" && depotUnlocked);
     if (file.level === 2) return clearanceLvl2;
@@ -1002,31 +1379,59 @@
     const b2 = document.getElementById("badge-lvl2");
     if (clearanceLvl1) {
       b1.className = "badge unlocked";
-      b1.innerText = "LEVEL 1: CLASSIFIED [OPEN]";
+      b1.innerText = "LEVEL 1 [OPEN]";
     }
     if (clearanceLvl2) {
       b2.className = "badge unlocked";
-      b2.innerText = "LEVEL 2: OMEGA-BLACK [OPEN]";
+      b2.innerText = "LEVEL 2 [OPEN]";
     }
     if (questisUnlocked) {
-      document.getElementById("skin-toggle-btn").style.display = "inline-flex";
+      document.getElementById("skin-toggle-btn").style.display = "inline-block";
+      document.getElementById("tab-personal").style.display = "inline-block";
+    }
+    if (gmModeUnlocked) {
+      document.getElementById("gm-active-indicator").style.display = "inline-block";
+      document.getElementById("gm-slice-box").style.display = "block";
     }
   }
 
   function renderFileList() {
     const query = document.getElementById("search-input").value.toLowerCase().trim();
+    const container = document.getElementById("sidebar-sections");
+
+    if (activeMainTab === "personal") {
+      container.innerHTML = `
+        <div class="nav-category">Questis Personal Memory</div>
+        <ul class="file-list" id="list-personal"></ul>
+      `;
+      const ul = document.getElementById("list-personal");
+      files.filter(f => f.tab === "personal").forEach(file => {
+        if (query && !file.title.toLowerCase().includes(query) && !file.keywords.toLowerCase().includes(query)) return;
+        const li = document.createElement("li");
+        li.className = `file-item ${currentFileId === file.id ? "active" : ""}`;
+        li.innerHTML = `<span>${file.title}</span><span style="font-size:0.7rem;">[CHISS]</span>`;
+        li.onclick = () => selectFile(file.id);
+        ul.appendChild(li);
+      });
+      return;
+    }
+
+    // Silo-1 Logs Sidebar
+    container.innerHTML = `
+      <div class="nav-category">Open Operations Logs (Level 0)</div>
+      <ul class="file-list" id="list-lvl0"></ul>
+      <div class="nav-category">Classified Data (Level 1)</div>
+      <ul class="file-list" id="list-lvl1"></ul>
+      <div class="nav-category">Omega-Black Archives (Level 2)</div>
+      <ul class="file-list" id="list-lvl2"></ul>
+    `;
+
     const list0 = document.getElementById("list-lvl0");
     const list1 = document.getElementById("list-lvl1");
     const list2 = document.getElementById("list-lvl2");
 
-    list0.innerHTML = "";
-    list1.innerHTML = "";
-    list2.innerHTML = "";
-
-    files.forEach(file => {
+    files.filter(f => f.tab === "silo1").forEach(file => {
       const unlocked = isFileUnlocked(file);
-
-      // Search only matches locked files if they have already been unlocked
       if (query) {
         if (!unlocked) return;
         const match = file.title.toLowerCase().includes(query) || 
@@ -1036,12 +1441,11 @@
       }
 
       const displayTitle = unlocked ? file.title : file.lockedLabel;
-
       const li = document.createElement("li");
       li.className = `file-item ${currentFileId === file.id ? "active" : ""} ${!unlocked ? "locked" : ""}`;
       li.innerHTML = `
         <span>${displayTitle}</span>
-        <span style="font-size:0.72rem;">${unlocked ? "[OPEN]" : "[LOCKED]"}</span>
+        <span style="font-size:0.7rem;">${unlocked ? "[OPEN]" : "[LOCKED]"}</span>
       `;
       li.onclick = () => selectFile(file.id);
 
@@ -1071,7 +1475,7 @@
         </div>
         <div class="callout-box danger">
           This data node is protected by Imperial Section-${file.level} encryption. Filename and contents are obfuscated.<br><br>
-          Enter a valid authorization passcode in the top bar or tap <strong>[INITIATE SLICING BYPASS]</strong> to decrypt this sector.
+          Enter a valid authorization passcode in the top bar or click <strong>[SLICING BYPASS]</strong> to decrypt this sector.
         </div>
       `;
       if (!silent) logMsg(`ACCESS DENIED: Attempted to read ${file.lockedLabel} without Level ${file.level} clearance.`);
@@ -1085,12 +1489,122 @@
           <h2>${file.title}</h2>
           <div class="doc-meta">${file.meta}</div>
         </div>
-        <div class="badge unlocked">CLEARANCE: LEVEL ${file.level}</div>
+        <div class="badge unlocked">${file.tab === 'personal' ? 'QUESTIS MEMORY' : 'CLEARANCE: LEVEL ' + file.level}</div>
       </div>
       <div class="doc-body">${file.render()}</div>
     `;
   }
 
+  // ============================================================================
+  // 7. PERSONAL QUESTIS RENDERERS (HOLO GALLERY & MUSIC PLAYER)
+  // ============================================================================
+  function renderHoloGallery() {
+    const cards = holoGallery.map(h => {
+      const imgUrl = getHoloUrl(h.file);
+      return `
+        <div class="holo-card">
+          <div class="holo-img-wrap">
+            <img src="${imgUrl}" alt="${h.code}" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+            <div style="display:none; padding:12px; text-align:center; color:var(--accent-cyan); font-size:0.75rem;">
+              [HOLOGRAM PROJECTION: ${h.file}]<br><span style="color:var(--text-dim);">Upload ${h.file} to Supabase 'holos' bucket or same folder</span>
+            </div>
+          </div>
+          <div class="holo-body">
+            <strong style="color:var(--accent-cyan);">${h.code}</strong>
+            <p style="margin:6px 0;">${h.desc}</p>
+            <div style="font-size:0.73rem; color:var(--text-dim); font-style:italic;">${h.meta}</div>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    let gmAddSection = "";
+    if (gmModeUnlocked) {
+      gmAddSection = `
+        <div class="callout-box" style="margin-top:16px; border-left-color:var(--warn-amber);">
+          <strong style="color:var(--warn-amber);">GM TOOL: ADD NEW HOLO-FILE TO QUESTIS MEMORY</strong><br>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px; margin-top:8px;">
+            <input type="text" id="new-holo-code" placeholder="Title (e.g. IMG_004_STARFLASH.HOLO)">
+            <input type="text" id="new-holo-file" placeholder="Filename or URL (e.g. holo4.jpg)">
+            <input type="text" id="new-holo-desc" placeholder="Visual description..." style="grid-column: span 2;">
+            <input type="text" id="new-holo-meta" placeholder="Metadata note..." style="grid-column: span 2;">
+          </div>
+          <button class="warn" style="margin-top:8px;" onclick="addNewHoloEntry()">[+ SAVE NEW HOLO TO SUPABASE]</button>
+        </div>
+      `;
+    }
+
+    return `
+      <p><strong>STORED HOLOGRAPHIC CAPTURES // QUESTIS OPTICAL MATRIX</strong></p>
+      <div class="holo-grid">${cards}</div>
+      ${gmAddSection}
+    `;
+  }
+
+  function addNewHoloEntry() {
+    const code = document.getElementById("new-holo-code").value.trim() || `IMG_00${holoGallery.length + 1}_RECORD.HOLO`;
+    const file = document.getElementById("new-holo-file").value.trim() || `holo${holoGallery.length + 1}.jpg`;
+    const desc = document.getElementById("new-holo-desc").value.trim() || "Encrypted holographic projection.";
+    const meta = document.getElementById("new-holo-meta").value.trim() || "Recorded via Questis optical sensor.";
+
+    holoGallery.push({ code, file, desc, meta });
+    playUnlockSound();
+    logMsg(`QUESTIS ARCHIVE UPDATED: Added ${code} (${file}) to persistent memory.`);
+    savePersistentState();
+    selectFile("questis_holos", true);
+  }
+
+  function renderMusicPlayer() {
+    const tracks = [
+      {
+        num: 1,
+        title: "01 // 'Third Harmony of the Tah'nuhna Glacier'",
+        comp: "Irizi’ven’talar ('Ventala') — Classical Chiss crystal-harp & sub-bass resonance",
+        desc: "Cool, mathematically precise tones following Fibonacci-like intervals. Used to lower heart rate and sharpen cognitive discipline prior to high-risk system intrusions."
+      },
+      {
+        num: 2,
+        title: "02 // 'Vacuum & Red Light (Csaplar Nocturne)'",
+        comp: "Chaf’ori’nuruodo ('Forin') — Minimalist ambient synthesis",
+        desc: "A slow, hypnotic sequence constructed from the acoustic translation of electromagnetic radiation from Csilla's sun passing through deep glacial ice."
+      },
+      {
+        num: 3,
+        title: "03 // 'Overclocked Motivator (Nar Shaddaa Edit)'",
+        comp: "Unknown Underworld Slicer (Modified by Kethani)",
+        desc: "Aggressive, rapid industrial synth-pulse at 148 BPM, built from sampled hyperdrive coils and Imperial alarm tones. Kethani's favored track when forcing open a firewall under time pressure."
+      },
+      {
+        num: 4,
+        title: "04 // 'Ozyly-Esehem (Lullaby for Star-Walkers)'",
+        comp: "Traditional / Anonymous (Restricted CEDF Fleet Recording)",
+        desc: "An ancient, wordless humming recorded aboard a deep-space cruiser in the Unknown Regions. Normally played only for young navigator girls (Skywalkers) to calm their minds after a taxing hyperspace jump."
+      }
+    ];
+
+    return `
+      <p><strong>CHISS ACOUSTIC FOCUS FREQUENCIES // SUB-HARMONIC SYNTHESIZER</strong><br>
+      <em>Click [PLAY RESONANCE] on any track to generate live mathematical Chiss audio frequencies in the background while slicing.</em></p>
+      ${tracks.map(t => `
+        <div class="track-card ${activeTrackId === t.num ? 'playing' : ''}">
+          <div>
+            <strong style="color:var(--text-Bright);">${t.title}</strong><br>
+            <span style="font-size:0.75rem; color:var(--accent-cyan);">${t.comp}</span>
+            <p style="margin:5px 0 0 0; font-size:0.8rem; color:var(--text-main);">${t.desc}</p>
+          </div>
+          <div>
+            <button class="${activeTrackId === t.num ? 'danger' : ''}" onclick="toggleChissTrack(${t.num})">
+              ${activeTrackId === t.num ? '[STOP AUDIO]' : '[PLAY RESONANCE]'}
+            </button>
+          </div>
+        </div>
+      `).join("")}
+    `;
+  }
+
+  // ============================================================================
+  // 8. DEPOT & BATCH 17 TELEMETRY (WITH 4 LOCATION STATES & SUPABASE SYNC)
+  // ============================================================================
   function renderDepotManifest() {
     let rows = depotLockers.map(item => {
       const isOpen = !!unlockedLockers[item.box];
@@ -1112,7 +1626,7 @@
         <strong>REMOTE MAGNETIC SEAL OVERRIDE:</strong><br>
         Enter Locker Box Number (01 to 12) to toggle its magnetic lock:<br><br>
         <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
-          <input type="text" id="locker-input" placeholder="BOX # (e.g. 07)..." style="width:180px;" onkeydown="if(event.key==='Enter') triggerLockerBox()">
+          <input type="text" id="locker-input" placeholder="BOX # (e.g. 07)..." style="width:160px;" onkeydown="if(event.key==='Enter') triggerLockerBox()">
           <button onclick="triggerLockerBox()">[TOGGLE BOX MAG-LOCK]</button>
         </div>
       </div>
@@ -1120,10 +1634,10 @@
       <table>
         <thead>
           <tr>
-            <th style="width:90px;">Box ID</th>
-            <th style="width:170px;">Origin / Batch</th>
+            <th style="width:80px;">Box ID</th>
+            <th style="width:160px;">Origin / Batch</th>
             <th>Registered Inventory Contents</th>
-            <th style="width:120px;">Lock Status</th>
+            <th style="width:110px;">Lock Status</th>
           </tr>
         </thead>
         <tbody>${rows}</tbody>
@@ -1148,7 +1662,7 @@
     const stateText = unlockedLockers[found.box] ? "DISENGAGED (OPEN)" : "ENGAGED (SEALED)";
     playUnlockSound();
     logMsg(`DEPOT SECTION 2: Magnetic seal on BOX ${found.box} (${found.batch}) is now ${stateText}.`);
-    broadcastState();
+    savePersistentState();
     selectFile("depot_sektion2", true);
   }
 
@@ -1158,18 +1672,23 @@
       if (s.state === "OFFLINE") stateClass = "status-safe";
       else if (s.state === "TERMINATED") stateClass = "status-dead";
 
+      let locClass = "";
+      if (s.loc === "ORBIT") locClass = "status-orbit";
+      else if (s.loc === "IN TRANSFER") locClass = "status-transfer";
+      else if (s.loc === "SILO 2") locClass = "status-silo2";
+
       return `
         <tr>
           <td><strong>${s.id}</strong></td>
           <td><strong>${s.name}</strong></td>
-          <td style="cursor:pointer;" title="GM Function: Tap to toggle between SILO 1 and ORBIT" onclick="toggleLocation(${idx})">
-            <span class="${s.loc === 'ORBIT' ? 'status-orbit' : ''}">${s.loc} &#8644;</span>
+          <td style="cursor:pointer;" title="Click to cycle: SILO 1 -> SILO 2 -> IN TRANSFER -> ORBIT" onclick="cycleLocation(${idx})">
+            <span class="${locClass}">${s.loc} &#8644;</span>
           </td>
           <td>${s.state === 'TERMINATED' ? '0 BPM (FLATLINE)' : `${s.bpm} BPM | ${s.bp} | ${s.temp}`}</td>
           <td>${s.state === 'TERMINATED' ? '0%' : s.stress}</td>
           <td class="${stateClass}">${s.state}</td>
           <td>
-            <div class="action-btn-group">
+            <div style="display:flex; gap:4px;">
               <button onclick="toggleImplant(${idx})">${s.state === 'ARMED' ? 'Disarm' : 'Arm'}</button>
               <button class="warn" onclick="shockSubject(${idx})">Shock</button>
               <button class="danger" onclick="detonateSubject(${idx})">Detonate</button>
@@ -1180,9 +1699,9 @@
     }).join("");
 
     return `
-      <p style="font-size:0.84rem; margin-top:0;">
-        Live biometric monitoring of cranial implants for <strong>Batch 17</strong>. 
-        <em>(GM Tip: Tap directly on SILO 1 / ORBIT next to any subject to transfer them to the Star Destroyer).</em>
+      <p style="font-size:0.8rem; margin-top:0;">
+        Live biometric monitoring of cranial implants for <strong>Batch 17</strong>. All state changes are automatically saved to the database.<br>
+        <em>(Click on a subject's Location to cycle between: <strong>SILO 1</strong> &rarr; <strong>SILO 2</strong> &rarr; <strong>IN TRANSFER</strong> &rarr; <strong>ORBIT</strong>).</em>
       </p>
       <table>
         <thead>
@@ -1201,6 +1720,68 @@
     `;
   }
 
+  const LOCATION_STATES = ["SILO 1", "SILO 2", "IN TRANSFER", "ORBIT"];
+
+  function cycleLocation(idx) {
+    const s = batch17[idx];
+    const currIdx = LOCATION_STATES.indexOf(s.loc);
+    s.loc = LOCATION_STATES[(currIdx + 1) % LOCATION_STATES.length];
+    playClickSound(640);
+    logMsg(`TELEMETRY UPDATE [${s.id} - ${s.name}]: Location updated to -> ${s.loc}.`);
+    savePersistentState();
+    selectFile("batch_17_live", true);
+  }
+
+  function toggleImplant(idx) {
+    const s = batch17[idx];
+    if (s.state === "TERMINATED") return;
+    if (s.loc !== "SILO 1") {
+      playWarningSound();
+      logMsg(`RELAY ERROR ON ${s.id} (${s.name}): Subject is currently in [${s.loc}] outside Silo 1 local relay range!`);
+      return;
+    }
+    s.state = s.state === "ARMED" ? "OFFLINE" : "ARMED";
+    playUnlockSound();
+    logMsg(`CRANIAL IMPLANT [${s.id} - ${s.name}]: Explosive charge set to -> ${s.state}.`);
+    savePersistentState();
+    selectFile("batch_17_live", true);
+  }
+
+  function shockSubject(idx) {
+    const s = batch17[idx];
+    if (s.state === "TERMINATED") return;
+    if (s.loc !== "SILO 1") {
+      playWarningSound();
+      logMsg(`RELAY ERROR ON ${s.id} (${s.name}): Subject is in [${s.loc}]. Cannot transmit synaptic shock from Silo 1 relay.`);
+      return;
+    }
+    s.bpm = Math.min(165, s.bpm + 28);
+    s.stress = "96%";
+    playWarningSound();
+    logMsg(`WARNING! Synaptic shock pulse triggered in ${s.id} (${s.name})! Inflicts acute neural pain / Strain.`);
+    savePersistentState();
+    selectFile("batch_17_live", true);
+  }
+
+  function detonateSubject(idx) {
+    const s = batch17[idx];
+    if (s.state === "TERMINATED") return;
+    if (s.loc !== "SILO 1") {
+      playWarningSound();
+      logMsg(`RELAY ERROR ON ${s.id} (${s.name}): Subject is in [${s.loc}]. Detonation signal blocked.`);
+      return;
+    }
+    if (!confirm(`CONFIRM DETONATION: Are you sure you want to detonate the cranial charge on ${s.id} (${s.name})?`)) return;
+    s.state = "TERMINATED";
+    playWarningSound();
+    logMsg(`CRITICAL ALERT! Cranial implant in ${s.id} (${s.name}) DETONATED. Flatline confirmed.`);
+    savePersistentState();
+    selectFile("batch_17_live", true);
+  }
+
+  // ============================================================================
+  // 9. FACILITY CONTROLS
+  // ============================================================================
   function renderFacilityControls() {
     let blastDoorSection = "";
     if (!blastDoorCodeUnlocked) {
@@ -1208,7 +1789,7 @@
         <div class="callout-box danger">
           <strong>3. MAGNETIC BLAST DOORS & CELL RING (LEVELS 2–4):</strong><br>
           Status: <strong>HARDWIRED QUARANTINE LOCK [ACTIVE]</strong><br>
-          <span style="font-size:0.84rem; color:var(--text-dim);">
+          <span style="font-size:0.8rem; color:var(--text-dim);">
             Notice: Cell ring and bulkhead magnetic seals operate on an isolated security circuit and <strong>cannot</strong> be bypassed via the Slicing Minigame. Requires manual override code obtained via a dedicated <em>Computers</em> check at the security console.
           </span><br><br>
           <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
@@ -1224,7 +1805,7 @@
           Status: <strong style="color:${containmentLocks ? 'var(--alert-red)' : 'var(--text-Bright)'};">
             ${containmentLocks ? 'QUARANTINE LOCKED' : 'UNSEALED (OVERRIDDEN VIA KREEL-LOCK-9)'}
           </strong><br><br>
-          <button onclick="containmentLocks=!containmentLocks; playUnlockSound(); logMsg('BULKHEAD DOORS: Quarantine locks ' + (containmentLocks?'ENGAGED':'RELEASED')); broadcastState(); selectFile('hangar_kontrol', true);">
+          <button onclick="containmentLocks=!containmentLocks; playUnlockSound(); logMsg('BULKHEAD DOORS: Quarantine locks ' + (containmentLocks?'ENGAGED':'RELEASED')); savePersistentState(); selectFile('hangar_kontrol', true);">
             [${containmentLocks ? 'RELEASE BLAST DOORS & CELLS' : 'LOCK BLAST DOORS & CELLS'}]
           </button>
         </div>
@@ -1238,7 +1819,7 @@
         Status: <strong style="color:${aaTurretsActive ? 'var(--alert-red)' : 'var(--text-Bright)'};">
           ${aaTurretsActive ? 'ONLINE (ENGAGING UNAUTHORIZED VESSELS)' : 'OFFLINE (SAFE FLIGHT CORRIDOR OPEN)'}
         </strong><br><br>
-        <button onclick="aaTurretsActive=!aaTurretsActive; playUnlockSound(); logMsg('ANTI-AIR TURRETS: Status changed to ' + (aaTurretsActive?'ONLINE':'OFFLINE')); broadcastState(); selectFile('hangar_kontrol', true);">
+        <button onclick="aaTurretsActive=!aaTurretsActive; playUnlockSound(); logMsg('ANTI-AIR TURRETS: Status changed to ' + (aaTurretsActive?'ONLINE':'OFFLINE')); savePersistentState(); selectFile('hangar_kontrol', true);">
           [${aaTurretsActive ? 'DEACTIVATE ANTI-AIR TURRETS' : 'ACTIVATE ANTI-AIR TURRETS'}]
         </button>
       </div>
@@ -1246,7 +1827,7 @@
       <div class="callout-box">
         <strong>2. HANGAR AUREK MAIN CLAMSHELL DOORS (LEVEL 1):</strong><br>
         Status: <strong>${hangarDoorsOpen ? 'OPEN TO COASTAL STORM' : 'SEALED (CLOSED)'}</strong><br><br>
-        <button onclick="hangarDoorsOpen=!hangarDoorsOpen; playUnlockSound(); logMsg('HANGAR AUREK DOORS: Status changed to ' + (hangarDoorsOpen?'OPEN':'CLOSED')); broadcastState(); selectFile('hangar_kontrol', true);">
+        <button onclick="hangarDoorsOpen=!hangarDoorsOpen; playUnlockSound(); logMsg('HANGAR AUREK DOORS: Status changed to ' + (hangarDoorsOpen?'OPEN':'CLOSED')); savePersistentState(); selectFile('hangar_kontrol', true);">
           [${hangarDoorsOpen ? 'CLOSE HANGAR DOORS' : 'FORCE OPEN HANGAR DOORS'}]
         </button>
       </div>
@@ -1263,8 +1844,8 @@
       blastDoorCodeUnlocked = true;
       containmentLocks = false;
       playUnlockSound();
-      logMsg("SECURITY OVERRIDE ACCEPTED [KREEL-LOCK-9]: Magnetic blast doors and cell ring (Levels 2–4) are now released!");
-      broadcastState();
+      logMsg("SECURITY OVERRIDE ACCEPTED [KREEL-LOCK-9]: Magnetic blast doors and cell ring (Levels 2–4) released!");
+      savePersistentState();
       selectFile("hangar_kontrol", true);
     } else {
       playWarningSound();
@@ -1273,127 +1854,80 @@
   }
 
   // ============================================================================
-  // 6. INTERACTIVE ACTIONS FOR BATCH 17
-  // ============================================================================
-  function toggleLocation(idx) {
-    const s = batch17[idx];
-    s.loc = s.loc === "SILO 1" ? "ORBIT" : "SILO 1";
-    playClickSound(640);
-    logMsg(`TELEMETRY UPDATE [${s.id} - ${s.name}]: Location registered as -> ${s.loc}.`);
-    broadcastState();
-    selectFile("batch_17_live", true);
-  }
-
-  function toggleImplant(idx) {
-    const s = batch17[idx];
-    if (s.state === "TERMINATED") return;
-    if (s.loc === "ORBIT") {
-      playWarningSound();
-      logMsg(`ERROR ON ${s.id} (${s.name}): Subject is located in ORBIT beyond local relay range! Requires direct terminal access aboard the Star Destroyer.`);
-      return;
-    }
-    s.state = s.state === "ARMED" ? "OFFLINE" : "ARMED";
-    playUnlockSound();
-    logMsg(`CRANIAL IMPLANT [${s.id} - ${s.name}]: Explosive charge set to -> ${s.state}.`);
-    broadcastState();
-    selectFile("batch_17_live", true);
-  }
-
-  function shockSubject(idx) {
-    const s = batch17[idx];
-    if (s.state === "TERMINATED") return;
-    if (s.loc === "ORBIT") {
-      playWarningSound();
-      logMsg(`ERROR ON ${s.id} (${s.name}): Subject is in ORBIT. Cannot transmit synaptic shock from surface relay.`);
-      return;
-    }
-    s.bpm = Math.min(165, s.bpm + 28);
-    s.stress = "96%";
-    playWarningSound();
-    logMsg(`WARNING! Synaptic shock pulse triggered in ${s.id} (${s.name})! Inflicts acute neural pain / Strain.`);
-    broadcastState();
-    selectFile("batch_17_live", true);
-  }
-
-  function detonateSubject(idx) {
-    const s = batch17[idx];
-    if (s.state === "TERMINATED") return;
-    if (s.loc === "ORBIT") {
-      playWarningSound();
-      logMsg(`ERROR ON ${s.id} (${s.name}): Subject is in ORBIT. Detonation signal blocked.`);
-      return;
-    }
-    if (!confirm(`CONFIRM DETONATION: Are you sure you want to detonate the cranial charge on ${s.id} (${s.name})?`)) return;
-    s.state = "TERMINATED";
-    playWarningSound();
-    logMsg(`CRITICAL ALERT! Cranial implant in ${s.id} (${s.name}) DETONATED. Flatline confirmed.`);
-    broadcastState();
-    selectFile("batch_17_live", true);
-  }
-
-  // ============================================================================
-  // 7. PASSCODE SYSTEM
+  // 10. PASSCODE SYSTEM (INCLUDING GM CODE: Gung@n4x4svampesporer)
   // ============================================================================
   function submitPassword() {
     const input = document.getElementById("pass-input");
-    const code = input.value.trim().toUpperCase();
+    const rawCode = input.value.trim();
+    const upperCode = rawCode.toUpperCase();
     input.value = "";
 
-    if (!code) return;
+    if (!rawCode) return;
 
-    if (code === "INDUR-17") {
+    // Check GM Local Code (case-insensitive check for convenience)
+    if (rawCode.toLowerCase() === "gung@n4x4svampesporer") {
+      gmModeUnlocked = !gmModeUnlocked;
+      playUnlockSound();
+      document.getElementById("gm-active-indicator").style.display = gmModeUnlocked ? "inline-block" : "none";
+      document.getElementById("gm-slice-box").style.display = gmModeUnlocked ? "block" : "none";
+      logMsg(`GM OVERRIDE ${gmModeUnlocked ? 'ENABLED' : 'DISABLED'}: Local Slicing Time Modifier & Holo-Uploader unlocked.`);
+      selectFile(currentFileId, true);
+      return;
+    }
+
+    if (upperCode === "INDUR-17") {
       clearanceLvl1 = true;
       depotUnlocked = true;
       playUnlockSound();
       updateClearanceBadges();
       logMsg("AUTHORIZATION ACCEPTED [INDUR-17]: Security Level 1 (Batch 17 Live Telemetry, Depot & Batches 01–16) decrypted!");
-      broadcastState();
+      savePersistentState();
       renderFileList();
       selectFile("batch_17_live", true);
     } 
-    else if (code === "VERDANT-OMEGA") {
+    else if (upperCode === "VERDANT-OMEGA") {
       clearanceLvl1 = true;
       clearanceLvl2 = true;
       depotUnlocked = true;
       playUnlockSound();
       updateClearanceBadges();
       logMsg("OMEGA AUTHORIZATION ACCEPTED [VERDANT-OMEGA]: Full access granted to Dr. Vael's research archives, Cross-Infection data, and Facility Controls!");
-      broadcastState();
+      savePersistentState();
       renderFileList();
       selectFile("vael_krydssmitte", true);
     } 
-    else if (code === "TRIDENT-44") {
+    else if (upperCode === "TRIDENT-44") {
       depotUnlocked = true;
       playUnlockSound();
       logMsg("DEPOT PASSCODE ACCEPTED [TRIDENT-44]: Access to Depot Section 2 Manifest unlocked.");
-      broadcastState();
+      savePersistentState();
       renderFileList();
       selectFile("depot_sektion2", true);
     } 
-    else if (code === "KREEL-LOCK-9") {
+    else if (upperCode === "KREEL-LOCK-9") {
       blastDoorCodeUnlocked = true;
       containmentLocks = false;
       playUnlockSound();
       logMsg("SECURITY OVERRIDE ACCEPTED [KREEL-LOCK-9]: Magnetic blast doors and cell ring (Levels 2–4) released!");
-      broadcastState();
+      savePersistentState();
       if (currentFileId === "hangar_kontrol") selectFile("hangar_kontrol", true);
     }
-    else if (code === "IRIZI-QUESTIS") {
+    else if (upperCode === "IRIZI-QUESTIS") {
       questisUnlocked = true;
       playUnlockSound();
       updateClearanceBadges();
-      logMsg("CHISS BIOMETRIC PROTOCOL RECOGNIZED [IRIZI-QUESTIS]: Kethani's personal Questis interface unlocked! Tap [SWITCH OS: QUESTIS].");
-      broadcastState();
+      logMsg("CHISS BIOMETRIC PROTOCOL RECOGNIZED [IRIZI-QUESTIS]: Kethani's personal Questis interface & Personal Data tab unlocked!");
+      savePersistentState();
       if (!isQuestisSkin) toggleSkin();
     } 
     else {
       playWarningSound();
-      logMsg(`ERROR: Authorization passcode '${code}' rejected by security relay.`);
+      logMsg(`ERROR: Authorization passcode '${rawCode}' rejected by security relay.`);
     }
   }
 
   // ============================================================================
-  // 8. SKIN & LANGUAGE TOGGLES
+  // 11. SKIN & LANGUAGE TOGGLES
   // ============================================================================
   function toggleSkin() {
     isQuestisSkin = !isQuestisSkin;
@@ -1404,15 +1938,15 @@
 
     playClickSound(920);
     if (isQuestisSkin) {
-      btn.innerText = "SWITCH OS: IMPERIAL";
+      btn.innerText = "SWITCH SKIN: IMPERIAL";
       title.innerText = "QUESTIS OS // IRIZI NEURAL-LINK";
       subtitle.innerText = "CRYSTALLINE SLICER DECK // KETHANI PERSONAL INTERFACE";
-      logMsg("OS SWITCH: Questis Chiss-OS active. Bioluminescent decryption matrix online (+4s Slicing bonus).");
+      logMsg("OS SKIN: Questis Chiss-OS active (+4s Slicing bonus).");
     } else {
-      btn.innerText = "SWITCH OS: QUESTIS";
+      btn.innerText = "SWITCH SKIN: QUESTIS";
       title.innerText = "IMPERIAL DATAPAD // SILO-1 RELAY";
       subtitle.innerText = "SECTOR RESEARCH DIVISION // RAKATA PRIME NETWORK";
-      logMsg("OS SWITCH: Standard Imperial Datapad interface restored.");
+      logMsg("OS SKIN: Standard Imperial Datapad interface restored.");
     }
   }
 
@@ -1430,7 +1964,7 @@
   }
 
   // ============================================================================
-  // 9. MULTI-MINIGAME SLICING ENGINE (3 RANDOM GAMES + 2 STAGES FOR LEVEL 2)
+  // 12. SLICING MINIGAME ENGINE (WITH NEW ROTARY DIALS & GM TIME ADJUSTER)
   // ============================================================================
   let sliceTimer = null;
   let timeLeft = 16.0;
@@ -1439,26 +1973,37 @@
   let completedStages = 0;
   let lastGameType = -1;
 
-  // Game 1 state (Hex Matrix)
+  // Game A: Hex Matrix
   let targetSequence = [];
   let currentStep = 0;
 
-  // Game 2 state (Frequency Alignment)
-  let freqTargets = [];
+  // Game B: Rotary Phase Dials (3 analog dials, 0 to 355 deg in 5-deg steps)
+  let dialTargets = [];
+  let dialCurrents = [];
 
-  // Game 3 state (Logic Node Memory Pattern)
+  // Game C: Memory Pattern
   let patternSequence = [];
   let patternStep = 0;
   let patternPlaying = false;
+
+  function adjustSliceTime(delta) {
+    gmBonusSeconds += delta;
+    const sign = gmBonusSeconds >= 0 ? "+" : "";
+    document.getElementById("gm-offset-label").innerText = `${sign}${gmBonusSeconds}s`;
+    timeLeft = Math.max(1.0, timeLeft + delta);
+    document.getElementById("slice-timer").innerText = `${timeLeft.toFixed(1)}s`;
+    playClickSound(delta > 0 ? 980 : 420);
+  }
 
   function openSlicingModal() {
     playClickSound(750);
     document.getElementById("slicing-modal").style.display = "flex";
     document.getElementById("minigame-title").innerText = "SECURITY BYPASS PROTOCOL";
     document.getElementById("minigame-stage-indicator").innerText = "READY TO INITIALIZE";
-    document.getElementById("minigame-desc").innerText = "Select target security level below and tap [START BYPASS]. Level 2 requires completing TWO consecutive slicing stages!";
+    document.getElementById("minigame-desc").innerText = "Select target security level below and click [START BYPASS]. Level 2 requires completing TWO consecutive slicing stages!";
     document.getElementById("minigame-area").innerHTML = "";
-    document.getElementById("slice-timer").innerText = isQuestisSkin ? "20.0s" : "16.0s";
+    const previewTime = Math.max(5.0, 16.0 + (isQuestisSkin ? 4.0 : 0.0) + gmBonusSeconds);
+    document.getElementById("slice-timer").innerText = `${previewTime.toFixed(1)}s`;
   }
 
   function closeSlicingModal() {
@@ -1475,9 +2020,9 @@
     launchNextMinigameStage();
   }
 
-  function startTimer(seconds) {
+  function startTimer(baseSeconds) {
     clearInterval(sliceTimer);
-    timeLeft = seconds + (isQuestisSkin ? 4.0 : 0.0);
+    timeLeft = Math.max(4.0, baseSeconds + (isQuestisSkin ? 4.0 : 0.0) + gmBonusSeconds);
     document.getElementById("slice-timer").innerText = `${timeLeft.toFixed(1)}s`;
 
     sliceTimer = setInterval(() => {
@@ -1496,7 +2041,7 @@
     playWarningSound();
     timeLeft = Math.max(0, timeLeft - 2.5);
     document.getElementById("slice-timer").innerText = `${timeLeft.toFixed(1)}s`;
-    logMsg("TRACE PENALTY: Incorrect node input! -2.5 seconds deducted from bypass window.");
+    logMsg("TRACE PENALTY: Incorrect input! -2.5 seconds deducted from bypass window.");
     if (timeLeft <= 0) {
       clearInterval(sliceTimer);
       logMsg("ALERT! Slicing trace timer expired due to penalties! Firewall reset connection.");
@@ -1508,13 +2053,12 @@
     playClickSound(880);
     document.getElementById("minigame-stage-indicator").innerText = `BYPASS STAGE ${completedStages + 1} OF ${requiredStages}`;
 
-    // Pick a random game (0, 1, or 2), avoiding immediate repeat on 2-stage runs
     let options = [0, 1, 2].filter(g => g !== lastGameType);
     let gameType = options[Math.floor(Math.random() * options.length)];
     lastGameType = gameType;
 
     if (gameType === 0) setupHexMatrixGame();
-    else if (gameType === 1) setupFrequencyGame();
+    else if (gameType === 1) setupRotaryDialGame();
     else setupPatternMemoryGame();
   }
 
@@ -1534,7 +2078,7 @@
         depotUnlocked = true;
         updateClearanceBadges();
         logMsg("SLICING SUCCESS! Level 1 Classified encryption broken.");
-        broadcastState();
+        savePersistentState();
         renderFileList();
         selectFile("batch_17_live", true);
       } else {
@@ -1543,17 +2087,17 @@
         depotUnlocked = true;
         updateClearanceBadges();
         logMsg("CRITICAL SLICING SUCCESS! Both firewall stages bypassed — Level 2 Omega-Black Archives decrypted!");
-        broadcastState();
+        savePersistentState();
         renderFileList();
         selectFile("vael_krydssmitte", true);
       }
     }
   }
 
-  // --- MINIGAME 1: MATRIX HEX-ROUTING ---
+  // --- MINIGAME A: MATRIX HEX-ROUTING ---
   function setupHexMatrixGame() {
     document.getElementById("minigame-title").innerText = "MINIGAME A // MATRIX HEX-ROUTING";
-    document.getElementById("minigame-desc").innerText = "Tap the target hexadecimal sequence in exact order. Wrong taps cost -2.5 seconds!";
+    document.getElementById("minigame-desc").innerText = "Select the target hexadecimal sequence in exact order. Wrong clicks cost -2.5 seconds!";
     startTimer(15.0);
 
     const seqLength = currentTier === 1 ? 4 : 5;
@@ -1577,7 +2121,7 @@
 
     const area = document.getElementById("minigame-area");
     area.innerHTML = `
-      <div style="margin-bottom:8px; font-size:0.92rem;">
+      <div style="margin-bottom:6px; font-size:0.86rem;">
         TARGET SEQUENCE: <strong id="target-seq" style="color:var(--accent-cyan); letter-spacing:2px;"></strong>
       </div>
       <div class="hex-grid" id="hex-grid"></div>
@@ -1619,51 +2163,76 @@
     }).join(" - ");
   }
 
-  // --- MINIGAME 2: SIGNAL FREQUENCY ALIGNMENT ---
-  function setupFrequencyGame() {
-    document.getElementById("minigame-title").innerText = "MINIGAME B // CARRIER WAVE ALIGNMENT";
-    document.getElementById("minigame-desc").innerText = "Adjust all 3 carrier frequency sliders to match their target frequencies, then tap [LOCK FREQUENCIES]. Wrong lock costs -2.5s!";
-    startTimer(16.0);
+  // --- MINIGAME B: ANALOG CRYO-CAPACITOR PHASE DIALS ---
+  function setupRotaryDialGame() {
+    document.getElementById("minigame-title").innerText = "MINIGAME B // CRYO-CAPACITOR PHASE DIALS";
+    document.getElementById("minigame-desc").innerText = "Rotate all 3 analog phase rings to match their exact target angle (0°–355°), then click [ENGAGE PHASE LOCK]. Coupled interference rotates adjacent dials on coarse steps!";
+    startTimer(19.0);
 
-    freqTargets = [
-      Math.floor(Math.random() * 18 + 1) * 5,
-      Math.floor(Math.random() * 18 + 1) * 5,
-      Math.floor(Math.random() * 18 + 1) * 5
+    dialTargets = [
+      Math.floor(Math.random() * 72) * 5,
+      Math.floor(Math.random() * 72) * 5,
+      Math.floor(Math.random() * 72) * 5
     ];
+    dialCurrents = [180, 180, 180];
 
     const area = document.getElementById("minigame-area");
-    area.innerHTML = freqTargets.map((t, i) => `
-      <div class="freq-row">
-        <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:6px;">
-          <span>CHANNEL 0${i+1} TARGET: <strong style="color:var(--accent-cyan);">${t} GHz</strong></span>
-          <span>CURRENT: <strong id="freq-val-${i}" style="color:var(--text-Bright);">50 GHz</strong></span>
-        </div>
-        <input type="range" id="freq-slider-${i}" min="5" max="95" step="5" value="50" 
-               oninput="document.getElementById('freq-val-${i}').innerText = this.value + ' GHz'; playClickSound(500 + this.value*4);">
+    area.innerHTML = `
+      <div class="dials-container">
+        ${[0, 1, 2].map(i => `
+          <div class="dial-card">
+            <div style="font-size:0.75rem; color:var(--text-dim);">ROTOR 0${i+1}</div>
+            <div style="font-size:0.82rem; margin:3px 0;">TARGET: <strong style="color:var(--alert-red);">${dialTargets[i]}°</strong></div>
+            <div class="dial-wheel">
+              <div class="dial-target-marker" style="transform: rotate(${dialTargets[i]}deg);"></div>
+              <div class="dial-pointer" id="dial-ptr-${i}" style="transform: rotate(${dialCurrents[i]}deg);"></div>
+            </div>
+            <div style="font-size:0.85rem;">ANGLE: <strong id="dial-val-${i}" style="color:var(--accent-cyan);">${dialCurrents[i]}°</strong></div>
+            <div class="dial-btn-row">
+              <button onclick="rotatePhaseDial(${i}, -25)">-25°</button>
+              <button onclick="rotatePhaseDial(${i}, -5)">-5°</button>
+              <button onclick="rotatePhaseDial(${i}, 5)">+5°</button>
+              <button onclick="rotatePhaseDial(${i}, 25)">+25°</button>
+            </div>
+          </div>
+        `).join("")}
       </div>
-    `).join("") + `
-      <button style="width:100%; margin-top:8px;" onclick="verifyFrequencies()">[LOCK CARRIER FREQUENCIES]</button>
+      <button style="width:100%; margin-top:6px;" onclick="verifyRotaryDials()">[ENGAGE PHASE LOCK]</button>
     `;
   }
 
-  function verifyFrequencies() {
-    let allMatched = true;
-    freqTargets.forEach((t, i) => {
-      const val = parseInt(document.getElementById(`freq-slider-${i}`).value, 10);
-      if (val !== t) allMatched = false;
+  function rotatePhaseDial(idx, delta) {
+    dialCurrents[idx] = (dialCurrents[idx] + delta + 360) % 360;
+    // Coarse turns (+25 or -25) slightly tug the next rotor by 5 degrees for extra challenge
+    if (Math.abs(delta) === 25 && currentTier === 2) {
+      const neighbor = (idx + 1) % 3;
+      dialCurrents[neighbor] = (dialCurrents[neighbor] + (delta > 0 ? 5 : -5) + 360) % 360;
+    }
+    playClickSound(520 + dialCurrents[idx]);
+    [0, 1, 2].forEach(i => {
+      const ptr = document.getElementById(`dial-ptr-${i}`);
+      const val = document.getElementById(`dial-val-${i}`);
+      if (ptr) ptr.style.transform = `rotate(${dialCurrents[i]}deg)`;
+      if (val) {
+        val.innerText = `${dialCurrents[i]}°`;
+        val.style.color = dialCurrents[i] === dialTargets[i] ? "var(--text-Bright)" : "var(--accent-cyan)";
+      }
     });
+  }
 
-    if (allMatched) {
+  function verifyRotaryDials() {
+    const matched = [0, 1, 2].every(i => dialCurrents[i] === dialTargets[i]);
+    if (matched) {
       advanceOrFinishStage();
     } else {
       applyTimePenalty();
     }
   }
 
-  // --- MINIGAME 3: LOGIC NODE MEMORY PATTERN ---
+  // --- MINIGAME C: LOGIC NODE MEMORY PATTERN ---
   function setupPatternMemoryGame() {
     document.getElementById("minigame-title").innerText = "MINIGAME C // NEURAL CIPHER SEQUENCE";
-    document.getElementById("minigame-desc").innerText = "Watch the flashing security nodes, then repeat the exact sequence! Wrong tap costs -2.5s and replays the pattern.";
+    document.getElementById("minigame-desc").innerText = "Observe the flashing security nodes, then repeat the exact sequence! Wrong click costs -2.5s and replays the pattern.";
     startTimer(18.0);
 
     const seqLen = currentTier === 1 ? 4 : 5;
@@ -1675,7 +2244,7 @@
 
     const area = document.getElementById("minigame-area");
     area.innerHTML = `
-      <div style="margin-bottom:8px; font-size:0.88rem; display:flex; justify-content:space-between;">
+      <div style="margin-bottom:6px; font-size:0.84rem; display:flex; justify-content:space-between;">
         <span id="pattern-status" style="color:var(--warn-amber);">OBSERVE CIPHER SEQUENCE...</span>
         <span id="pattern-progress">0 / ${seqLen}</span>
       </div>
@@ -1747,6 +2316,7 @@
   // INITIALIZE TERMINAL
   renderFileList();
   selectFile("log_kaelen", true);
+  initPersistence();
 </script>
 </body>
 </html>
