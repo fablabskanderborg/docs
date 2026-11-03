@@ -440,12 +440,64 @@
     align-items: center;
     justify-content: center;
     overflow: hidden;
+    cursor: pointer;
   }
   .holo-expanded-img-box img {
     width: 100%;
     height: 100%;
     max-height: 440px;
     object-fit: contain;
+  }
+
+  /* PLAYER PERSONAL LOGS & 3:4 IMAGE FORMAT */
+  .log-entry-card {
+    border-left: 3px solid var(--border-highlight);
+    background: rgba(46, 230, 138, 0.06);
+    padding: 12px 14px;
+    margin: 12px 0;
+    border-radius: var(--border-radius);
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .log-entry-card.danger {
+    border-left-color: var(--alert-red);
+    background: rgba(255, 42, 42, 0.08);
+  }
+  .log-img-3x4 {
+    width: 115px;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+    border: 1px solid var(--border-highlight);
+    border-radius: 4px;
+    flex-shrink: 0;
+    cursor: pointer;
+    background: #02050a;
+    box-shadow: 0 0 10px rgba(0, 229, 255, 0.18);
+  }
+  .log-form-box {
+    border: 1px dashed var(--border-highlight);
+    background: rgba(0, 0, 0, 0.35);
+    padding: 12px 14px;
+    margin-top: 18px;
+    border-radius: var(--border-radius);
+  }
+  textarea.log-textarea {
+    width: 100%;
+    min-height: 95px;
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    font-family: inherit;
+    font-size: 0.85rem;
+    padding: 8px 10px;
+    border-radius: var(--border-radius);
+    resize: vertical;
+    outline: none;
+    margin-top: 6px;
+  }
+  textarea.log-textarea:focus {
+    border-color: var(--border-highlight);
   }
 
   /* AUDIO TRACK CARDS */
@@ -676,7 +728,7 @@
       <span class="badge unlocked">LEVEL 0 [OPEN]</span>
       <span class="badge" id="badge-lvl1">LEVEL 1 [LOCKED]</span>
       <span class="badge" id="badge-lvl2">LEVEL 2 [LOCKED]</span>
-      <!-- Skjult for spilleren indtil GM aktiverer den -->
+      <!-- Hidden for the player until enabled by GM -->
       <button class="warn" id="player-slicing-btn" style="display:none;" onclick="openSlicingModal()">[SLICING BYPASS]</button>
     </div>
   </div>
@@ -696,7 +748,7 @@
       <div class="sys-log" id="sys-log">
         &gt; TERMINAL CONNECTED TO SILO-1 SUB-NET (LEVEL 3 RELAY)...<br>
         &gt; WARNING: INTERMITTENT ION STORM INTERFERENCE DETECTED ON ORBITAL UPLINK.<br>
-        &gt; ENTER AUTHORIZATION PASSCODE OR INITIATE SLICING BYPASS TO DECRYPT CLASSIFIED NODES.
+        &gt; ENTER AUTHORIZATION PASSCODE OR AWAIT SLICING BYPASS CLEARANCE TO DECRYPT NODES.
       </div>
     </div>
   </div>
@@ -713,16 +765,15 @@
       <span class="timer-bar" id="slice-timer">16.0s</span>
     </div>
 
-    <!-- LOCAL GM TIME ADJUSTMENT BAR (UNLOCKED VIA CODE: Gung@n4x4svampesporer) -->
+    <!-- GM TIME ADJUSTMENT BAR (UNLOCKED VIA CODE: Gung@n4x4svampesporer) -->
     <div class="gm-slice-box" id="gm-slice-box">
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
-        <strong>GM TIME MODIFIER (BASE: <span id="gm-offset-label">+0s</span>):</strong>
+        <strong>GM TIME MODIFIER (SYNCED: <span id="gm-offset-label">+0s</span>):</strong>
         <div style="display:flex; gap:4px;">
-          <button class="danger" onclick="adjustSliceTime(-10)">-10s</button>
           <button class="danger" onclick="adjustSliceTime(-5)">-5s</button>
+          <button class="danger" onclick="adjustSliceTime(-1)">-1s</button>
+          <button onclick="adjustSliceTime(1)">+1s</button>
           <button onclick="adjustSliceTime(5)">+5s</button>
-          <button onclick="adjustSliceTime(10)">+10s</button>
-          <button onclick="adjustSliceTime(20)">+20s</button>
         </div>
       </div>
     </div>
@@ -795,9 +846,10 @@
   let isAurebesh = false;
   let gmModeUnlocked = false;
   let gmBonusSeconds = 0;
-  let slicingEnabled = false; // Spilleren kan først slice, når GM tænder for dette
+  let slicingEnabled = false; // Hidden for player until GM activates it
   let currentFileId = "log_kaelen";
   let expandedHoloIndex = null;
+  let expandedLogImage = null;
 
   // Facility Control States
   let aaTurretsActive = true;
@@ -865,6 +917,8 @@
   ];
 
   let customHoloGallery = [];
+  let playerLogs = []; // Player's own journal notes + 3:4 portrait images saved to Supabase
+  let pendingLogImageData = null;
 
   function getAllHolos() {
     return [...baseHoloGallery, ...customHoloGallery];
@@ -872,11 +926,10 @@
 
   // ============================================================================
   // 3. PERSISTENCE ENGINE (DIRECT SUPABASE REST API + REALTIME + LOCALSTORAGE)
-  // Virker 100% på iPad Safari, selv hvis cdn.jsdelivr.net blokeres!
   // ============================================================================
-  const LOCAL_STORAGE_KEY = "silo1_questis_state_v5";
+  const LOCAL_STORAGE_KEY = "silo1_questis_state_v6";
 
-function buildStatePayload() {
+  function buildStatePayload() {
     return {
       updatedAt: Date.now(),
       clearanceLvl1,
@@ -891,7 +944,8 @@ function buildStatePayload() {
       blastDoorCodeUnlocked,
       unlockedLockers,
       batch17,
-      customHoloGallery
+      customHoloGallery,
+      playerLogs
     };
   }
 
@@ -903,7 +957,7 @@ function buildStatePayload() {
     if (typeof data.questisUnlocked === "boolean") questisUnlocked = data.questisUnlocked;
     if (typeof data.slicingEnabled === "boolean") slicingEnabled = data.slicingEnabled;
 
-    // Synkronisér GM tidsbonus globalt til iPad
+    // Sync GM Slicing Time Modifier globally to iPad
     if (typeof data.gmBonusSeconds === "number" && data.gmBonusSeconds !== gmBonusSeconds) {
       const diff = data.gmBonusSeconds - gmBonusSeconds;
       gmBonusSeconds = data.gmBonusSeconds;
@@ -911,7 +965,6 @@ function buildStatePayload() {
       const lbl = document.getElementById("gm-offset-label");
       if (lbl) lbl.innerText = `${sign}${gmBonusSeconds}s`;
 
-      // Opdatér timeren på spillerens skærm med det samme
       const timerEl = document.getElementById("slice-timer");
       if (sliceTimer) {
         timeLeft = Math.max(1.0, timeLeft + diff);
@@ -934,13 +987,21 @@ function buildStatePayload() {
     if (Array.isArray(data.customHoloGallery)) {
       customHoloGallery = data.customHoloGallery;
     }
+    if (Array.isArray(data.playerLogs)) {
+      playerLogs = data.playerLogs;
+    }
 
     updateClearanceBadges();
     renderFileList();
-    selectFile(currentFileId, true);
+
+    // Do not interrupt player typing in a log input or textarea during background sync
+    const activeEl = document.activeElement;
+    const isTypingLog = activeEl && (activeEl.id === "player-log-title" || activeEl.id === "player-log-text" || activeEl.id === "locker-input" || activeEl.id === "blast-code-input");
+    if (!isTypingLog) {
+      selectFile(currentFileId, true);
+    }
   }
 
-  // Direkte HTTPS REST-kald til Supabase (afhænger IKKE af cdn.jsdelivr.net)
   async function savePersistentState() {
     const payload = buildStatePayload();
     try {
@@ -1017,7 +1078,6 @@ function buildStatePayload() {
       setDbBadge("DB: SYNCED ✓", "ok");
       return true;
     } else {
-      // Tabellen er tom -> gem start-tilstanden i række 1
       await savePersistentState();
       setDbBadge("DB: READY ✓", "ok");
       return true;
@@ -1025,12 +1085,16 @@ function buildStatePayload() {
   }
 
   async function resetAllToDefault() {
-    if (!confirm("FACTORY RESET ('FORFRA'): Are you sure you want to lock all passcodes, reset all Batch 17 implants to SILO 1 / ARMED, and clear all unlocked states for a fresh campaign start?")) return;
+    if (!confirm("FACTORY RESET ('FORFRA'): Are you sure you want to lock all passcodes, hide Slicing Bypass, and reset all Batch 17 implants to SILO 1 / ARMED?")) return;
+
+    const keepLogs = playerLogs.length > 0 && confirm("Do you want to KEEP Kethani's player-written Personal Logs & 3:4 images? (Click OK to keep them, or Cancel to wipe them too)");
 
     clearanceLvl1 = false;
     clearanceLvl2 = false;
     depotUnlocked = false;
     questisUnlocked = false;
+    slicingEnabled = false;
+    gmBonusSeconds = 0;
     if (isQuestisSkin) toggleSkin();
     activeMainTab = "silo1";
     aaTurretsActive = true;
@@ -1040,15 +1104,16 @@ function buildStatePayload() {
     unlockedLockers = {};
     batch17 = getDefaultBatch17();
     customHoloGallery = [];
+    if (!keepLogs) playerLogs = [];
     expandedHoloIndex = null;
+    expandedLogImage = null;
     currentFileId = "log_kaelen";
-    slicingEnabled = false;
-    gmBonusSeconds = 0;
 
     try {
       localStorage.removeItem("silo1_questis_state_v2");
       localStorage.removeItem("silo1_questis_state_v3");
       localStorage.removeItem("silo1_questis_state_v4");
+      localStorage.removeItem("silo1_questis_state_v5");
       localStorage.removeItem(LOCAL_STORAGE_KEY);
     } catch (e) {}
 
@@ -1056,17 +1121,15 @@ function buildStatePayload() {
     updateClearanceBadges();
     switchMainTab("silo1");
     playUnlockSound();
-    logMsg("SYSTEM FACTORY RESET COMPLETE ('FORFRA'): All passcodes, security levels, lockers, and Batch 17 telemetry have been reset to initial campaign state.");
+    logMsg("SYSTEM FACTORY RESET COMPLETE ('FORFRA'): All passcodes, security levels, slicing access, lockers, and Batch 17 telemetry reset to initial state.");
   }
 
   async function initPersistence() {
-    // 1. Indlæs lokal cache med det samme
     try {
       const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
       if (raw) applyStatePayload(JSON.parse(raw));
     } catch (e) {}
 
-    // 2. Hent direkte fra Supabase via HTTPS fetch (virker uanset om window.supabase er blokeret)
     setDbBadge("DB: CONNECTING...", "warn");
     try {
       const ok = await fetchStateFromSupabase();
@@ -1076,7 +1139,6 @@ function buildStatePayload() {
       logMsg(`SUPABASE CONNECTION ERROR: ${e.message}`);
     }
 
-    // 3. Hvis window.supabase SDK også er tilgængelig, kobl Realtime på, ellers poll hvert 5. sekund
     if (window.supabase && SUPABASE_URL && SUPABASE_ANON_KEY) {
       supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       realtimeChannel = supabaseClient.channel('silo1-datapad-sync')
@@ -1086,13 +1148,19 @@ function buildStatePayload() {
             setDbBadge("DB: LIVE SYNC ✓", "ok");
           }
         })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'datapad_state' }, (payload) => {
+          if (payload.new && payload.new.payload) {
+            applyStatePayload(payload.new.payload);
+            setDbBadge("DB: LIVE SYNC ✓", "ok");
+          }
+        })
         .subscribe();
-    } else {
-      // Auto-sync fallback for iPad hvis CDN-scriptet blev blokeret af Safari
-      setInterval(() => {
-        fetchStateFromSupabase();
-      }, 5000);
     }
+
+    // Periodic background sync every 4 seconds so iPad & PC never drift out of sync
+    setInterval(() => {
+      fetchStateFromSupabase();
+    }, 4000);
   }
 
   // ============================================================================
@@ -1584,21 +1652,9 @@ function buildStatePayload() {
       level: 0,
       lockedLabel: "",
       title: "03 // PERSONAL LOGS (CHEUNH)",
-      meta: "// PERSONAL_LOGS_CHEUNH (Private Reflections)",
-      keywords: "personal logs scar six seconds house mitth empire",
-      render: () => `
-        <p><strong>PRIVATE ENCRYPTED JOURNAL // CHEUNH SCRIPT</strong></p>
-
-        <div class="callout-box danger">
-          <strong>LOG 401.2 // "Six Seconds and a Scar"</strong><br>
-          "The skin beneath my right eye pulls tight whenever atmospheric humidity drops. I could have paid a black-market street-surgeon on Nar Shaddaa to clone the tissue and erase the scar for the price of a single stolen data-core. I left it. On Csilla, you are taught that an Irizi only makes a mistake once. Yet the more often I run the telemetry from the accident through my Questis, the less sense the explosion makes. I modified the motivator coil to shave 6.4 seconds off the jump calculation — yes, that violated protocol. But a crystalline phase-coupling does not shatter symmetrically under overload; it melts progressively. The reconnaissance vessel only vaporizes instantaneously if someone embedded a secondary resonance loop inside the coolant system itself. Eight crew members died because I was arrogant enough to believe I was the only one tampering with that ship. And House Mitth conveniently assumed the fleet contract the week after my banishment. Coincidences do not exist in the Ascendancy."
-        </div>
-
-        <div class="callout-box">
-          <strong>LOG 418.9 // "The Empire of Men"</strong><br>
-          "I have lived among humans and 'Lesser Space' species for two standard years now. Their so-called Galactic Empire fascinates me the same way an unstable reactor fascinates an engineer: you know it is going to detonate, you are merely calculating when. They confuse fear with order. They erect colossal gray monuments to their own authority, yet their supply lines bleed data because every single Moff and lieutenant hoards information to stab his superior in the back."
-        </div>
-      `
+      meta: "// PERSONAL_LOGS_CHEUNH (Private Reflections & Field Notes)",
+      keywords: "personal logs scar six seconds house mitth empire notes",
+      render: () => renderPersonalLogs()
     },
     {
       id: "questis_holos",
@@ -1628,6 +1684,7 @@ function buildStatePayload() {
   function switchMainTab(tabName) {
     activeMainTab = tabName;
     expandedHoloIndex = null;
+    expandedLogImage = null;
     playClickSound(820);
     document.getElementById("tab-silo1").classList.toggle("active-tab", tabName === "silo1");
     document.getElementById("tab-personal").classList.toggle("active-tab", tabName === "personal");
@@ -1648,7 +1705,7 @@ function buildStatePayload() {
     return false;
   }
 
- function updateClearanceBadges() {
+  function updateClearanceBadges() {
     const b1 = document.getElementById("badge-lvl1");
     const b2 = document.getElementById("badge-lvl2");
     b1.className = clearanceLvl1 ? "badge unlocked" : "badge";
@@ -1660,13 +1717,13 @@ function buildStatePayload() {
     document.getElementById("skin-toggle-btn").style.display = questisUnlocked ? "inline-block" : "none";
     document.getElementById("tab-personal").style.display = questisUnlocked ? "inline-block" : "none";
 
-    // Vis kun [SLICING BYPASS] hvis GM har tændt for den (eller hvis man selv er i GM-mode)
+    // Only show [SLICING BYPASS] to player when GM has enabled it (or when GM Override is active locally)
     const sliceBtn = document.getElementById("player-slicing-btn");
     if (sliceBtn) {
       sliceBtn.style.display = (slicingEnabled || gmModeUnlocked) ? "inline-block" : "none";
     }
 
-    // GM Kontroller
+    // GM Controls
     document.getElementById("gm-active-indicator").style.display = gmModeUnlocked ? "inline-block" : "none";
     document.getElementById("gm-reset-btn").style.display = gmModeUnlocked ? "inline-block" : "none";
     document.getElementById("gm-slice-box").style.display = gmModeUnlocked ? "block" : "none";
@@ -1706,7 +1763,7 @@ function buildStatePayload() {
         const li = document.createElement("li");
         li.className = `file-item ${currentFileId === file.id ? "active" : ""}`;
         li.innerHTML = `<span>${file.title}</span><span style="font-size:0.7rem;">[CHISS]</span>`;
-        li.onclick = () => { expandedHoloIndex = null; selectFile(file.id); };
+        li.onclick = () => { expandedHoloIndex = null; expandedLogImage = null; selectFile(file.id); };
         ul.appendChild(li);
       });
       return;
@@ -1770,7 +1827,7 @@ function buildStatePayload() {
         </div>
         <div class="callout-box danger">
           This data node is protected by Imperial Section-${file.level} encryption. Filename and contents are obfuscated.<br><br>
-          Enter a valid authorization passcode in the top bar or click <strong>[SLICING BYPASS]</strong> to decrypt this sector.
+          Enter a valid authorization passcode in the top bar${slicingEnabled ? ' or tap <strong>[SLICING BYPASS]</strong>' : ''} to decrypt this sector.
         </div>
       `;
       if (!silent) logMsg(`ACCESS DENIED: Attempted to read ${file.lockedLabel} without Level ${file.level} clearance.`);
@@ -1791,8 +1848,182 @@ function buildStatePayload() {
   }
 
   // ============================================================================
-  // 7. PERSONAL QUESTIS RENDERERS (FULL-VIEWPORT HOLO & A/B MUSIC PLAYER)
+  // 7. PERSONAL QUESTIS RENDERERS (LOGS WITH 3:4 UPLOAD, HOLO GALLERY & MUSIC)
   // ============================================================================
+  function openLogImageFull(idx) {
+    const entry = playerLogs[idx];
+    if (!entry || !entry.img) return;
+    expandedLogImage = { src: entry.img, title: `${entry.code} // ${entry.title}` };
+    playClickSound(960);
+    selectFile("questis_logs", true);
+  }
+
+  function closeLogImageFull() {
+    expandedLogImage = null;
+    playClickSound(680);
+    selectFile("questis_logs", true);
+  }
+
+  function renderPersonalLogs() {
+    if (expandedLogImage) {
+      return `
+        <div class="holo-expanded-view">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+            <strong style="color:var(--accent-cyan); font-size:1.05rem;">${expandedLogImage.title} // 3:4 VISUAL ATTACHMENT</strong>
+            <button onclick="closeLogImageFull()">[&larr; BACK TO PERSONAL LOGS]</button>
+          </div>
+          <div class="holo-expanded-img-box" onclick="closeLogImageFull()" title="Tap to return to logs">
+            <img src="${expandedLogImage.src}" alt="${expandedLogImage.title}">
+          </div>
+        </div>
+      `;
+    }
+
+    const customEntriesHtml = playerLogs.map((entry, idx) => `
+      <div class="log-entry-card">
+        ${entry.img ? `<img src="${entry.img}" class="log-img-3x4" onclick="openLogImageFull(${idx})" title="Tap to enlarge 3:4 capture">` : ''}
+        <div style="flex:1;">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+            <strong style="color:var(--accent-cyan);">${entry.code} // "${entry.title}"</strong>
+            <button class="danger" style="padding:2px 7px; font-size:0.68rem;" onclick="deletePlayerLog(${idx})">[DELETE]</button>
+          </div>
+          <p style="margin:6px 0 0 0; white-space:pre-wrap;">${entry.text}</p>
+        </div>
+      </div>
+    `).join("");
+
+    return `
+      <p><strong>PRIVATE ENCRYPTED JOURNAL // CHEUNH SCRIPT</strong></p>
+
+      <div class="log-entry-card danger">
+        <div style="flex:1;">
+          <strong>LOG 401.2 // "Six Seconds and a Scar"</strong><br>
+          "The skin beneath my right eye pulls tight whenever atmospheric humidity drops. I could have paid a black-market street-surgeon on Nar Shaddaa to clone the tissue and erase the scar for the price of a single stolen data-core. I left it. On Csilla, you are taught that an Irizi only makes a mistake once. Yet the more often I run the telemetry from the accident through my Questis, the less sense the explosion makes. I modified the motivator coil to shave 6.4 seconds off the jump calculation — yes, that violated protocol. But a crystalline phase-coupling does not shatter symmetrically under overload; it melts progressively. The reconnaissance vessel only vaporizes instantaneously if someone embedded a secondary resonance loop inside the coolant system itself. Eight crew members died because I was arrogant enough to believe I was the only one tampering with that ship. And House Mitth conveniently assumed the fleet contract the week after my banishment. Coincidences do not exist in the Ascendancy."
+        </div>
+      </div>
+
+      <div class="log-entry-card">
+        <div style="flex:1;">
+          <strong>LOG 418.9 // "The Empire of Men"</strong><br>
+          "I have lived among humans and 'Lesser Space' species for two standard years now. Their so-called Galactic Empire fascinates me the same way an unstable reactor fascinates an engineer: you know it is going to detonate, you are merely calculating when. They confuse fear with order. They erect colossal gray monuments to their own authority, yet their supply lines bleed data because every single Moff and lieutenant hoards information to stab his superior in the back."
+        </div>
+      </div>
+
+      ${customEntriesHtml}
+
+      <!-- PLAYER FORM FOR NEW LOG NOTES + 3:4 IMAGE UPLOAD -->
+      <div class="log-form-box">
+        <strong style="color:var(--text-Bright);">+ RECORD NEW PERSONAL LOG ENTRY (AUTO-SAVED TO SUPABASE)</strong>
+        <div style="display:grid; grid-template-columns: 1fr auto; gap:8px; margin-top:8px; align-items:center;">
+          <input type="text" id="player-log-title" placeholder="Log Title / Subject (e.g. Silo-1 Observations)...">
+          <label style="cursor:pointer; border:1px solid var(--accent-cyan); color:var(--accent-cyan); padding:6px 10px; font-size:0.76rem; border-radius:var(--border-radius); display:inline-block;">
+            [+ ATTACH 3:4 IMAGE]
+            <input type="file" id="player-log-file" accept="image/*" style="display:none;" onchange="handleLogImageUpload(event)">
+          </label>
+        </div>
+
+        <div id="log-img-preview-wrap" style="display:${pendingLogImageData ? 'flex' : 'none'}; align-items:center; gap:10px; margin-top:8px;">
+          <img id="log-img-preview" src="${pendingLogImageData || ''}" class="log-img-3x4" style="width:72px;">
+          <div>
+            <span style="font-size:0.75rem; color:var(--accent-cyan);">3:4 Image Cropped & Ready</span><br>
+            <button class="danger" style="margin-top:4px; padding:3px 8px; font-size:0.7rem;" onclick="clearPendingLogImage()">[REMOVE IMAGE]</button>
+          </div>
+        </div>
+
+        <textarea id="player-log-text" class="log-textarea" placeholder="Write personal log entry or field notes here..."></textarea>
+        <div style="margin-top:8px; display:flex; justify-content:flex-end;">
+          <button onclick="savePlayerLogEntry()">[ENCRYPT & SAVE LOG ENTRY]</button>
+        </div>
+      </div>
+    `;
+  }
+
+  function handleLogImageUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const img = new Image();
+      img.onload = function() {
+        const canvas = document.createElement("canvas");
+        const targetW = 360;
+        const targetH = 480; // Exact 3:4 Portrait Aspect Ratio
+        canvas.width = targetW;
+        canvas.height = targetH;
+        const ctx = canvas.getContext("2d");
+
+        const srcRatio = img.width / img.height;
+        const targetRatio = 3 / 4;
+        let sx = 0, sy = 0, sw = img.width, sh = img.height;
+
+        if (srcRatio > targetRatio) {
+          sw = img.height * targetRatio;
+          sx = (img.width - sw) / 2;
+        } else {
+          sh = img.width / targetRatio;
+          sy = (img.height - sh) / 2;
+        }
+
+        ctx.drawImage(img, sx, sy, sw, sh, 0, 0, targetW, targetH);
+        pendingLogImageData = canvas.toDataURL("image/jpeg", 0.78);
+
+        const wrap = document.getElementById("log-img-preview-wrap");
+        const prev = document.getElementById("log-img-preview");
+        if (wrap && prev) {
+          prev.src = pendingLogImageData;
+          wrap.style.display = "flex";
+        }
+        playClickSound(880);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function clearPendingLogImage() {
+    pendingLogImageData = null;
+    const wrap = document.getElementById("log-img-preview-wrap");
+    if (wrap) wrap.style.display = "none";
+  }
+
+  async function savePlayerLogEntry() {
+    const titleEl = document.getElementById("player-log-title");
+    const textEl = document.getElementById("player-log-text");
+    const title = (titleEl ? titleEl.value.trim() : "") || "Untitled Entry";
+    const text = (textEl ? textEl.value.trim() : "");
+
+    if (!text && !pendingLogImageData) {
+      playWarningSound();
+      logMsg("QUESTIS LOG ERROR: Cannot save an empty log entry.");
+      return;
+    }
+
+    const logNumber = (420 + playerLogs.length * 3 + Math.floor(Math.random() * 9) / 10).toFixed(1);
+    playerLogs.push({
+      code: `LOG ${logNumber}`,
+      title: title,
+      text: text,
+      img: pendingLogImageData || null,
+      createdAt: new Date().toISOString()
+    });
+
+    pendingLogImageData = null;
+    playUnlockSound();
+    selectFile("questis_logs", true);
+    await savePersistentState();
+    logMsg(`QUESTIS JOURNAL SAVED: Added [${title}] to Supabase persistent storage.`);
+  }
+
+  async function deletePlayerLog(idx) {
+    if (!confirm("Delete this personal log entry permanently?")) return;
+    playerLogs.splice(idx, 1);
+    playClickSound(520);
+    selectFile("questis_logs", true);
+    await savePersistentState();
+    logMsg("QUESTIS JOURNAL: Log entry deleted from Supabase.");
+  }
+
   function openHoloFullView(idx) {
     expandedHoloIndex = idx;
     playClickSound(960);
@@ -2216,7 +2447,7 @@ function buildStatePayload() {
       gmModeUnlocked = !gmModeUnlocked;
       playUnlockSound();
       updateClearanceBadges();
-      logMsg(`GM OVERRIDE ${gmModeUnlocked ? 'ENABLED' : 'DISABLED'}: Local Slicing Time Modifier, Holo-Uploader & Reset button unlocked.`);
+      logMsg(`GM OVERRIDE ${gmModeUnlocked ? 'ENABLED' : 'DISABLED'}: Slicing Access toggle, Time Modifier (-5s/-1s/+1s/+5s), Holo-Uploader & Reset unlocked.`);
       selectFile(currentFileId, true);
       return;
     }
@@ -2310,7 +2541,7 @@ function buildStatePayload() {
   }
 
   // ============================================================================
-  // 12. SLICING MINIGAME ENGINE (WITH NATIVE IPAD TOUCH DRAG-AND-DROP)
+  // 12. SLICING MINIGAME ENGINE (WITH NATIVE IPAD TOUCH & GLOBAL GM TIME SYNC)
   // ============================================================================
   let sliceTimer = null;
   let routingAnimFrame = null;
@@ -2336,7 +2567,7 @@ function buildStatePayload() {
     timeLeft = Math.max(1.0, timeLeft + delta);
     document.getElementById("slice-timer").innerText = `${timeLeft.toFixed(1)}s`;
     playClickSound(delta > 0 ? 980 : 420);
-    savePersistentState(); // Sender straks den nye tid til Supabase & iPad!
+    savePersistentState(); // Syncs new GM time bonus immediately to Supabase & iPad
   }
 
   function openSlicingModal() {
@@ -2352,12 +2583,14 @@ function buildStatePayload() {
 
   function closeSlicingModal() {
     clearInterval(sliceTimer);
+    sliceTimer = null;
     if (routingAnimFrame) cancelAnimationFrame(routingAnimFrame);
     document.getElementById("slicing-modal").style.display = "none";
   }
 
   function startSlicingRun() {
     clearInterval(sliceTimer);
+    sliceTimer = null;
     if (routingAnimFrame) cancelAnimationFrame(routingAnimFrame);
     currentTier = parseInt(document.getElementById("slice-tier-select").value, 10);
     requiredStages = currentTier === 1 ? 1 : 2;
@@ -2376,6 +2609,7 @@ function buildStatePayload() {
       document.getElementById("slice-timer").innerText = `${Math.max(0, timeLeft).toFixed(1)}s`;
       if (timeLeft <= 0) {
         clearInterval(sliceTimer);
+        sliceTimer = null;
         if (routingAnimFrame) cancelAnimationFrame(routingAnimFrame);
         playWarningSound();
         logMsg("ALERT! Slicing trace timer expired! Imperial firewall reset the connection.");
@@ -2391,6 +2625,7 @@ function buildStatePayload() {
     logMsg("TRACE PENALTY: Firewall collision / wrong input! -2.5 seconds deducted.");
     if (timeLeft <= 0) {
       clearInterval(sliceTimer);
+      sliceTimer = null;
       if (routingAnimFrame) cancelAnimationFrame(routingAnimFrame);
       logMsg("ALERT! Slicing trace timer expired due to penalties! Firewall reset connection.");
       closeSlicingModal();
@@ -2413,6 +2648,7 @@ function buildStatePayload() {
 
   function advanceOrFinishStage() {
     clearInterval(sliceTimer);
+    sliceTimer = null;
     if (routingAnimFrame) cancelAnimationFrame(routingAnimFrame);
     completedStages++;
 
@@ -2587,7 +2823,6 @@ function buildStatePayload() {
       pkt.style.left = newX + "px";
       pkt.style.top = newY + "px";
 
-      // Check socket overlap
       const sock = document.getElementById(`sock-${idx}`);
       const pktRect = pkt.getBoundingClientRect();
       const sockRect = sock.getBoundingClientRect();
@@ -2620,11 +2855,9 @@ function buildStatePayload() {
       }
     }
 
-    // Bind dedicated Touch AND Mouse listeners for 100% iPad Safari reliability
     [0, 1, 2].forEach(idx => {
       const pkt = document.getElementById(`pkt-${idx}`);
 
-      // Touch start on packet
       pkt.addEventListener("touchstart", (e) => {
         if (lockedPackets[idx]) return;
         e.stopPropagation();
@@ -2633,7 +2866,6 @@ function buildStatePayload() {
         startDrag(idx, t.clientX, t.clientY);
       }, { passive: false });
 
-      // Mouse down on packet
       pkt.addEventListener("mousedown", (e) => {
         if (lockedPackets[idx]) return;
         e.preventDefault();
@@ -2641,7 +2873,6 @@ function buildStatePayload() {
       });
     });
 
-    // Arena-wide touchmove / mousemove so fast finger movements never lose the box
     arena.addEventListener("touchmove", (e) => {
       if (activeDragIdx === null) return;
       if (e.cancelable) e.preventDefault();
@@ -2668,7 +2899,6 @@ function buildStatePayload() {
         if (fw.y >= 168) { fw.y = 168; fw.dir = -1; }
         fw.el.style.top = fw.y + "px";
 
-        // Check collision with currently dragged packet
         if (activeDragIdx !== null && !lockedPackets[activeDragIdx]) {
           const pkt = document.getElementById(`pkt-${activeDragIdx}`);
           const pktRect = pkt.getBoundingClientRect();
