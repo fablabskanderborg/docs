@@ -1,0 +1,3017 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>IMPERIAL DATAPAD // SILO-1 & QUESTIS TERMINAL</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap');
+
+  :root {
+    /* SKIN 1: IMPERIAL BRUTALISM (DEFAULT) */
+    --bg-main: #060809;
+    --bg-panel: #0b0f12;
+    --bg-header: #0f161b;
+    --bg-row-even: #090d10;
+    --border-color: #1c3329;
+    --border-highlight: #2ee68a;
+    --text-main: #a8d5ba;
+    --text-Bright: #2ee68a;
+    --text-dim: #4a6b58;
+    --accent-cyan: #00e5ff;
+    --alert-red: #ff2a2a;
+    --warn-amber: #ffae00;
+    --orbital-purple: #c084fc;
+    --transfer-blue: #38bdf8;
+    --font-family: 'Share Tech Mono', 'Courier New', monospace;
+    --border-radius: 0px;
+    --panel-shadow: inset 0 0 15px rgba(46, 230, 138, 0.06);
+    --scanline-opacity: 0.16;
+  }
+
+  /* SKIN 2: CHISS QUESTIS (MODERN, SOFT, BIOLUMINESCENT BLUE) */
+  body.questis-skin {
+    --bg-main: #040914;
+    --bg-panel: rgba(11, 25, 48, 0.86);
+    --bg-header: rgba(16, 37, 71, 0.90);
+    --bg-row-even: rgba(15, 32, 60, 0.55);
+    --border-color: rgba(56, 189, 248, 0.30);
+    --border-highlight: #38bdf8;
+    --text-main: #e0f2fe;
+    --text-Bright: #7dd3fc;
+    --text-dim: #6495ed;
+    --accent-cyan: #00f0ff;
+    --alert-red: #f43f5e;
+    --warn-amber: #fbbf24;
+    --orbital-purple: #d8b4fe;
+    --transfer-blue: #38bdf8;
+    --font-family: 'Exo 2', sans-serif;
+    --border-radius: 10px;
+    --panel-shadow: 0 8px 32px rgba(0, 195, 255, 0.18), inset 0 0 20px rgba(56, 189, 248, 0.12);
+    --scanline-opacity: 0;
+  }
+
+  /* AUREBESH SIMULATION */
+  body.aurebesh-mode .translatable {
+    font-family: sans-serif;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    filter: contrast(1.4);
+  }
+
+  * {
+    box-sizing: border-box;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    font-family: var(--font-family);
+    margin: 0;
+    padding: 12px;
+    min-height: 100vh;
+    transition: background-color 0.4s ease, color 0.3s ease;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  body::after {
+    content: " ";
+    display: block;
+    position: fixed;
+    top: 0; left: 0; bottom: 0; right: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.35) 50%), 
+                linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+    z-index: 999;
+    background-size: 100% 3px, 6px 100%;
+    pointer-events: none;
+    opacity: var(--scanline-opacity);
+  }
+
+  .app-container {
+    max-width: 1360px;
+    margin: 0 auto;
+    border: 2px solid var(--border-highlight);
+    border-radius: var(--border-radius);
+    background: var(--bg-panel);
+    box-shadow: var(--panel-shadow);
+    backdrop-filter: blur(12px);
+    padding: 14px;
+  }
+
+  /* TOP HEADER */
+  .top-bar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--bg-header);
+    border: 1px solid var(--border-color);
+    border-bottom: 2px solid var(--border-highlight);
+    border-radius: var(--border-radius);
+    padding: 10px 14px;
+    margin-bottom: 10px;
+    gap: 10px;
+  }
+
+  .title-block h1 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: var(--text-Bright);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  .title-block .subtitle {
+    font-size: 0.74rem;
+    color: var(--text-dim);
+  }
+
+  .controls-block {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+  }
+
+  input[type="text"] {
+    background: rgba(0,0,0,0.55);
+    border: 1px solid var(--border-color);
+    color: var(--text-Bright);
+    font-family: inherit;
+    padding: 6px 10px;
+    font-size: 0.82rem;
+    border-radius: var(--border-radius);
+    outline: none;
+  }
+  input[type="text"]:focus {
+    border-color: var(--border-highlight);
+  }
+
+  button {
+    background: rgba(15, 30, 25, 0.75);
+    color: var(--text-Bright);
+    border: 1px solid var(--border-highlight);
+    padding: 6px 11px;
+    font-family: inherit;
+    font-size: 0.78rem;
+    cursor: pointer;
+    border-radius: var(--border-radius);
+    transition: all 0.15s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  body.questis-skin button {
+    background: rgba(24, 55, 95, 0.65);
+    border-radius: 6px;
+  }
+  button:hover {
+    background: var(--border-highlight);
+    color: #000;
+    font-weight: bold;
+  }
+  button.danger { border-color: var(--alert-red); color: var(--alert-red); }
+  button.danger:hover { background: var(--alert-red); color: #fff; }
+  button.warn { border-color: var(--warn-amber); color: var(--warn-amber); }
+  button.warn:hover { background: var(--warn-amber); color: #000; }
+  button.questis-btn {
+    border-color: var(--accent-cyan);
+    color: var(--accent-cyan);
+    box-shadow: 0 0 8px rgba(0, 229, 255, 0.25);
+  }
+
+  /* MODE TABS BAR & SECURITY CLEARANCE */
+  .sub-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 7px 12px;
+    margin-bottom: 12px;
+    border: 1px solid var(--border-color);
+    background: rgba(0,0,0,0.3);
+    border-radius: var(--border-radius);
+    font-size: 0.8rem;
+  }
+  .tab-group {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .tab-btn {
+    padding: 6px 14px;
+    font-weight: bold;
+    border: 1px solid var(--border-color);
+    background: rgba(0,0,0,0.4);
+    color: var(--text-dim);
+  }
+  .tab-btn.active-tab {
+    border-color: var(--border-highlight);
+    background: var(--border-highlight);
+    color: #000;
+  }
+  .badge {
+    padding: 3px 8px;
+    border: 1px solid var(--text-dim);
+    color: var(--text-dim);
+    border-radius: var(--border-radius);
+    font-size: 0.72rem;
+  }
+  .badge.unlocked {
+    border-color: var(--text-Bright);
+    color: var(--text-Bright);
+    background: rgba(46, 230, 138, 0.12);
+  }
+  body.questis-skin .badge.unlocked {
+    background: rgba(56, 189, 248, 0.18);
+  }
+
+  /* DESKTOP & IPAD LANDSCAPE SIDE-BY-SIDE GRID */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 290px 1fr;
+    gap: 14px;
+    align-items: stretch;
+  }
+  @media (max-width: 680px) {
+    .main-grid { grid-template-columns: 1fr; }
+  }
+
+  /* LEFT SIDEBAR */
+  .sidebar {
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 10px;
+    background: rgba(0,0,0,0.25);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .search-box { width: 100%; }
+  .nav-category {
+    font-size: 0.71rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1.4px;
+    margin-top: 6px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 3px;
+  }
+  .file-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .file-item {
+    padding: 8px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-size: 0.79rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.12s ease;
+    background: rgba(255,255,255,0.01);
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .file-item:hover {
+    border-color: var(--border-highlight);
+    background: rgba(46, 230, 138, 0.07);
+  }
+  .file-item.active {
+    background: var(--border-highlight);
+    color: #000;
+    font-weight: bold;
+  }
+  .file-item.locked {
+    color: var(--alert-red);
+    border-color: rgba(255, 42, 42, 0.35);
+    opacity: 0.82;
+  }
+
+  /* RIGHT VIEWPORT */
+  .viewport {
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 16px;
+    background: rgba(0,0,0,0.25);
+    min-height: 560px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow-x: hidden;
+  }
+  .doc-header {
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 8px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .doc-header h2 {
+    margin: 0;
+    color: var(--text-Bright);
+    font-size: 1.15rem;
+  }
+  .doc-meta {
+    font-size: 0.74rem;
+    color: var(--text-dim);
+    margin-top: 3px;
+  }
+  .doc-body {
+    line-height: 1.52;
+    font-size: 0.87rem;
+    overflow-x: auto;
+    flex: 1;
+  }
+
+  /* TABLES */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.79rem;
+    margin-top: 8px;
+  }
+  th, td {
+    border: 1px solid var(--border-color);
+    padding: 6px 8px;
+    text-align: left;
+  }
+  th {
+    background: var(--bg-header);
+    color: var(--text-Bright);
+    text-transform: uppercase;
+    font-size: 0.72rem;
+  }
+  tr:nth-child(even) { background: var(--bg-row-even); }
+
+  .status-armed { color: var(--alert-red); font-weight: bold; }
+  .status-safe { color: var(--text-Bright); font-weight: bold; }
+  .status-orbit { color: var(--orbital-purple); font-weight: bold; }
+  .status-transfer { color: var(--transfer-blue); font-weight: bold; }
+  .status-silo2 { color: var(--warn-amber); font-weight: bold; }
+  .status-dead { color: #666; text-decoration: line-through; }
+
+  .callout-box {
+    border-left: 3px solid var(--border-highlight);
+    background: rgba(46, 230, 138, 0.06);
+    padding: 10px 14px;
+    margin: 12px 0;
+    border-radius: var(--border-radius);
+  }
+  .callout-box.danger {
+    border-left-color: var(--alert-red);
+    background: rgba(255, 42, 42, 0.08);
+  }
+
+  /* HOLO GALLERY CARDS & EXPANDED FULL VIEWPORT MODE */
+  .holo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 14px;
+    margin-top: 10px;
+  }
+  .holo-card {
+    border: 1px solid var(--border-highlight);
+    border-radius: var(--border-radius);
+    background: rgba(8, 22, 38, 0.65);
+    overflow: hidden;
+    box-shadow: 0 0 15px rgba(0, 229, 255, 0.12);
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .holo-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 22px rgba(0, 229, 255, 0.3);
+  }
+  .holo-img-wrap {
+    position: relative;
+    width: 100%;
+    height: 175px;
+    background: radial-gradient(circle, rgba(16,45,75,0.8), #03070e);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-bottom: 1px solid var(--border-color);
+  }
+  .holo-img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.92;
+  }
+  .holo-body {
+    padding: 10px 12px;
+    font-size: 0.8rem;
+  }
+
+  /* Expanded Holo View inside right viewport */
+  .holo-expanded-view {
+    border: 2px solid var(--accent-cyan);
+    border-radius: var(--border-radius);
+    background: rgba(4, 12, 24, 0.92);
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-shadow: 0 0 30px rgba(0, 229, 255, 0.2);
+  }
+  .holo-expanded-img-box {
+    width: 100%;
+    max-height: 440px;
+    min-height: 320px;
+    background: #02050a;
+    border: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    cursor: pointer;
+  }
+  .holo-expanded-img-box img {
+    width: 100%;
+    height: 100%;
+    max-height: 440px;
+    object-fit: contain;
+  }
+
+  /* PLAYER PERSONAL LOGS & 3:4 IMAGE FORMAT */
+  .log-entry-card {
+    border-left: 3px solid var(--border-highlight);
+    background: rgba(46, 230, 138, 0.06);
+    padding: 12px 14px;
+    margin: 12px 0;
+    border-radius: var(--border-radius);
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .log-entry-card.danger {
+    border-left-color: var(--alert-red);
+    background: rgba(255, 42, 42, 0.08);
+  }
+  .log-img-3x4 {
+    width: 115px;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+    border: 1px solid var(--border-highlight);
+    border-radius: 4px;
+    flex-shrink: 0;
+    cursor: pointer;
+    background: #02050a;
+    box-shadow: 0 0 10px rgba(0, 229, 255, 0.18);
+  }
+  .log-form-box {
+    border: 1px dashed var(--border-highlight);
+    background: rgba(0, 0, 0, 0.35);
+    padding: 12px 14px;
+    margin-top: 18px;
+    border-radius: var(--border-radius);
+  }
+  textarea.log-textarea {
+    width: 100%;
+    min-height: 95px;
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    font-family: inherit;
+    font-size: 0.85rem;
+    padding: 8px 10px;
+    border-radius: var(--border-radius);
+    resize: vertical;
+    outline: none;
+    margin-top: 6px;
+  }
+  textarea.log-textarea:focus {
+    border-color: var(--border-highlight);
+  }
+
+  /* AUDIO TRACK CARDS */
+  .track-card {
+    border: 1px solid var(--border-color);
+    background: rgba(0,0,0,0.35);
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    border-radius: var(--border-radius);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+  .track-card.playing {
+    border-color: var(--accent-cyan);
+    box-shadow: inset 0 0 12px rgba(0, 229, 255, 0.15);
+  }
+
+  /* TERMINAL LOG FOOTER */
+  .sys-log {
+    margin-top: 14px;
+    background: #030506;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 8px 12px;
+    height: 95px;
+    overflow-y: auto;
+    font-size: 0.76rem;
+    color: var(--text-Bright);
+  }
+
+  /* SLICING MINIGAME MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.88);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    padding: 14px;
+  }
+  .modal-box {
+    background: var(--bg-panel);
+    border: 2px solid var(--border-highlight);
+    border-radius: var(--border-radius);
+    max-width: 580px;
+    width: 100%;
+    padding: 18px;
+    box-shadow: 0 0 35px rgba(0,0,0,0.95);
+  }
+
+  /* Minigame A: Hex Grid */
+  .hex-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+    margin: 12px 0;
+  }
+  .hex-cell {
+    border: 1px solid var(--border-color);
+    padding: 10px 4px;
+    text-align: center;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 0.9rem;
+    border-radius: var(--border-radius);
+    background: rgba(0,0,0,0.45);
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .hex-cell:hover { border-color: var(--border-highlight); }
+  .hex-cell.matched { background: var(--border-highlight); color: #000; }
+  .hex-cell.wrong-flash { background: var(--alert-red) !important; color: #fff !important; }
+
+  /* Minigame B: Drag & Drop Packet Routing Canvas (iPad Touch Optimized) */
+  .routing-arena {
+    position: relative;
+    width: 100%;
+    height: 240px;
+    background: #04080c;
+    border: 2px solid var(--border-highlight);
+    border-radius: var(--border-radius);
+    margin: 10px 0;
+    overflow: hidden;
+    touch-action: none !important;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .packet-node {
+    position: absolute;
+    width: 68px;
+    height: 44px;
+    border: 2px solid var(--accent-cyan);
+    background: rgba(0, 229, 255, 0.28);
+    box-shadow: 0 0 12px rgba(0, 229, 255, 0.35);
+    color: #fff;
+    font-size: 0.78rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: grab;
+    border-radius: 6px;
+    z-index: 20;
+    touch-action: none !important;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .packet-node.dragging {
+    background: var(--accent-cyan);
+    color: #000;
+    transform: scale(1.08);
+    z-index: 30;
+  }
+  .packet-node.locked {
+    background: var(--border-highlight);
+    border-color: #fff;
+    color: #000;
+    cursor: default;
+    box-shadow: none;
+  }
+  .socket-node {
+    position: absolute;
+    right: 12px;
+    width: 78px;
+    height: 48px;
+    border: 2px dashed var(--text-Bright);
+    background: rgba(46, 230, 138, 0.1);
+    color: var(--text-Bright);
+    font-size: 0.72rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    z-index: 5;
+  }
+  .firewall-bar {
+    position: absolute;
+    width: 18px;
+    height: 66px;
+    background: var(--alert-red);
+    box-shadow: 0 0 12px var(--alert-red);
+    border-radius: 3px;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  /* Minigame C: Pattern Nodes */
+  .pattern-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin: 12px 0;
+  }
+  .pattern-node {
+    height: 56px;
+    border: 2px solid var(--border-color);
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: var(--border-radius);
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .pattern-node.lit {
+    background: var(--accent-cyan);
+    border-color: #fff;
+    color: #000;
+    box-shadow: 0 0 16px var(--accent-cyan);
+  }
+  .pattern-node.matched { background: var(--border-highlight); color: #000; }
+  .pattern-node.wrong-flash { background: var(--alert-red) !important; color: #fff !important; }
+
+  .timer-bar {
+    font-size: 1.15rem;
+    color: var(--alert-red);
+    font-weight: bold;
+  }
+
+  /* GM CONTROL PANEL INSIDE MODAL */
+  .gm-slice-box {
+    display: none;
+    margin: 10px 0;
+    padding: 8px 10px;
+    border: 1px dashed var(--warn-amber);
+    background: rgba(255, 174, 0, 0.08);
+    font-size: 0.76rem;
+  }
+</style>
+</head>
+<body>
+
+<div class="app-container">
+  <!-- TOP HEADER -->
+  <div class="top-bar">
+    <div class="title-block">
+      <h1 id="os-title" class="translatable">IMPERIAL DATAPAD // SILO-1 RELAY</h1>
+      <div class="subtitle translatable" id="os-subtitle">SECTOR RESEARCH DIVISION // RAKATA PRIME NETWORK</div>
+    </div>
+
+    <div class="controls-block">
+      <span id="db-status-badge" class="badge" title="Supabase Connection Status">DB: INIT...</span>
+      <input type="text" id="pass-input" placeholder="ENTER PASSCODE..." onkeydown="if(event.key==='Enter') submitPassword()">
+      <button onclick="submitPassword()">AUTHORIZE</button>
+      <button onclick="toggleAurebesh()" id="aurebesh-btn">AUREBESH: OFF</button>
+      <button id="skin-toggle-btn" class="questis-btn" style="display:none;" onclick="toggleSkin()">SWITCH SKIN: QUESTIS</button>
+    </div>
+  </div>
+
+  <!-- NAVIGATION TABS & CLEARANCE BAR -->
+  <div class="sub-bar">
+    <div class="tab-group">
+      <button class="tab-btn active-tab" id="tab-silo1" onclick="switchMainTab('silo1')">[SILO-1 - LOGS]</button>
+      <button class="tab-btn" id="tab-personal" style="display:none;" onclick="switchMainTab('personal')">[PERSONAL DATA // QUESTIS]</button>
+      <span id="gm-active-indicator" class="badge unlocked" style="display:none; border-color:var(--warn-amber); color:var(--warn-amber);">GM OVERRIDE ACTIVE</span>
+      <button id="gm-toggle-slicing-btn" class="warn" style="display:none; padding:3px 8px; font-size:0.7rem;" onclick="togglePlayerSlicingAccess()">[SLICING ACCESS: OFF]</button>
+      <button id="gm-reset-btn" class="danger" style="display:none; padding:3px 8px; font-size:0.7rem;" onclick="resetAllToDefault()">[RESET ALL ('FORFRA')]</button>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+      <span class="badge unlocked">LEVEL 0 [OPEN]</span>
+      <span class="badge" id="badge-lvl1">LEVEL 1 [LOCKED]</span>
+      <span class="badge" id="badge-lvl2">LEVEL 2 [LOCKED]</span>
+      <!-- Hidden for the player until enabled by GM -->
+      <button class="warn" id="player-slicing-btn" style="display:none;" onclick="openSlicingModal()">[SLICING BYPASS]</button>
+    </div>
+  </div>
+
+  <!-- MAIN SIDE-BY-SIDE INTERFACE -->
+  <div class="main-grid">
+    <!-- LEFT SIDEBAR -->
+    <div class="sidebar">
+      <input type="text" class="search-box" id="search-input" placeholder="Search entries..." oninput="renderFileList()">
+      <div id="sidebar-sections"></div>
+    </div>
+
+    <!-- RIGHT VIEWPORT -->
+    <div class="viewport">
+      <div id="doc-content" class="translatable"></div>
+
+      <div class="sys-log" id="sys-log">
+        &gt; TERMINAL CONNECTED TO SILO-1 SUB-NET (LEVEL 3 RELAY)...<br>
+        &gt; WARNING: INTERMITTENT ION STORM INTERFERENCE DETECTED ON ORBITAL UPLINK.<br>
+        &gt; ENTER AUTHORIZATION PASSCODE OR AWAIT SLICING BYPASS CLEARANCE TO DECRYPT NODES.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLICING MINIGAME MODAL -->
+<div class="modal-overlay" id="slicing-modal">
+  <div class="modal-box">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <h3 id="minigame-title" style="margin:0; color:var(--text-Bright);">SECURITY BYPASS PROTOCOL</h3>
+        <div id="minigame-stage-indicator" style="font-size:0.74rem; color:var(--accent-cyan);">STAGE 1 OF 1</div>
+      </div>
+      <span class="timer-bar" id="slice-timer">16.0s</span>
+    </div>
+
+    <!-- GM TIME ADJUSTMENT BAR (UNLOCKED VIA CODE: Gung@n4x4svampesporer) -->
+    <div class="gm-slice-box" id="gm-slice-box">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+        <strong>GM TIME MODIFIER (SYNCED: <span id="gm-offset-label">+0s</span>):</strong>
+        <div style="display:flex; gap:4px;">
+          <button class="danger" onclick="adjustSliceTime(-5)">-5s</button>
+          <button class="danger" onclick="adjustSliceTime(-1)">-1s</button>
+          <button onclick="adjustSliceTime(1)">+1s</button>
+          <button onclick="adjustSliceTime(5)">+5s</button>
+        </div>
+      </div>
+    </div>
+
+    <p id="minigame-desc" style="font-size:0.8rem; color:var(--text-dim); margin:8px 0;">
+      Select security target and press START BYPASS. Level 2 requires completing TWO consecutive slicing stages! Wrong inputs incur a -2.5s penalty.
+    </p>
+
+    <div id="minigame-area"></div>
+
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-top:12px;">
+      <select id="slice-tier-select" style="background:#000; color:var(--text-Bright); border:1px solid var(--border-color); padding:6px; font-family:inherit;">
+        <option value="1">Target: Level 1 Classified (1 Stage)</option>
+        <option value="2">Target: Level 2 Omega-Black (2 Stages Required)</option>
+      </select>
+      <div style="display:flex; gap:6px;">
+        <button onclick="startSlicingRun()">START BYPASS</button>
+        <button class="danger" onclick="closeSlicingModal()">ABORT</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ============================================================================
+  // 1. SUPABASE DATABASE & STORAGE CONFIGURATION
+  // ============================================================================
+  const SUPABASE_URL = "https://gaedntdevwkqmhaecggd.supabase.co"; 
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdhZWRudGRldndrcW1oYWVjZ2dkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE1MzMwNTcsImV4cCI6MjEwNzEwOTA1N30.uyTzp1mHC30r_LjRfitxaLFpTyS4txOgd1BitoFOMl0";
+  const CUSTOM_HOLO_BASE_URL = "";
+
+  let supabaseClient = null;
+  let realtimeChannel = null;
+
+  function setDbBadge(text, status) {
+    const el = document.getElementById("db-status-badge");
+    if (!el) return;
+    el.innerText = text;
+    if (status === "ok") {
+      el.className = "badge unlocked";
+      el.style.borderColor = "var(--text-Bright)";
+      el.style.color = "var(--text-Bright)";
+    } else if (status === "err") {
+      el.className = "badge";
+      el.style.borderColor = "var(--alert-red)";
+      el.style.color = "var(--alert-red)";
+    } else {
+      el.className = "badge";
+      el.style.borderColor = "var(--warn-amber)";
+      el.style.color = "var(--warn-amber)";
+    }
+  }
+
+  function getHoloUrl(filename) {
+    if (filename.startsWith("http://") || filename.startsWith("https://")) return filename;
+    if (CUSTOM_HOLO_BASE_URL) return CUSTOM_HOLO_BASE_URL.replace(/\/?$/, "/") + filename;
+    if (SUPABASE_URL) return `${SUPABASE_URL.replace(/\/?$/, "")}/storage/v1/object/public/holos/${filename}`;
+    return filename;
+  }
+
+  // ============================================================================
+  // 2. SYSTEM STATE & DEFAULT FACTORY DATA
+  // ============================================================================
+  let activeMainTab = "silo1";
+  let clearanceLvl1 = false;
+  let clearanceLvl2 = false;
+  let depotUnlocked = false;
+  let questisUnlocked = false;
+  let isQuestisSkin = false;
+  let isAurebesh = false;
+  let gmModeUnlocked = false;
+  let gmBonusSeconds = 0;
+  let slicingEnabled = false; // Hidden for player until GM activates it
+  let currentFileId = "log_kaelen";
+  let expandedHoloIndex = null;
+  let expandedLogImage = null;
+
+  // Facility Control States
+  let aaTurretsActive = true;
+  let hangarDoorsOpen = false;
+  let containmentLocks = true;
+  let blastDoorCodeUnlocked = false;
+
+  // Depot Section 2 Lockers (01 to 12)
+  let unlockedLockers = {};
+  const depotLockers = [
+    { box: "01", batch: "Batch 01 (Mixed Miners)", desc: "Heavy mining overalls, 2x industrial plasma-cutters (depleted power cells), 1x battered vibro-pick, pouch with 85 Imperial credits." },
+    { box: "02", batch: "Batch 03 (Human Group)", desc: "Confiscated spacer jackets, 1x Medpac (contains 2 intact Bacta Stimpacks), personal comlinks (frequencies wiped), 1x magnetic glowrod." },
+    { box: "03", batch: "Batch 04 & 05 (Rodian / Twi'lek)", desc: "2x Holdout Blaster Pistols (ammunition clips removed and stored in Box 09), 1x fine Rylothian silk cloak, 3x Sabacc decks." },
+    { box: "04", batch: "Batch 06 (Bothan Operatives)", desc: "1x encrypted Bothan holo-recorder, 1x Electronic Lock Breaker (grants Boost die to Skulduggery checks), 2x concealed vibro-knives." },
+    { box: "05", batch: "Batch 07 & 08 (Trandoshan / Wookiee)", desc: "1x heavy Trandoshan Jagannath blade, braided Wookiee bandolier, 2x Frag Grenades (safety pins Magna-sealed)." },
+    { box: "06", batch: "Batch 17 (B17-01 & B17-02)", desc: "Confiscated formal diplomatic robes, tunic, and heavy cloak belonging to Subject B17-01 (Thzaron) and Subject B17-02 (Charinn) — routinely bio-scanned with no anomalies detected and sealed in textile storage bag." },
+    { box: "07", batch: "Batch 17 (B17-03)", desc: "1x Custom wedge-shaped Chiss terminal ('Questis' datapad) belonging to Subject B17-03 (Kethani), 1x set of precision micro-slicing probes." },
+    { box: "08", batch: "Batch 17 (Chiss Escort Crew)", desc: "2x Chiss Charric Pistols (maser power packs attached), standard Chiss Defense Fleet uniforms, 2x short-range encrypted comlinks." },
+    { box: "09", batch: "Batch 10–15 (Assorted Confiscations)", desc: "6x standard blaster power packs, 1x illegal Modified Disruptor Pistol (flagged for ISB disposal), 1x breath mask with 4 spare filters." },
+    { box: "10", batch: "Batch 16 (High-Security)", desc: "1x heavy restraining bolt caller, 2x stun batons, 1x damaged Imperial Security Bureau code cylinder (corroded circuit)." },
+    { box: "11", batch: "Batch 17 (Border Farmers)", desc: "Coarse frontier work-clothes belonging to B17-05 through B17-08, 140 unregistered Outer Rim trade coins, 1x multi-spanner." },
+    { box: "12", batch: "Unclaimed / Quarantine Salvage", desc: "3x Emergency Med-Patches, 1x spool of high-tensile ascension cable with grappling hook, 2x ration packs." }
+  ];
+
+  function getDefaultBatch17() {
+    return [
+      { id: "B17-01", name: "Thzaron", loc: "SILO 1", bpm: 62, bp: "112/70", temp: "35.4°C", stress: "18%", state: "ARMED" },
+      { id: "B17-02", name: "Charinn", loc: "SILO 1", bpm: 84, bp: "126/82", temp: "35.7°C", stress: "46%", state: "ARMED" },
+      { id: "B17-03", name: "Kethani", loc: "SILO 1", bpm: 90, bp: "130/85", temp: "35.8°C", stress: "52%", state: "ARMED" },
+      { id: "B17-04", name: "Loran",   loc: "SILO 1", bpm: 56, bp: "102/64", temp: "35.2°C", stress: "14%", state: "ARMED" },
+      { id: "B17-05", name: "Vora",    loc: "SILO 1", bpm: 58, bp: "104/66", temp: "35.3°C", stress: "16%", state: "ARMED" },
+      { id: "B17-06", name: "Reve",    loc: "SILO 1", bpm: 54, bp: "100/62", temp: "35.1°C", stress: "12%", state: "ARMED" },
+      { id: "B17-07", name: "Roza",    loc: "SILO 1", bpm: 60, bp: "106/68", temp: "35.3°C", stress: "19%", state: "ARMED" },
+      { id: "B17-08", name: "Kinta",   loc: "SILO 1", bpm: 57, bp: "103/65", temp: "35.2°C", stress: "15%", state: "ARMED" },
+      { id: "B17-09", name: "Naya",    loc: "SILO 1", bpm: 72, bp: "110/70", temp: "35.6°C", stress: "22%", state: "ARMED" },
+      { id: "B17-10", name: "Kaelis",  loc: "SILO 1", bpm: 88, bp: "128/84", temp: "35.7°C", stress: "61%", state: "ARMED" },
+      { id: "B17-11", name: "Voren",   loc: "SILO 1", bpm: 102, bp: "142/92", temp: "36.1°C", stress: "78%", state: "ARMED" },
+      { id: "B17-12", name: "Janas",   loc: "SILO 1", bpm: 108, bp: "148/96", temp: "36.2°C", stress: "89%", state: "ARMED" },
+      { id: "B17-13", name: "Prard",   loc: "SILO 1", bpm: 79, bp: "122/78", temp: "35.5°C", stress: "41%", state: "ARMED" },
+      { id: "B17-14", name: "Kreln",   loc: "SILO 1", bpm: 82, bp: "124/80", temp: "35.6°C", stress: "44%", state: "ARMED" }
+    ];
+  }
+
+  let batch17 = getDefaultBatch17();
+
+  const baseHoloGallery = [
+    {
+      code: "IMG_001_CSILLA_ACROPOLIS.HOLO",
+      file: "holo1.jpg",
+      desc: "House Irizi ice-palace in Csaplar on Csilla.",
+      meta: "'Cold, pure, immutable. And full of lies.'"
+    },
+    {
+      code: "IMG_002_LORAN_CEDF.HOLO",
+      file: "holo2.jpg",
+      desc: "Loran.",
+      meta: "Recorded at the Tah'nuhna Fleet Academy. Biometric Lock: Kethani Eyes Only."
+    },
+    {
+      code: "IMG_003_MOD_SCHEMATIC_X7.DIAG",
+      file: "holo3.jpg",
+      desc: "Three-dimensional crystalline schematic of the fatal hyperdrive motivator coil.",
+      meta: "Simulation Run #842. Conclusion: External harmonic sabotage (Probability: 94.7%)."
+    }
+  ];
+
+  let customHoloGallery = [];
+  let playerLogs = []; // Player's own journal notes + 3:4 portrait images saved to Supabase
+  let pendingLogImageData = null;
+
+  function getAllHolos() {
+    return [...baseHoloGallery, ...customHoloGallery];
+  }
+
+  // ============================================================================
+  // 3. PERSISTENCE ENGINE (DIRECT SUPABASE REST API + REALTIME + LOCALSTORAGE)
+  // ============================================================================
+  const LOCAL_STORAGE_KEY = "silo1_questis_state_v6";
+
+  function buildStatePayload() {
+    return {
+      updatedAt: Date.now(),
+      clearanceLvl1,
+      clearanceLvl2,
+      depotUnlocked,
+      questisUnlocked,
+      slicingEnabled,
+      gmBonusSeconds,
+      aaTurretsActive,
+      hangarDoorsOpen,
+      containmentLocks,
+      blastDoorCodeUnlocked,
+      unlockedLockers,
+      batch17,
+      customHoloGallery,
+      playerLogs
+    };
+  }
+
+  function applyStatePayload(data) {
+    if (!data || Object.keys(data).length === 0) return;
+    if (typeof data.clearanceLvl1 === "boolean") clearanceLvl1 = data.clearanceLvl1;
+    if (typeof data.clearanceLvl2 === "boolean") clearanceLvl2 = data.clearanceLvl2;
+    if (typeof data.depotUnlocked === "boolean") depotUnlocked = data.depotUnlocked;
+    if (typeof data.questisUnlocked === "boolean") questisUnlocked = data.questisUnlocked;
+    if (typeof data.slicingEnabled === "boolean") slicingEnabled = data.slicingEnabled;
+
+    // Sync GM Slicing Time Modifier globally to iPad
+    if (typeof data.gmBonusSeconds === "number" && data.gmBonusSeconds !== gmBonusSeconds) {
+      const diff = data.gmBonusSeconds - gmBonusSeconds;
+      gmBonusSeconds = data.gmBonusSeconds;
+      const sign = gmBonusSeconds >= 0 ? "+" : "";
+      const lbl = document.getElementById("gm-offset-label");
+      if (lbl) lbl.innerText = `${sign}${gmBonusSeconds}s`;
+
+      const timerEl = document.getElementById("slice-timer");
+      if (sliceTimer) {
+        timeLeft = Math.max(1.0, timeLeft + diff);
+        if (timerEl) timerEl.innerText = `${timeLeft.toFixed(1)}s`;
+      } else if (timerEl) {
+        const previewTime = Math.max(5.0, 16.0 + (isQuestisSkin ? 4.0 : 0.0) + gmBonusSeconds);
+        timerEl.innerText = `${previewTime.toFixed(1)}s`;
+      }
+    }
+
+    if (typeof data.aaTurretsActive === "boolean") aaTurretsActive = data.aaTurretsActive;
+    if (typeof data.hangarDoorsOpen === "boolean") hangarDoorsOpen = data.hangarDoorsOpen;
+    if (typeof data.containmentLocks === "boolean") containmentLocks = data.containmentLocks;
+    if (typeof data.blastDoorCodeUnlocked === "boolean") blastDoorCodeUnlocked = data.blastDoorCodeUnlocked;
+    if (data.unlockedLockers) unlockedLockers = data.unlockedLockers;
+
+    if (Array.isArray(data.batch17) && data.batch17.length === 14) {
+      batch17 = data.batch17.map(item => ({ ...item }));
+    }
+    if (Array.isArray(data.customHoloGallery)) {
+      customHoloGallery = data.customHoloGallery;
+    }
+    if (Array.isArray(data.playerLogs)) {
+      playerLogs = data.playerLogs;
+    }
+
+    updateClearanceBadges();
+    renderFileList();
+
+    // Do not interrupt player typing in a log input or textarea during background sync
+    const activeEl = document.activeElement;
+    const isTypingLog = activeEl && (activeEl.id === "player-log-title" || activeEl.id === "player-log-text" || activeEl.id === "locker-input" || activeEl.id === "blast-code-input");
+    if (!isTypingLog) {
+      selectFile(currentFileId, true);
+    }
+  }
+
+  async function savePersistentState() {
+    const payload = buildStatePayload();
+    try {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(payload));
+    } catch (e) {}
+
+    if (realtimeChannel) {
+      try {
+        realtimeChannel.send({ type: 'broadcast', event: 'state_update', payload });
+      } catch (e) {}
+    }
+
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+      setDbBadge("LOCAL ONLY", "warn");
+      return;
+    }
+
+    setDbBadge("DB: SAVING...", "warn");
+    try {
+      const cleanUrl = SUPABASE_URL.replace(/\/?$/, "");
+      const res = await fetch(`${cleanUrl}/rest/v1/datapad_state?on_conflict=id`, {
+        method: "POST",
+        headers: {
+          "apikey": SUPABASE_ANON_KEY,
+          "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+          "Content-Type": "application/json",
+          "Prefer": "resolution=merge-duplicates,return=minimal"
+        },
+        body: JSON.stringify({
+          id: 1,
+          payload: payload,
+          updated_at: new Date().toISOString()
+        })
+      });
+
+      if (!res.ok) {
+        const errText = await res.text();
+        setDbBadge("DB ERROR", "err");
+        logMsg(`SUPABASE SAVE ERROR (${res.status}): ${errText}`);
+      } else {
+        setDbBadge("DB: SAVED ✓", "ok");
+      }
+    } catch (e) {
+      setDbBadge("DB: OFFLINE", "err");
+      logMsg(`SUPABASE NETWORK ERROR: ${e.message}`);
+    }
+  }
+
+  async function fetchStateFromSupabase() {
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return false;
+    const cleanUrl = SUPABASE_URL.replace(/\/?$/, "");
+    const res = await fetch(`${cleanUrl}/rest/v1/datapad_state?id=eq.1&select=payload`, {
+      method: "GET",
+      headers: {
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+        "Accept": "application/json"
+      }
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      setDbBadge("DB ERROR", "err");
+      logMsg(`SUPABASE READ ERROR (${res.status}): ${errText}`);
+      return false;
+    }
+
+    const rows = await res.json();
+    if (Array.isArray(rows) && rows.length > 0 && rows[0].payload && Object.keys(rows[0].payload).length > 0) {
+      applyStatePayload(rows[0].payload);
+      try {
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(rows[0].payload));
+      } catch (e) {}
+      setDbBadge("DB: SYNCED ✓", "ok");
+      return true;
+    } else {
+      await savePersistentState();
+      setDbBadge("DB: READY ✓", "ok");
+      return true;
+    }
+  }
+
+  async function resetAllToDefault() {
+    if (!confirm("FACTORY RESET ('FORFRA'): Are you sure you want to lock all passcodes, hide Slicing Bypass, and reset all Batch 17 implants to SILO 1 / ARMED?")) return;
+
+    const keepLogs = playerLogs.length > 0 && confirm("Do you want to KEEP Kethani's player-written Personal Logs & 3:4 images? (Click OK to keep them, or Cancel to wipe them too)");
+
+    clearanceLvl1 = false;
+    clearanceLvl2 = false;
+    depotUnlocked = false;
+    questisUnlocked = false;
+    slicingEnabled = false;
+    gmBonusSeconds = 0;
+    if (isQuestisSkin) toggleSkin();
+    activeMainTab = "silo1";
+    aaTurretsActive = true;
+    hangarDoorsOpen = false;
+    containmentLocks = true;
+    blastDoorCodeUnlocked = false;
+    unlockedLockers = {};
+    batch17 = getDefaultBatch17();
+    customHoloGallery = [];
+    if (!keepLogs) playerLogs = [];
+    expandedHoloIndex = null;
+    expandedLogImage = null;
+    currentFileId = "log_kaelen";
+
+    try {
+      localStorage.removeItem("silo1_questis_state_v2");
+      localStorage.removeItem("silo1_questis_state_v3");
+      localStorage.removeItem("silo1_questis_state_v4");
+      localStorage.removeItem("silo1_questis_state_v5");
+      localStorage.removeItem(LOCAL_STORAGE_KEY);
+    } catch (e) {}
+
+    await savePersistentState();
+    updateClearanceBadges();
+    switchMainTab("silo1");
+    playUnlockSound();
+    logMsg("SYSTEM FACTORY RESET COMPLETE ('FORFRA'): All passcodes, security levels, slicing access, lockers, and Batch 17 telemetry reset to initial state.");
+  }
+
+  async function initPersistence() {
+    try {
+      const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (raw) applyStatePayload(JSON.parse(raw));
+    } catch (e) {}
+
+    setDbBadge("DB: CONNECTING...", "warn");
+    try {
+      const ok = await fetchStateFromSupabase();
+      if (ok) logMsg("SUPABASE DB SYNC: Persistent campaign & Cranial Telemetry state loaded.");
+    } catch (e) {
+      setDbBadge("DB: OFFLINE", "err");
+      logMsg(`SUPABASE CONNECTION ERROR: ${e.message}`);
+    }
+
+    if (window.supabase && SUPABASE_URL && SUPABASE_ANON_KEY) {
+      supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      realtimeChannel = supabaseClient.channel('silo1-datapad-sync')
+        .on('broadcast', { event: 'state_update' }, (msg) => {
+          if (msg && msg.payload) {
+            applyStatePayload(msg.payload);
+            setDbBadge("DB: LIVE SYNC ✓", "ok");
+          }
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'datapad_state' }, (payload) => {
+          if (payload.new && payload.new.payload) {
+            applyStatePayload(payload.new.payload);
+            setDbBadge("DB: LIVE SYNC ✓", "ok");
+          }
+        })
+        .subscribe();
+    }
+
+    // Periodic background sync every 4 seconds so iPad & PC never drift out of sync
+    setInterval(() => {
+      fetchStateFromSupabase();
+    }, 4000);
+  }
+
+  // ============================================================================
+  // 4. WEB AUDIO ENGINE (WARNINGS, CLICKS & A/B VERSE-CHORUS CHISS MUSIC)
+  // ============================================================================
+  let audioCtx = null;
+  function getAudioCtx() {
+    if (!audioCtx) {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AudioContext();
+    }
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
+
+  function playWarningSound() {
+    try {
+      const ctx = getAudioCtx();
+      const now = ctx.currentTime;
+      [0, 0.16].forEach(offset => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(145, now + offset);
+        osc.frequency.linearRampToValueAtTime(92, now + offset + 0.13);
+        gain.gain.setValueAtTime(0.24, now + offset);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.14);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now + offset);
+        osc.stop(now + offset + 0.15);
+      });
+    } catch (e) {}
+  }
+
+  function playClickSound(freq = 880) {
+    try {
+      const ctx = getAudioCtx();
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now);
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.09);
+    } catch (e) {}
+  }
+
+  function playUnlockSound() {
+    playClickSound(587.33);
+    setTimeout(() => playClickSound(880), 90);
+    setTimeout(() => playClickSound(1174.66), 180);
+  }
+
+  // --- CHISS PROCEDURAL MUSIC SYNTHESIZER WITH VERSE (A) & CHORUS (B) ---
+  let activeTrackId = null;
+  let activeSongSection = "A";
+  let musicInterval = null;
+  let droneOsc = null;
+  let droneGain = null;
+
+  function stopChissMusic() {
+    if (musicInterval) { clearInterval(musicInterval); musicInterval = null; }
+    if (droneOsc) {
+      try { droneOsc.stop(); droneOsc.disconnect(); } catch (e) {}
+      droneOsc = null;
+    }
+    activeTrackId = null;
+    activeSongSection = "A";
+    if (currentFileId === "questis_music") selectFile("questis_music", true);
+  }
+
+  function updateSectionLabelUI() {
+    const badge = document.getElementById("music-section-badge");
+    if (badge && activeTrackId) {
+      badge.innerText = activeSongSection === "A" ? "[SECTION A // VERSE RESONANCE]" : "[SECTION B // CHORUS HARMONIC SHIFT]";
+      badge.style.color = activeSongSection === "A" ? "var(--accent-cyan)" : "var(--orbital-purple)";
+    }
+  }
+
+  function toggleChissTrack(trackNum) {
+    if (activeTrackId === trackNum) {
+      stopChissMusic();
+      logMsg("QUESTIS AUDIO: Playback halted.");
+      return;
+    }
+    stopChissMusic();
+    const ctx = getAudioCtx();
+    activeTrackId = trackNum;
+    activeSongSection = "A";
+
+    droneOsc = ctx.createOscillator();
+    droneGain = ctx.createGain();
+    droneOsc.type = trackNum === 3 ? 'sawtooth' : 'sine';
+    droneOsc.frequency.setValueAtTime(trackNum === 3 ? 55 : 65.41, ctx.currentTime);
+    droneGain.gain.setValueAtTime(trackNum === 3 ? 0.05 : 0.07, ctx.currentTime);
+    droneOsc.connect(droneGain);
+    droneGain.connect(ctx.destination);
+    droneOsc.start();
+
+    let step = 0;
+
+    if (trackNum === 1) {
+      const verseA =  [261.63, 311.13, 392.00, 523.25, 622.25, 523.25, 392.00, 311.13];
+      const chorusB = [415.30, 523.25, 622.25, 830.61, 783.99, 698.46, 622.25, 523.25];
+      musicInterval = setInterval(() => {
+        const barStep = step % 32;
+        const isChorus = barStep >= 16;
+        if ((isChorus && activeSongSection !== "B") || (!isChorus && activeSongSection !== "A")) {
+          activeSongSection = isChorus ? "B" : "A";
+          if (droneOsc) droneOsc.frequency.setTargetAtTime(isChorus ? 87.31 : 65.41, ctx.currentTime, 0.2);
+          updateSectionLabelUI();
+        }
+        const notes = isChorus ? chorusB : verseA;
+        const f = notes[step % notes.length];
+        playBellNote(f, isChorus ? 0.55 : 0.42, 'triangle', 0.09);
+        if (isChorus && step % 2 === 0) playBellNote(f * 0.5, 0.7, 'sine', 0.05);
+        step++;
+      }, 390);
+      logMsg("QUESTIS AUDIO: Playing 01 // 'Third Harmony of the Tah'nuhna Glacier' (A/B Arrangement)");
+    } 
+    else if (trackNum === 2) {
+      const verseA =  [196.00, 246.94, 293.66, 369.99, 220.00, 293.66, 329.63, 246.94];
+      const chorusB = [293.66, 369.99, 440.00, 587.33, 659.25, 587.33, 493.88, 369.99];
+      musicInterval = setInterval(() => {
+        const barStep = step % 24;
+        const isChorus = barStep >= 12;
+        if ((isChorus && activeSongSection !== "B") || (!isChorus && activeSongSection !== "A")) {
+          activeSongSection = isChorus ? "B" : "A";
+          if (droneOsc) droneOsc.frequency.setTargetAtTime(isChorus ? 73.42 : 49.00, ctx.currentTime, 0.3);
+          updateSectionLabelUI();
+        }
+        const notes = isChorus ? chorusB : verseA;
+        const f = notes[step % notes.length];
+        playBellNote(f, 1.15, 'sine', 0.09);
+        if (isChorus) playBellNote(f * 1.5, 0.9, 'triangle', 0.04);
+        step++;
+      }, 820);
+      logMsg("QUESTIS AUDIO: Playing 02 // 'Vacuum & Red Light (Csaplar Nocturne)' (A/B Arrangement)");
+    } 
+    else if (trackNum === 3) {
+      const verseBass  = [110, 110, 146.83, 110, 164.81, 146.83, 130.81, 98];
+      const chorusLead = [440, 523.25, 659.25, 587.33, 440, 659.25, 783.99, 659.25];
+      musicInterval = setInterval(() => {
+        const barStep = step % 64;
+        const isChorus = barStep >= 32;
+        if ((isChorus && activeSongSection !== "B") || (!isChorus && activeSongSection !== "A")) {
+          activeSongSection = isChorus ? "B" : "A";
+          if (droneOsc) droneOsc.frequency.setTargetAtTime(isChorus ? 65.41 : 55.00, ctx.currentTime, 0.1);
+          updateSectionLabelUI();
+        }
+        const bFreq = verseBass[step % verseBass.length];
+        playBellNote(bFreq * 2, 0.15, 'square', 0.07);
+        if (isChorus) {
+          const lFreq = chorusLead[step % chorusLead.length];
+          playBellNote(lFreq, 0.22, 'sawtooth', 0.06);
+        }
+        step++;
+      }, 202);
+      logMsg("QUESTIS AUDIO: Playing 03 // 'Overclocked Motivator (Nar Shaddaa Edit)' (A/B Arrangement)");
+    } 
+    else if (trackNum === 4) {
+      const verseA  = [392.00, 440.00, 523.25, 659.25, 587.33, 523.25, 440.00, 392.00];
+      const chorusB = [523.25, 659.25, 783.99, 880.00, 783.99, 659.25, 587.33, 523.25];
+      musicInterval = setInterval(() => {
+        const barStep = step % 24;
+        const isChorus = barStep >= 12;
+        if ((isChorus && activeSongSection !== "B") || (!isChorus && activeSongSection !== "A")) {
+          activeSongSection = isChorus ? "B" : "A";
+          if (droneOsc) droneOsc.frequency.setTargetAtTime(isChorus ? 87.31 : 65.41, ctx.currentTime, 0.3);
+          updateSectionLabelUI();
+        }
+        const notes = isChorus ? chorusB : verseA;
+        const f = notes[step % notes.length];
+        playBellNote(f, 0.85, 'sine', 0.09);
+        if (isChorus) playBellNote(f * 0.75, 0.85, 'triangle', 0.05);
+        step++;
+      }, 640);
+      logMsg("QUESTIS AUDIO: Playing 04 // 'Ozyly-Esehem (Lullaby for Star-Walkers)' (A/B Arrangement)");
+    }
+
+    if (currentFileId === "questis_music") selectFile("questis_music", true);
+  }
+
+  function playBellNote(freq, duration, wave = 'sine', vol = 0.09) {
+    try {
+      const ctx = getAudioCtx();
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = wave;
+      osc.frequency.setValueAtTime(freq, now);
+      gain.gain.setValueAtTime(vol, now);
+      gain.gain.exponentialRampToValueAtTime(0.0008, now + duration);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + duration + 0.02);
+    } catch (e) {}
+  }
+
+  // ============================================================================
+  // 5. DATABASE FILES (SILO-1 LOGS & PERSONAL QUESTIS DATA)
+  // ============================================================================
+  const files = [
+    // --- TAB 1: SILO-1 LOGS (LEVEL 0 OPEN) ---
+    {
+      id: "log_kaelen",
+      tab: "silo1",
+      level: 0,
+      lockedLabel: "",
+      title: "MAINTENANCE LOG: TK-442 (INDUR-17)",
+      meta: "Technician Kaelen // Section 3-B Engineering",
+      keywords: "indur-17 cables corrosion epoxy level 3 level 5 kaelen",
+      render: () => `
+        <p><strong>TECHNICAL MAINTENANCE LOG: SILO 1 // SECTION 3-B</strong><br>
+        <strong>LOGGING OFFICER:</strong> Technician Kaelen (ID: TK-442)</p>
+        <p>Routine pressure-drop repairs along the vertical conduit shafts on Level 3 have been completed. For the third time in two standard weeks, we have had to replace entire sections of <strong>Indur-17 alloy</strong> piping leading toward the lower decks. The alloy exhibits accelerated surface pitting, structural brittleness, and microscopic fractures far beyond Imperial durability specifications.</p>
+        <p>The cause continues to be logged as high humidity accumulation and poor exhaust ventilation rising from the disposal shaft on Level 5. As local stores are completely out of replacement Indur-17 spools, the corroded couplings have been scrubbed and temporarily patched with standard industrial epoxy paste.</p>
+        <div class="callout-box">
+          <strong>ENGINEERING NOTE:</strong> The biomass accumulation in the lower disposal shaft (Level 5) should be scheduled for a full thermal purge during the next monthly service cycle to halt further pipe degradation. However, until the Batch 17 evaluation concludes, all high-output reactor power for the incinerator nozzles remains diverted to the Level 4 testing ring. Operational status rated stable.
+        </div>
+      `
+    },
+    {
+      id: "log_vagtplan",
+      tab: "silo1",
+      level: 0,
+      lockedLabel: "",
+      title: "DUTY ROSTER & DISCIPLINARY REPORT",
+      meta: "Major Ordon Kreel // Garrison Section 2",
+      keywords: "roster kreel stormtrooper armor filter inspection droids level 4 5",
+      render: () => `
+        <p><strong>GARRISON DEPLOYMENT ROSTER // SILO 1 SECURITY</strong><br>
+        <strong>COMMANDING OFFICER:</strong> Major Ordon Kreel (ISB)</p>
+        <table>
+          <thead>
+            <tr><th>Deck / Sector</th><th>Staffing Status</th><th>Standing Orders & Protocols</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Level 1 (Hangar Aurek)</td><td>2x Sentry Posts + Patrol</td><td>Live-fire readiness. Lambda-class shuttle undergoing pre-flight fueling.</td></tr>
+            <tr><td>Level 2 (Barracks & Depot)</td><td>Security Office Manned</td><td>Confiscated Goods Depot Section 2 locked (Passcode held by Duty Officer).</td></tr>
+            <tr><td>Level 3 (Technical Relay)</td><td>Engineering Crew (Rotating)</td><td>0 Security Droids active (Strict ban on Indur-17 logic circuits).</td></tr>
+            <tr><td>Level 4 (Testing Ring)</td><td>0 Physical Guards</td><td>100% Automated airlock and sensor control slaved to Orbital Command.</td></tr>
+            <tr><td>Level 5 (Biomass Shaft)</td><td>RESTRICTED ZONE</td><td>All physical access prohibited. Awaiting thermal incineration cycle.</td></tr>
+          </tbody>
+        </table>
+        <div class="callout-box danger">
+          <strong>DISCIPLINARY REPRIMAND (TK-819 // EQUIPMENT NEGLECT):</strong><br>
+          During routine morning inspection on Level 2, Trooper TK-819 presented with improperly maintained plastoid armor plating and a heavily calcified helmet respirator filter that was 48 hours overdue for replacement. In a damp coastal installation, corroded neck-seals and clogged intake filters are a direct violation of Imperial Garrison Regulation 14-C. TK-819 has been assigned double maintenance shifts in the Level 2 armory and docked three days' ration privileges. — <em>Major Kreel</em>
+        </div>
+      `
+    },
+    {
+      id: "log_forsyning",
+      tab: "silo1",
+      level: 0,
+      lockedLabel: "",
+      title: "SUPPLY MANIFEST & REQUISITIONS",
+      meta: "Quartermaster Office // Logistics Level 1–2",
+      keywords: "supply mess hall flavor paste hydro-spanner workshop",
+      render: () => `
+        <p><strong>LOGISTICS & REQUISITION STATUS // CYCLE 114</strong></p>
+        <ul>
+          <li><strong>Supply Pod #44-B:</strong> Delayed due to severe coastal gales. Contains 400 units of synthetic protein blocks, high-grade medical air filters, and replacement seals for atmospheric airlocks.</li>
+          <li><strong>Mess Hall Complaint (Denied):</strong> Requisition for Core World flavor-pastes has once again been rejected by the Orbital Quartermaster. Garrison personnel are instructed to consume standard ration packs without complaint.</li>
+          <li><strong>Missing Tools Notice (Workshop B):</strong> Three magnetic <em>hydro-spanners</em>, one fusion cutter, and two rolls of insulation tape are missing from Section 3-B. If technicians continue leaving tools inside the Level 4 service crawlways, replacement costs will be deducted directly from pay!</li>
+        </ul>
+      `
+    },
+    {
+      id: "log_vejr",
+      tab: "silo1",
+      level: 0,
+      lockedLabel: "",
+      title: "ATMOSPHERIC SENSOR LOG",
+      meta: "Rakata Prime // Surface Radar & Orbital Uplink",
+      keywords: "storm ion buffer orbit star destroyer uplink transmission",
+      render: () => `
+        <p><strong>METEOROLOGICAL & ORBITAL TELEMETRY // SILO 1</strong></p>
+        <p>The coastal sector surrounding Silo 1 and Silo 2 continues to experience heavy electrical storm fronts moving in from the ocean. Wind gusts measured at 34 m/s across the Hangar Aurek cliffside aperture.</p>
+        <div class="callout-box">
+          <strong>UPLINK INTERFERENCE NOTICE:</strong><br>
+          Due to the ongoing atmospheric ion storms, periodic signal dropouts will occur between the surface communications array and the orbital station. During storm-induced transmission blackouts, all facility sensor feeds and biometric logs are automatically written to the local Level 3 recording buffer and will be batch-transmitted to the orbital station as soon as a stable uplink is re-established.
+        </div>
+      `
+    },
+
+    // --- TAB 1: SILO-1 LOGS (LEVEL 1 CLASSIFIED) ---
+    {
+      id: "batch_17_live",
+      tab: "silo1",
+      level: 1,
+      lockedLabel: "[ENCRYPTED // SEC-1_NODE_01]",
+      title: "BATCH 17 // CRANIAL TELEMETRY (LIVE)",
+      meta: "Level 1 Classified // Active Biometric Implant Control",
+      keywords: "batch 17 cranial implant pulse shock detonate kethani charinn naya loran thzaron",
+      render: () => renderBatch17Table()
+    },
+    {
+      id: "batch_01_16_log",
+      tab: "silo1",
+      level: 1,
+      lockedLabel: "[ENCRYPTED // SEC-1_NODE_02]",
+      title: "ARCHIVE: BATCH 01–16 (SILO 1 & 2)",
+      meta: "Level 1 Classified // Comparative Xenobiological Exposure",
+      keywords: "batch 1 16 silo 1 silo 2 humans rodians twi'leks bothans wookiees trandoshans gands mon calamari",
+      render: () => `
+        <p><strong>SUMMARY OF PRIOR TEST GROUPS (MVS-3 PATHOGEN)</strong><br>
+        Trials were conducted in parallel across <strong>Silo 1</strong> and adjacent facility <strong>Silo 2</strong> to isolate species-specific mutations.</p>
+        <table>
+          <thead>
+            <tr><th>Batch</th><th>Facility</th><th>Composition (Species)</th><th>Clinical Observation, Mutation & Disposition</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Batch 01</strong></td><td>Silo 1</td><td><strong>Mixed</strong> <em>(Humans, Rodians, Twi'leks, Bothans)</em></td><td>Acute exposure (Surviving laborers from Sector Extraction Zone). Complete loss of higher volition within 18 hours. Humans became catatonic; non-humans entered chaotic frenzy. Disposed into Level 5 shaft.</td></tr>
+            <tr><td><strong>Batch 02</strong></td><td>Silo 2</td><td><strong>Mixed</strong> <em>(Wookiees, Trandoshans, Gands, Mon Calamari)</em></td><td>Terminated prematurely: Triggered immediate inter-species combat rage. Three sensor domes and two hydraulic rams destroyed. Unusable data.</td></tr>
+            <tr><td><strong>Batch 03</strong></td><td>Silo 1</td><td><strong>Humans</strong> <em>(Isolated)</em></td><td>Lethargy & Motor Lock: Subjects fall into a stupor with zero pain response, but exhibit a violent, locking grasping reflex upon physical contact. Deposited into Level 5.</td></tr>
+            <tr><td><strong>Batch 04</strong></td><td>Silo 2</td><td><strong>Rodians</strong> <em>(Isolated)</em></td><td>Hyper-Mobility: Green-purple crystalline fungal growths erupt through scales. Subjects retain extreme leaping power and manic hunting instincts.</td></tr>
+            <tr><td><strong>Batch 05</strong></td><td>Silo 1</td><td><strong>Twi'leks</strong> <em>(Isolated)</em></td><td>Motor Override: Pathogen invades neural pathways inside <em>lekku</em> at record speed. Triggers whipping spasms and erratic, acrobatic aggression. Dumped live into Level 5.</td></tr>
+            <tr><td><strong>Batch 06</strong></td><td>Silo 2</td><td><strong>Bothans</strong> <em>(Isolated)</em></td><td>Acoustic/Olfactory Mania: Fur sheds rapidly while auditory and olfactory nerves hyper-stimulate. Subjects attack any sound source in coordinated packs.</td></tr>
+            <tr><td><strong>Batch 07</strong></td><td>Silo 1</td><td><strong>Trandoshans</strong> <em>(Isolated)</em></td><td>Crystalline Hypertrophy: Natural regeneration battles the fungus, forming heavy, armored bone-spurs before internal organ failure. Deposited into Level 5.</td></tr>
+            <tr><td><strong>Batch 08</strong></td><td>Silo 2</td><td><strong>Wookiees</strong> <em>(Isolated)</em></td><td>Circulatory Collapse: Required 400% spore dosage. Achieved massive physical strength, but cardiac and pulmonary tissues ruptured within 36 hours.</td></tr>
+            <tr><td><strong>Batch 09</strong></td><td>Silo 1</td><td><strong>Gands</strong> <em>(Isolated)</em></td><td>Stagnation & Acid: Subjects fuse to floor grates as swollen spore-blisters. Secrete a highly corrosive enzymatic acid during decay. Flushed into Level 5.</td></tr>
+            <tr><td><strong>Batch 10</strong></td><td>Silo 1</td><td><strong>Mon Calamari</strong> <em>(Isolated)</em></td><td>Aggressive Vitality: Moist tissue provides optimal fungal symbiosis without cellular necrosis. Remain fully mobile, tireless, and violently aggressive. Disposed into Level 5.</td></tr>
+            <tr><td><strong>Batch 11</strong></td><td>Silo 1</td><td><strong>Rodians</strong> <em>(Stress Test)</em></td><td>Persistence: Subjects climb and leap across vertical conduits after days without nutrition. Transferred directly to Level 5 shaft.</td></tr>
+            <tr><td><strong>Batch 12</strong></td><td>Silo 2</td><td><strong>Twi'leks</strong> <em>(Stress Test)</em></td><td>Anomaly: Under extreme sonic pressure, subjects ceased fighting one another and moved in silent synchronicity via subtle <em>lekku</em> twitches.</td></tr>
+            <tr><td><strong>Batch 13</strong></td><td>Silo 1</td><td><strong>Bothans</strong> <em>(Stress Test)</em></td><td>Pack Coordination: Despite 0% higher brainwave activity, subjects stalked and ambushed test drones in coordinated formations. Dumped into Level 5.</td></tr>
+            <tr><td><strong>Batch 14</strong></td><td>Silo 2</td><td><strong>Mon Calamari</strong> <em>(Thermal)</em></td><td>Thermal Asymmetry: -40°C forces both host and pathogen into stasis. Upon rapid heating (+65°C), subjects awaken in a berserk frenzy.</td></tr>
+            <tr><td><strong>Batch 15</strong></td><td>Silo 1</td><td><strong>Mobile Group</strong> <em>(Twi'lek, Rodian, Mon Cal, Bothan)</em></td><td>Lethal Endurance: Refuse to enter stasis or expire. Represent a persistent swarm of fast vectors. Dumped un-sedated into Level 5.</td></tr>
+            <tr><td><strong>Batch 16</strong></td><td>Silo 2</td><td><strong>Wookiees & Trandoshans</strong></td><td>Gravity Centrifuge: Muscle fibers pushed far beyond biological limits until bones and tendons shattered internally. Terminated via cranial charges.</td></tr>
+          </tbody>
+        </table>
+      `
+    },
+    {
+      id: "depot_sektion2",
+      tab: "silo1",
+      level: 1,
+      lockedLabel: "[ENCRYPTED // SEC-1_NODE_03]",
+      title: "DEPOT // SECTION 2 MANIFEST",
+      meta: "Level 1 Classified (Or Direct Passcode: TRIDENT-44)",
+      keywords: "depot box 07 questis clothing robes thzaron kethani",
+      render: () => renderDepotManifest()
+    },
+
+    // --- TAB 1: SILO-1 LOGS (LEVEL 2 OMEGA-BLACK) ---
+    {
+      id: "vael_krydssmitte",
+      tab: "silo1",
+      level: 2,
+      lockedLabel: "[ENCRYPTED // OMEGA_NODE_01]",
+      title: "RESEARCH: CROSS-INFECTION & STATIC CORE",
+      meta: "Omega-Black // Dr. Arkris Vael – Pathogen Analysis",
+      keywords: "cross-infection spores mutate stable engineered vael conclusion",
+      render: () => `
+        <p><strong>SPECIAL SCIENTIFIC REPORT // MVS-3 GENETIC STABILITY</strong><br>
+        <strong>AUTHOR:</strong> Dr. Arkris Vael, Chief Xenobiologist (Orbital Research Division)</p>
+        <p><strong>1. Extreme Host Variation (Inter- and Intra-Species):</strong><br>
+        Data gathered across Batch 01 through 16 in Silo 1 and Silo 2 demonstrates extraordinary biological plasticity among infected hosts. We observe not only stark differences in mutation velocity and physical manifestation <em>between</em> species (e.g., catatonic lethargy in Humans versus hyper-mobility in Rodians and acid secretion in Gands), but also unpredictable diversity <em>within the exact same species</em> — including variable crystalline dermis growth, sensory shifts, muscle hypertrophy, and cognitive decay rates.</p>
+        <p><strong>2. Cross-Harvesting of Spores (The Null-Effect Experiment):</strong><br>
+        To determine whether MycoVex adapts and carries over traits from its previous host, we harvested active spores from heavily mutated specimens (including crystallized Trandoshans in Silo 1 and synchronized Twi'leks in Silo 2) and used them to infect fresh subjects of different species across multiple permutations.</p>
+        <div class="callout-box danger">
+          <strong>CONCLUSION — THE STATIC CORE:</strong><br>
+          Cross-species spore harvesting produced <strong>zero variance whatsoever</strong> in any combination. Regardless of which mutated host the spores were harvested from, the newly infected subject reacted strictly according to its own baseline genetics.<br><br>
+          The implication is unmistakable: <strong>While MycoVex forces every living host into violent and chaotic biological mutation, MycoVex itself does not mutate at all.</strong> Its genetic core is 100% static, immutable, and unnaturally stable. An organism with zero self-mutation cannot have arisen through natural evolution. It bears every hallmark of having been <em>artificially engineered and genetically locked</em>.
+        </div>
+      `
+    },
+    {
+      id: "vael_verdant_reign",
+      tab: "silo1",
+      level: 2,
+      lockedLabel: "[ENCRYPTED // OMEGA_NODE_02]",
+      title: "OPERATION VERDANT REIGN (BIOWEAPON)",
+      meta: "Omega-Black // Eyes Only: Grand Moff Veris Kharlon",
+      keywords: "verdant reign strain a strain b chiss dna naya loran vora janas kharlon",
+      render: () => `
+        <p><strong>IMPERIAL RESEARCH DIVISION — OPERATION VERDANT REIGN</strong><br>
+        <strong>SUBJECT:</strong> Bioweapon Optimization via Chiss Genetic Sequencing (Batch 17 / MVS-3)</p>
+        <p>Whereas Batch 01 through 16 (Human and alien species) succumb to cellular breakdown or total cognitive collapse within days, Batch 17 confirms a breakthrough anomaly: <strong>Chiss DNA exhibits 0% cellular necrosis</strong> and acts as a biological dampener that stabilizes host physiology without neutralizing pathogen virulence.</p>
+        <p>By splicing Chiss regulatory sequences into MVS-3, we can synthesize two distinct operational bioweapon vectors:</p>
+        <ul>
+          <li><strong>Strain A (Planetary Infiltration):</strong> Extends incubation to several weeks. Infected populations remain asymptomatic carriers long enough to spread the pathogen globally via starports before synchronous mass-collapse occurs.</li>
+          <li><strong>Strain B (Tactical Pacification):</strong> Locks non-Chiss hosts into a prolonged, hyper-aggressive state with extreme pain tolerance and delayed organ failure — ideal for rapid pacification of insurgent worlds.</li>
+        </ul>
+        <div class="callout-box">
+          <strong>RECOMMENDATION (IMMEDIATE ORBITAL TRANSFER):</strong><br>
+          The following four subjects from Batch 17 are flagged for immediate extraction to the Star Destroyer laboratory in orbit for deep genetic harvesting and comparative baseline control:<br>
+          • <strong>Subject B17-09 (Naya):</strong> Exhibits 0% synaptic degradation and an unexplained neural resonance anomaly.<br>
+          • <strong>Subject B17-04 (Loran):</strong> Primary control specimen for rapid volitional suppression (Category Beta docility).<br>
+          • <strong>Subject B17-05 (Vora):</strong> Secondary physiological reference specimen (high physical endurance under docile compliance).<br>
+          • <strong>Subject B17-12 (Janas):</strong> Control specimen for acute neural stress-response under aerosol exposure.
+        </div>
+      `
+    },
+    {
+      id: "kharlon_slave_log",
+      tab: "silo1",
+      level: 2,
+      lockedLabel: "[ENCRYPTED // OMEGA_NODE_03]",
+      title: "DIRECTIVE: QUADANIUM LABOR FORCE",
+      meta: "Omega-Black // Grand Moff Veris Kharlon Logistics",
+      keywords: "quadanium slave category beta loran farmers mine",
+      render: () => `
+        <p><strong>COMMAND DIRECTIVE // SECTOR EXTRACTION ZONE</strong><br>
+        <strong>FROM:</strong> Grand Moff Veris Kharlon (Orbital Flagship)</p>
+        <p>As our vital extraction of <strong>Quadanium ore</strong> across the Sector Mining Complex remains completely paralyzed by the pathogen outbreak, and because security and labor droids suffer catastrophic logic-circuit failure due to enzymatic corrosion of their Indur-17 wiring, <em>Protocol Iron Grip</em> is hereby enacted:</p>
+        <p>Those individuals in Batch 17 classified by Dr. Vael as <strong>Category Beta</strong> (including Subject B17-04 Loran and frontier laborers B17-05 through B17-08) demonstrate full biological survival and immunity to tissue decay, while losing all independent initiative and rebellious willpower.</p>
+        <div class="callout-box danger">
+          <strong>DIRECTIVE:</strong> These compliant Chiss specimens are not to be wasted on destructive centrifuge trials. They are to be deployed as an immune, docile slave-labor force deep within the spore-contaminated Quadanium shafts to resume ore quotas for Imperial fleet construction.
+        </div>
+      `
+    },
+    {
+      id: "hangar_kontrol",
+      tab: "silo1",
+      level: 2,
+      lockedLabel: "[ENCRYPTED // OMEGA_NODE_04]",
+      title: "FACILITY CONTROL: HANGAR AUREK & LOCKS",
+      meta: "Omega-Black // Level 1 Surface & Containment Bulkheads",
+      keywords: "hangar aurek anti-air turbolaser airlocks blast doors shuttle",
+      render: () => renderFacilityControls()
+    },
+
+    // ========================================================================
+    // TAB 2: KETHANI PERSONAL DATA (QUESTIS OS)
+    // ========================================================================
+    {
+      id: "questis_doctrine",
+      tab: "personal",
+      level: 0,
+      lockedLabel: "",
+      title: "01 // SLICER DOCTRINE & FLAWS",
+      meta: "// KETH_SLICE_DOCTRINE (Crystalline vs. Binary Architecture)",
+      keywords: "slicer doctrine binary crystal resonance isb trace logs",
+      render: () => `
+        <p><strong>PERSONAL FIELD MANUAL // IRIZI'KETH'ANI</strong><br>
+        <em>Technical observations on the structural inferiority of Imperial binary networks compared to Chiss crystalline matrices.</em></p>
+
+        <div class="callout-box">
+          <strong>01 // Binary Arrogance vs. Crystalline Resonance:</strong><br>
+          "Imperial system architects build networks the exact same way they build their warships: heavy, linear, and blinded by the belief that brute mass can substitute for elegance. An Imperial firewall is a durasteel wall. You do not blast through it — you leave it standing and route your data-stream straight through its own ventilation shafts. Where a Questis utilizes multi-dimensional crystalline matrices, an Imperial main circuit thinks strictly in zeros and ones. Feed it a floating-point fraction disguised as a kernel authorization, and the wall opens itself."
+        </div>
+
+        <div class="callout-box">
+          <strong>04 // Bypassing ISB Trace Algorithms:</strong><br>
+          "The Imperial Security Bureau (ISB) always hunts for unauthorized external signatures. The safest hiding place inside an Imperial mainframe is within their own bureaucratic error logs. Conceal your decompilation routines inside unfinished mess-hall requisitions or technical maintenance complaints (search for recurring technician IDs with low security clearance). No officer above the rank of lieutenant ever reads maintenance reports from the lower decks."
+        </div>
+      `
+    },
+    {
+      id: "questis_contacts",
+      tab: "personal",
+      level: 0,
+      lockedLabel: "",
+      title: "02 // ENCRYPTED CONTACT LEDGER",
+      meta: "// CONTACT_LEDGER_ENC (Ascendancy & Lesser Space)",
+      keywords: "contacts loran stalvo irizi mitth stylla taris",
+      render: () => `
+        <p><strong>ENCRYPTED CONTACT DIRECTORY // CHEUNH CIPHER</strong></p>
+
+        <div class="callout-box">
+          <strong>Irizi’lor’anno ("Loran") — [STATUS: UNKNOWN // LAST SEEN: CEDF SECTOR 4]</strong><br>
+          <strong>Relation:</strong> Half-brother (Defense & Shield Operator).<br>
+          <strong>Note:</strong> "The only soul on Csilla who did not turn his back on me when the Family Council handed down the sentence. He lacks the cold Irizi blood on his father's side; he feels too much and hesitates half a second when shield matrices overload. I have blocked his comm-frequency three times so as not to drag my disgrace down upon his career. If he is still serving aboard a diplomatic corvette, I pray he keeps his head down."
+        </div>
+
+        <div class="callout-box danger">
+          <strong>Aristocra Irizi’stal’voro ("Stalvo") — [STATUS: EXILE DECREE ACTIVE // CSILLA]</strong><br>
+          <strong>Relation:</strong> Uncle & Elder of the Irizi Family Council.<br>
+          <strong>Note:</strong> "The man who signed my exile decree to save the family's face before House Mitth. His final words to me in the tribunal chamber: <em>'Genius without restraint is merely a faster path to the ashes, Kethani.'</em> He was wrong. There was no flaw in my hyperdrive calculations — I am certain of it... I hope."
+        </div>
+
+        <div class="callout-box">
+          <strong>Stylla (Twi'lek) — [FREQUENCY: SHADOW-RELAY 88.4 // OUTER RIM]</strong><br>
+          <strong>Relation:</strong> Black-market broker & transponder forger.<br>
+          <strong>Note:</strong> "Talkative and greedy, but her forged Imperial freighter codes have kept me out of customs searchlights for eight months. She still owes me 1,200 credits for decrypting that Imperial supply depot near Taris. Trust her self-interest, never her loyalty."
+        </div>
+      `
+    },
+    {
+      id: "questis_logs",
+      tab: "personal",
+      level: 0,
+      lockedLabel: "",
+      title: "03 // PERSONAL LOGS (CHEUNH)",
+      meta: "// PERSONAL_LOGS_CHEUNH (Private Reflections & Field Notes)",
+      keywords: "personal logs scar six seconds house mitth empire notes",
+      render: () => renderPersonalLogs()
+    },
+    {
+      id: "questis_holos",
+      tab: "personal",
+      level: 0,
+      lockedLabel: "",
+      title: "04 // HOLOGRAPHIC ARCHIVE",
+      meta: "// HOLO_GALLERY (Visual Memory Storage)",
+      keywords: "holo gallery images csilla loran motivator schematic",
+      render: () => renderHoloGallery()
+    },
+    {
+      id: "questis_music",
+      tab: "personal",
+      level: 0,
+      lockedLabel: "",
+      title: "05 // ACOUSTIC RESONANCE & MUSIC",
+      meta: "// AUDIO_RESONANCE_CHISS (Cognitive Focus Frequencies)",
+      keywords: "music audio chiss harmony glacier nocturne skywalker lullaby",
+      render: () => renderMusicPlayer()
+    }
+  ];
+
+  // ============================================================================
+  // 6. RENDER & UI CONTROLLERS
+  // ============================================================================
+  function switchMainTab(tabName) {
+    activeMainTab = tabName;
+    expandedHoloIndex = null;
+    expandedLogImage = null;
+    playClickSound(820);
+    document.getElementById("tab-silo1").classList.toggle("active-tab", tabName === "silo1");
+    document.getElementById("tab-personal").classList.toggle("active-tab", tabName === "personal");
+
+    if (tabName === "personal") {
+      selectFile("questis_doctrine", true);
+    } else {
+      selectFile("log_kaelen", true);
+    }
+    renderFileList();
+  }
+
+  function isFileUnlocked(file) {
+    if (file.tab === "personal") return questisUnlocked;
+    if (file.level === 0) return true;
+    if (file.level === 1) return clearanceLvl1 || (file.id === "depot_sektion2" && depotUnlocked);
+    if (file.level === 2) return clearanceLvl2;
+    return false;
+  }
+
+  function updateClearanceBadges() {
+    const b1 = document.getElementById("badge-lvl1");
+    const b2 = document.getElementById("badge-lvl2");
+    b1.className = clearanceLvl1 ? "badge unlocked" : "badge";
+    b1.innerText = clearanceLvl1 ? "LEVEL 1 [OPEN]" : "LEVEL 1 [LOCKED]";
+
+    b2.className = clearanceLvl2 ? "badge unlocked" : "badge";
+    b2.innerText = clearanceLvl2 ? "LEVEL 2 [OPEN]" : "LEVEL 2 [LOCKED]";
+
+    document.getElementById("skin-toggle-btn").style.display = questisUnlocked ? "inline-block" : "none";
+    document.getElementById("tab-personal").style.display = questisUnlocked ? "inline-block" : "none";
+
+    // Only show [SLICING BYPASS] to player when GM has enabled it (or when GM Override is active locally)
+    const sliceBtn = document.getElementById("player-slicing-btn");
+    if (sliceBtn) {
+      sliceBtn.style.display = (slicingEnabled || gmModeUnlocked) ? "inline-block" : "none";
+    }
+
+    // GM Controls
+    document.getElementById("gm-active-indicator").style.display = gmModeUnlocked ? "inline-block" : "none";
+    document.getElementById("gm-reset-btn").style.display = gmModeUnlocked ? "inline-block" : "none";
+    document.getElementById("gm-slice-box").style.display = gmModeUnlocked ? "block" : "none";
+
+    const gmSliceToggle = document.getElementById("gm-toggle-slicing-btn");
+    if (gmSliceToggle) {
+      gmSliceToggle.style.display = gmModeUnlocked ? "inline-block" : "none";
+      gmSliceToggle.innerText = slicingEnabled ? "[SLICING ACCESS: ON]" : "[SLICING ACCESS: OFF]";
+      gmSliceToggle.className = slicingEnabled ? "questis-btn" : "warn";
+    }
+
+    const sign = gmBonusSeconds >= 0 ? "+" : "";
+    const lbl = document.getElementById("gm-offset-label");
+    if (lbl) lbl.innerText = `${sign}${gmBonusSeconds}s`;
+  }
+
+  function togglePlayerSlicingAccess() {
+    slicingEnabled = !slicingEnabled;
+    playUnlockSound();
+    updateClearanceBadges();
+    savePersistentState();
+    logMsg(`GM OVERRIDE: Player Slicing Bypass access is now ${slicingEnabled ? 'ENABLED (Visible on iPad)' : 'DISABLED (Hidden on iPad)'}.`);
+  }
+
+  function renderFileList() {
+    const query = document.getElementById("search-input").value.toLowerCase().trim();
+    const container = document.getElementById("sidebar-sections");
+
+    if (activeMainTab === "personal") {
+      container.innerHTML = `
+        <div class="nav-category">Questis Personal Memory</div>
+        <ul class="file-list" id="list-personal"></ul>
+      `;
+      const ul = document.getElementById("list-personal");
+      files.filter(f => f.tab === "personal").forEach(file => {
+        if (query && !file.title.toLowerCase().includes(query) && !file.keywords.toLowerCase().includes(query)) return;
+        const li = document.createElement("li");
+        li.className = `file-item ${currentFileId === file.id ? "active" : ""}`;
+        li.innerHTML = `<span>${file.title}</span><span style="font-size:0.7rem;">[CHISS]</span>`;
+        li.onclick = () => { expandedHoloIndex = null; expandedLogImage = null; selectFile(file.id); };
+        ul.appendChild(li);
+      });
+      return;
+    }
+
+    container.innerHTML = `
+      <div class="nav-category">Open Operations Logs (Level 0)</div>
+      <ul class="file-list" id="list-lvl0"></ul>
+      <div class="nav-category">Classified Data (Level 1)</div>
+      <ul class="file-list" id="list-lvl1"></ul>
+      <div class="nav-category">Omega-Black Archives (Level 2)</div>
+      <ul class="file-list" id="list-lvl2"></ul>
+    `;
+
+    const list0 = document.getElementById("list-lvl0");
+    const list1 = document.getElementById("list-lvl1");
+    const list2 = document.getElementById("list-lvl2");
+
+    files.filter(f => f.tab === "silo1").forEach(file => {
+      const unlocked = isFileUnlocked(file);
+      if (query) {
+        if (!unlocked) return;
+        const match = file.title.toLowerCase().includes(query) || 
+                      file.keywords.toLowerCase().includes(query) ||
+                      file.meta.toLowerCase().includes(query);
+        if (!match) return;
+      }
+
+      const displayTitle = unlocked ? file.title : file.lockedLabel;
+      const li = document.createElement("li");
+      li.className = `file-item ${currentFileId === file.id ? "active" : ""} ${!unlocked ? "locked" : ""}`;
+      li.innerHTML = `
+        <span>${displayTitle}</span>
+        <span style="font-size:0.7rem;">${unlocked ? "[OPEN]" : "[LOCKED]"}</span>
+      `;
+      li.onclick = () => selectFile(file.id);
+
+      if (file.level === 0) list0.appendChild(li);
+      else if (file.level === 1) list1.appendChild(li);
+      else list2.appendChild(li);
+    });
+  }
+
+  function selectFile(fileId, silent = false) {
+    const file = files.find(f => f.id === fileId);
+    if (!file) return;
+
+    const unlocked = isFileUnlocked(file);
+    currentFileId = fileId;
+    renderFileList();
+
+    const container = document.getElementById("doc-content");
+    if (!unlocked) {
+      if (!silent) playWarningSound();
+      container.innerHTML = `
+        <div class="doc-header">
+          <div>
+            <h2 style="color:var(--alert-red);">ACCESS DENIED // ${file.lockedLabel}</h2>
+            <div class="doc-meta">Security Clearance Level ${file.level} Required</div>
+          </div>
+        </div>
+        <div class="callout-box danger">
+          This data node is protected by Imperial Section-${file.level} encryption. Filename and contents are obfuscated.<br><br>
+          Enter a valid authorization passcode in the top bar${slicingEnabled ? ' or tap <strong>[SLICING BYPASS]</strong>' : ''} to decrypt this sector.
+        </div>
+      `;
+      if (!silent) logMsg(`ACCESS DENIED: Attempted to read ${file.lockedLabel} without Level ${file.level} clearance.`);
+      return;
+    }
+
+    if (!silent) playClickSound(720);
+    container.innerHTML = `
+      <div class="doc-header">
+        <div>
+          <h2>${file.title}</h2>
+          <div class="doc-meta">${file.meta}</div>
+        </div>
+        <div class="badge unlocked">${file.tab === 'personal' ? 'QUESTIS MEMORY' : 'CLEARANCE: LEVEL ' + file.level}</div>
+      </div>
+      <div class="doc-body">${file.render()}</div>
+    `;
+  }
+
+  // ============================================================================
+  // 7. PERSONAL QUESTIS RENDERERS (LOGS WITH 3:4 UPLOAD, HOLO GALLERY & MUSIC)
+  // ============================================================================
+  function openLogImageFull(idx) {
+    const entry = playerLogs[idx];
+    if (!entry || !entry.img) return;
+    expandedLogImage = { src: entry.img, title: `${entry.code} // ${entry.title}` };
+    playClickSound(960);
+    selectFile("questis_logs", true);
+  }
+
+  function closeLogImageFull() {
+    expandedLogImage = null;
+    playClickSound(680);
+    selectFile("questis_logs", true);
+  }
+
+  function renderPersonalLogs() {
+    if (expandedLogImage) {
+      return `
+        <div class="holo-expanded-view">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+            <strong style="color:var(--accent-cyan); font-size:1.05rem;">${expandedLogImage.title} // 3:4 VISUAL ATTACHMENT</strong>
+            <button onclick="closeLogImageFull()">[&larr; BACK TO PERSONAL LOGS]</button>
+          </div>
+          <div class="holo-expanded-img-box" onclick="closeLogImageFull()" title="Tap to return to logs">
+            <img src="${expandedLogImage.src}" alt="${expandedLogImage.title}">
+          </div>
+        </div>
+      `;
+    }
+
+    const customEntriesHtml = playerLogs.map((entry, idx) => `
+      <div class="log-entry-card">
+        ${entry.img ? `<img src="${entry.img}" class="log-img-3x4" onclick="openLogImageFull(${idx})" title="Tap to enlarge 3:4 capture">` : ''}
+        <div style="flex:1;">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+            <strong style="color:var(--accent-cyan);">${entry.code} // "${entry.title}"</strong>
+            <button class="danger" style="padding:2px 7px; font-size:0.68rem;" onclick="deletePlayerLog(${idx})">[DELETE]</button>
+          </div>
+          <p style="margin:6px 0 0 0; white-space:pre-wrap;">${entry.text}</p>
+        </div>
+      </div>
+    `).join("");
+
+    return `
+      <p><strong>PRIVATE ENCRYPTED JOURNAL // CHEUNH SCRIPT</strong></p>
+
+      <div class="log-entry-card danger">
+        <div style="flex:1;">
+          <strong>LOG 401.2 // "Six Seconds and a Scar"</strong><br>
+          "The skin beneath my right eye pulls tight whenever atmospheric humidity drops. I could have paid a black-market street-surgeon on Nar Shaddaa to clone the tissue and erase the scar for the price of a single stolen data-core. I left it. On Csilla, you are taught that an Irizi only makes a mistake once. Yet the more often I run the telemetry from the accident through my Questis, the less sense the explosion makes. I modified the motivator coil to shave 6.4 seconds off the jump calculation — yes, that violated protocol. But a crystalline phase-coupling does not shatter symmetrically under overload; it melts progressively. The reconnaissance vessel only vaporizes instantaneously if someone embedded a secondary resonance loop inside the coolant system itself. Eight crew members died because I was arrogant enough to believe I was the only one tampering with that ship. And House Mitth conveniently assumed the fleet contract the week after my banishment. Coincidences do not exist in the Ascendancy."
+        </div>
+      </div>
+
+      <div class="log-entry-card">
+        <div style="flex:1;">
+          <strong>LOG 418.9 // "The Empire of Men"</strong><br>
+          "I have lived among humans and 'Lesser Space' species for two standard years now. Their so-called Galactic Empire fascinates me the same way an unstable reactor fascinates an engineer: you know it is going to detonate, you are merely calculating when. They confuse fear with order. They erect colossal gray monuments to their own authority, yet their supply lines bleed data because every single Moff and lieutenant hoards information to stab his superior in the back."
+        </div>
+      </div>
+
+      ${customEntriesHtml}
+
+      <!-- PLAYER FORM FOR NEW LOG NOTES + 3:4 IMAGE UPLOAD -->
+      <div class="log-form-box">
+        <strong style="color:var(--text-Bright);">+ RECORD NEW PERSONAL LOG ENTRY (AUTO-SAVED TO SUPABASE)</strong>
+        <div style="display:grid; grid-template-columns: 1fr auto; gap:8px; margin-top:8px; align-items:center;">
+          <input type="text" id="player-log-title" placeholder="Log Title / Subject (e.g. Silo-1 Observations)...">
+          <label style="cursor:pointer; border:1px solid var(--accent-cyan); color:var(--accent-cyan); padding:6px 10px; font-size:0.76rem; border-radius:var(--border-radius); display:inline-block;">
+            [+ ATTACH 3:4 IMAGE]
+            <input type="file" id="player-log-file" accept="image/*" style="display:none;" onchange="handleLogImageUpload(event)">
+          </label>
+        </div>
+
+        <div id="log-img-preview-wrap" style="display:${pendingLogImageData ? 'flex' : 'none'}; align-items:center; gap:10px; margin-top:8px;">
+          <img id="log-img-preview" src="${pendingLogImageData || ''}" class="log-img-3x4" style="width:72px;">
+          <div>
+            <span style="font-size:0.75rem; color:var(--accent-cyan);">3:4 Image Cropped & Ready</span><br>
+            <button class="danger" style="margin-top:4px; padding:3px 8px; font-size:0.7rem;" onclick="clearPendingLogImage()">[REMOVE IMAGE]</button>
+          </div>
+        </div>
+
+        <textarea id="player-log-text" class="log-textarea" placeholder="Write personal log entry or field notes here..."></textarea>
+        <div style="margin-top:8px; display:flex; justify-content:flex-end;">
+          <button onclick="savePlayerLogEntry()">[ENCRYPT & SAVE LOG ENTRY]</button>
+        </div>
+      </div>
+    `;
+  }
+
+  function handleLogImageUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const img = new Image();
+      img.onload = function() {
+        const canvas = document.createElement("canvas");
+        const targetW = 360;
+        const targetH = 480; // Exact 3:4 Portrait Aspect Ratio
+        canvas.width = targetW;
+        canvas.height = targetH;
+        const ctx = canvas.getContext("2d");
+
+        const srcRatio = img.width / img.height;
+        const targetRatio = 3 / 4;
+        let sx = 0, sy = 0, sw = img.width, sh = img.height;
+
+        if (srcRatio > targetRatio) {
+          sw = img.height * targetRatio;
+          sx = (img.width - sw) / 2;
+        } else {
+          sh = img.width / targetRatio;
+          sy = (img.height - sh) / 2;
+        }
+
+        ctx.drawImage(img, sx, sy, sw, sh, 0, 0, targetW, targetH);
+        pendingLogImageData = canvas.toDataURL("image/jpeg", 0.78);
+
+        const wrap = document.getElementById("log-img-preview-wrap");
+        const prev = document.getElementById("log-img-preview");
+        if (wrap && prev) {
+          prev.src = pendingLogImageData;
+          wrap.style.display = "flex";
+        }
+        playClickSound(880);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function clearPendingLogImage() {
+    pendingLogImageData = null;
+    const wrap = document.getElementById("log-img-preview-wrap");
+    if (wrap) wrap.style.display = "none";
+  }
+
+  async function savePlayerLogEntry() {
+    const titleEl = document.getElementById("player-log-title");
+    const textEl = document.getElementById("player-log-text");
+    const title = (titleEl ? titleEl.value.trim() : "") || "Untitled Entry";
+    const text = (textEl ? textEl.value.trim() : "");
+
+    if (!text && !pendingLogImageData) {
+      playWarningSound();
+      logMsg("QUESTIS LOG ERROR: Cannot save an empty log entry.");
+      return;
+    }
+
+    const logNumber = (420 + playerLogs.length * 3 + Math.floor(Math.random() * 9) / 10).toFixed(1);
+    playerLogs.push({
+      code: `LOG ${logNumber}`,
+      title: title,
+      text: text,
+      img: pendingLogImageData || null,
+      createdAt: new Date().toISOString()
+    });
+
+    pendingLogImageData = null;
+    playUnlockSound();
+    selectFile("questis_logs", true);
+    await savePersistentState();
+    logMsg(`QUESTIS JOURNAL SAVED: Added [${title}] to Supabase persistent storage.`);
+  }
+
+  async function deletePlayerLog(idx) {
+    if (!confirm("Delete this personal log entry permanently?")) return;
+    playerLogs.splice(idx, 1);
+    playClickSound(520);
+    selectFile("questis_logs", true);
+    await savePersistentState();
+    logMsg("QUESTIS JOURNAL: Log entry deleted from Supabase.");
+  }
+
+  function openHoloFullView(idx) {
+    expandedHoloIndex = idx;
+    playClickSound(960);
+    selectFile("questis_holos", true);
+  }
+
+  function closeHoloFullView() {
+    expandedHoloIndex = null;
+    playClickSound(680);
+    selectFile("questis_holos", true);
+  }
+
+  function renderHoloGallery() {
+    const allHolos = getAllHolos();
+
+    if (expandedHoloIndex !== null && allHolos[expandedHoloIndex]) {
+      const h = allHolos[expandedHoloIndex];
+      const imgUrl = getHoloUrl(h.file);
+      return `
+        <div class="holo-expanded-view">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+            <strong style="color:var(--accent-cyan); font-size:1.05rem;">${h.code} // FULL OPTICAL PROJECTION</strong>
+            <button onclick="closeHoloFullView()">[&larr; BACK TO HOLO ARCHIVE]</button>
+          </div>
+          <div class="holo-expanded-img-box" onclick="closeHoloFullView()" title="Tap to return to gallery">
+            <img src="${imgUrl}" alt="${h.code}">
+          </div>
+          <div>
+            <p style="margin:4px 0; font-size:0.95rem; color:var(--text-main);">${h.desc}</p>
+            <div style="font-size:0.8rem; color:var(--text-dim); font-style:italic; margin-top:4px;">${h.meta}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    const cards = allHolos.map((h, idx) => {
+      const imgUrl = getHoloUrl(h.file);
+      return `
+        <div class="holo-card" onclick="openHoloFullView(${idx})" title="Tap to expand holo in full viewport">
+          <div class="holo-img-wrap">
+            <img src="${imgUrl}" alt="${h.code}" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+            <div style="display:none; padding:12px; text-align:center; color:var(--accent-cyan); font-size:0.75rem;">
+              [HOLOGRAM PROJECTION: ${h.file}]<br><span style="color:var(--text-dim);">Upload ${h.file} to Supabase 'holos' bucket</span>
+            </div>
+          </div>
+          <div class="holo-body">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <strong style="color:var(--accent-cyan);">${h.code}</strong>
+              <span style="font-size:0.68rem; color:var(--text-Bright);">[EXPAND &#x26F6;]</span>
+            </div>
+            <p style="margin:6px 0;">${h.desc}</p>
+            <div style="font-size:0.73rem; color:var(--text-dim); font-style:italic;">${h.meta}</div>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    let gmAddSection = "";
+    if (gmModeUnlocked) {
+      gmAddSection = `
+        <div class="callout-box" style="margin-top:16px; border-left-color:var(--warn-amber);">
+          <strong style="color:var(--warn-amber);">GM TOOL: ADD NEW HOLO-FILE TO QUESTIS MEMORY</strong><br>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px; margin-top:8px;">
+            <input type="text" id="new-holo-code" placeholder="Title (e.g. IMG_004_STARFLASH.HOLO)">
+            <input type="text" id="new-holo-file" placeholder="Filename or URL (e.g. holo4.jpg)">
+            <input type="text" id="new-holo-desc" placeholder="Visual description..." style="grid-column: span 2;">
+            <input type="text" id="new-holo-meta" placeholder="Metadata note..." style="grid-column: span 2;">
+          </div>
+          <button class="warn" style="margin-top:8px;" onclick="addNewHoloEntry()">[+ SAVE NEW HOLO TO SUPABASE]</button>
+        </div>
+      `;
+    }
+
+    return `
+      <p><strong>STORED HOLOGRAPHIC CAPTURES // QUESTIS OPTICAL MATRIX</strong> <em>(Tap any holo-card to enlarge)</em></p>
+      <div class="holo-grid">${cards}</div>
+      ${gmAddSection}
+    `;
+  }
+
+  function addNewHoloEntry() {
+    const totalCount = getAllHolos().length + 1;
+    const code = document.getElementById("new-holo-code").value.trim() || `IMG_00${totalCount}_RECORD.HOLO`;
+    const file = document.getElementById("new-holo-file").value.trim() || `holo${totalCount}.jpg`;
+    const desc = document.getElementById("new-holo-desc").value.trim() || "Encrypted holographic projection.";
+    const meta = document.getElementById("new-holo-meta").value.trim() || "Recorded via Questis optical sensor.";
+
+    customHoloGallery.push({ code, file, desc, meta });
+    playUnlockSound();
+    logMsg(`QUESTIS ARCHIVE UPDATED: Added ${code} (${file}) to persistent memory.`);
+    savePersistentState();
+    selectFile("questis_holos", true);
+  }
+
+  function renderMusicPlayer() {
+    const tracks = [
+      {
+        num: 1,
+        title: "01 // 'Third Harmony of the Tah'nuhna Glacier'",
+        comp: "Irizi’ven’talar ('Ventala') — Classical Chiss crystal-harp & sub-bass resonance (Verse A / Chorus B)",
+        desc: "Cool, mathematically precise tones following Fibonacci-like intervals. Transitions between a calm C-minor glacial verse (Section A) and an elevated harmonic chorus (Section B)."
+      },
+      {
+        num: 2,
+        title: "02 // 'Vacuum & Red Light (Csaplar Nocturne)'",
+        comp: "Chaf’ori’nuruodo ('Forin') — Minimalist ambient synthesis (Verse A / Chorus B)",
+        desc: "A slow, hypnotic sequence constructed from the acoustic translation of electromagnetic radiation from Csilla's sun passing through deep glacial ice, swelling into a dual-harmonic aurora chorus."
+      },
+      {
+        num: 3,
+        title: "03 // 'Overclocked Motivator (Nar Shaddaa Edit)'",
+        comp: "Unknown Underworld Slicer (Modified by Kethani) (Verse A / Chorus B)",
+        desc: "Aggressive, rapid industrial synth-pulse at 148 BPM. Section A drives a raw hyperdrive bassline; Section B ignites a high-octave slicer synth lead."
+      },
+      {
+        num: 4,
+        title: "04 // 'Ozyly-Esehem (Lullaby for Star-Walkers)'",
+        comp: "Traditional / Anonymous (Restricted CEDF Fleet Recording) (Verse A / Chorus B)",
+        desc: "An ancient, wordless humming recorded aboard a deep-space cruiser in the Unknown Regions. Section A features a solitary navigator hum; Section B blossoms into a two-voice starlight duet."
+      }
+    ];
+
+    const activeBanner = activeTrackId ? `
+      <div class="callout-box" style="display:flex; justify-content:space-between; align-items:center;">
+        <span>ACTIVE TRACK: <strong>TRACK 0${activeTrackId}</strong></span>
+        <strong id="music-section-badge" style="color:var(--accent-cyan);">
+          ${activeSongSection === "A" ? "[SECTION A // VERSE RESONANCE]" : "[SECTION B // CHORUS HARMONIC SHIFT]"}
+        </strong>
+      </div>
+    ` : "";
+
+    return `
+      <p><strong>CHISS ACOUSTIC FOCUS FREQUENCIES // SUB-HARMONIC SYNTHESIZER</strong><br>
+      <em>Tap [PLAY RESONANCE] on any track to generate live multi-part (Verse A & Chorus B) Chiss audio frequencies while slicing.</em></p>
+      ${activeBanner}
+      ${tracks.map(t => `
+        <div class="track-card ${activeTrackId === t.num ? 'playing' : ''}">
+          <div>
+            <strong style="color:var(--text-Bright);">${t.title}</strong><br>
+            <span style="font-size:0.75rem; color:var(--accent-cyan);">${t.comp}</span>
+            <p style="margin:5px 0 0 0; font-size:0.8rem; color:var(--text-main);">${t.desc}</p>
+          </div>
+          <div>
+            <button class="${activeTrackId === t.num ? 'danger' : ''}" onclick="toggleChissTrack(${t.num})">
+              ${activeTrackId === t.num ? '[STOP AUDIO]' : '[PLAY RESONANCE]'}
+            </button>
+          </div>
+        </div>
+      `).join("")}
+    `;
+  }
+
+  // ============================================================================
+  // 8. DEPOT & BATCH 17 TELEMETRY (WITH 4 LOCATION STATES & SUPABASE SYNC)
+  // ============================================================================
+  function renderDepotManifest() {
+    let rows = depotLockers.map(item => {
+      const isOpen = !!unlockedLockers[item.box];
+      return `
+        <tr>
+          <td><strong>BOX ${item.box}</strong></td>
+          <td>${item.batch}</td>
+          <td>${item.desc}</td>
+          <td class="${isOpen ? 'status-safe' : 'status-armed'}">${isOpen ? 'MAG-LOCK OPEN' : 'SEALED'}</td>
+        </tr>
+      `;
+    }).join("");
+
+    return `
+      <p><strong>CONFISCATED GOODS & SALVAGE // SECURITY DEPOT SECTION 2 (LEVEL 2)</strong><br>
+      <em>Contains seized prisoner property from Batches 01 through 17. Enter a specific Box ID below to disengage its magnetic seal.</em></p>
+      
+      <div class="callout-box">
+        <strong>REMOTE MAGNETIC SEAL OVERRIDE:</strong><br>
+        Enter Locker Box Number (01 to 12) to toggle its magnetic lock:<br><br>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+          <input type="text" id="locker-input" placeholder="BOX # (e.g. 07)..." style="width:160px;" onkeydown="if(event.key==='Enter') triggerLockerBox()">
+          <button onclick="triggerLockerBox()">[TOGGLE BOX MAG-LOCK]</button>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width:80px;">Box ID</th>
+            <th style="width:160px;">Origin / Batch</th>
+            <th>Registered Inventory Contents</th>
+            <th style="width:110px;">Lock Status</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    `;
+  }
+
+  function triggerLockerBox() {
+    const inp = document.getElementById("locker-input");
+    if (!inp) return;
+    let raw = inp.value.trim().replace(/^box\s*/i, "");
+    if (raw.length === 1 && /^\d$/.test(raw)) raw = "0" + raw;
+
+    const found = depotLockers.find(l => l.box === raw);
+    if (!found) {
+      playWarningSound();
+      logMsg(`DEPOT ERROR: Locker Box '${inp.value}' not found. Valid range is 01 to 12.`);
+      return;
+    }
+
+    unlockedLockers[found.box] = !unlockedLockers[found.box];
+    const stateText = unlockedLockers[found.box] ? "DISENGAGED (OPEN)" : "ENGAGED (SEALED)";
+    playUnlockSound();
+    logMsg(`DEPOT SECTION 2: Magnetic seal on BOX ${found.box} (${found.batch}) is now ${stateText}.`);
+    savePersistentState();
+    selectFile("depot_sektion2", true);
+  }
+
+  function renderBatch17Table() {
+    let rows = batch17.map((s, idx) => {
+      let stateClass = "status-armed";
+      if (s.state === "OFFLINE") stateClass = "status-safe";
+      else if (s.state === "TERMINATED") stateClass = "status-dead";
+
+      let locClass = "";
+      if (s.loc === "ORBIT") locClass = "status-orbit";
+      else if (s.loc === "IN TRANSFER") locClass = "status-transfer";
+      else if (s.loc === "SILO 2") locClass = "status-silo2";
+
+      return `
+        <tr>
+          <td><strong>${s.id}</strong></td>
+          <td><strong>${s.name}</strong></td>
+          <td style="cursor:pointer;" title="Tap to cycle: SILO 1 -> SILO 2 -> IN TRANSFER -> ORBIT" onclick="cycleLocation(${idx})">
+            <span class="${locClass}">${s.loc} &#8644;</span>
+          </td>
+          <td>${s.state === 'TERMINATED' ? '0 BPM (FLATLINE)' : `${s.bpm} BPM | ${s.bp} | ${s.temp}`}</td>
+          <td>${s.state === 'TERMINATED' ? '0%' : s.stress}</td>
+          <td class="${stateClass}">${s.state}</td>
+          <td>
+            <div style="display:flex; gap:4px;">
+              <button onclick="toggleImplant(${idx})">${s.state === 'ARMED' ? 'Disarm' : 'Arm'}</button>
+              <button class="warn" onclick="shockSubject(${idx})">Shock</button>
+              <button class="danger" onclick="detonateSubject(${idx})">Detonate</button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join("");
+
+    return `
+      <p style="font-size:0.8rem; margin-top:0;">
+        Live biometric monitoring of cranial implants for <strong>Batch 17</strong>. All state changes are automatically saved to Supabase.<br>
+        <em>(Tap a subject's Location to cycle between: <strong>SILO 1</strong> &rarr; <strong>SILO 2</strong> &rarr; <strong>IN TRANSFER</strong> &rarr; <strong>ORBIT</strong>).</em>
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Core Name</th>
+            <th>Location</th>
+            <th>Clinical Telemetry (BPM / BP / Temp)</th>
+            <th>Stress</th>
+            <th>Implant</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    `;
+  }
+
+  const LOCATION_STATES = ["SILO 1", "SILO 2", "IN TRANSFER", "ORBIT"];
+
+  async function cycleLocation(idx) {
+    const s = batch17[idx];
+    const currIdx = LOCATION_STATES.indexOf(s.loc);
+    s.loc = LOCATION_STATES[(currIdx + 1) % LOCATION_STATES.length];
+    playClickSound(640);
+    selectFile("batch_17_live", true);
+    await savePersistentState();
+    logMsg(`TELEMETRY SAVED [${s.id} - ${s.name}]: Location updated to -> ${s.loc}.`);
+  }
+
+  async function toggleImplant(idx) {
+    const s = batch17[idx];
+    if (s.state === "TERMINATED") return;
+    if (s.loc !== "SILO 1") {
+      playWarningSound();
+      logMsg(`RELAY ERROR ON ${s.id} (${s.name}): Subject is currently in [${s.loc}] outside Silo 1 local relay range!`);
+      return;
+    }
+    s.state = s.state === "ARMED" ? "OFFLINE" : "ARMED";
+    playUnlockSound();
+    selectFile("batch_17_live", true);
+    await savePersistentState();
+    logMsg(`CRANIAL IMPLANT SAVED [${s.id} - ${s.name}]: Explosive charge set to -> ${s.state}.`);
+  }
+
+  async function shockSubject(idx) {
+    const s = batch17[idx];
+    if (s.state === "TERMINATED") return;
+    if (s.loc !== "SILO 1") {
+      playWarningSound();
+      logMsg(`RELAY ERROR ON ${s.id} (${s.name}): Subject is in [${s.loc}]. Cannot transmit synaptic shock from Silo 1 relay.`);
+      return;
+    }
+    s.bpm = Math.min(165, s.bpm + 28);
+    s.stress = "96%";
+    playWarningSound();
+    selectFile("batch_17_live", true);
+    await savePersistentState();
+    logMsg(`WARNING! Synaptic shock pulse triggered & saved on ${s.id} (${s.name})! Inflicts acute neural pain / Strain.`);
+  }
+
+  async function detonateSubject(idx) {
+    const s = batch17[idx];
+    if (s.loc !== "SILO 1") {
+      playWarningSound();
+      logMsg(`RELAY ERROR ON ${s.id} (${s.name}): Subject is in [${s.loc}]. Detonation signal blocked.`);
+      return;
+    }
+    if (s.state === "TERMINATED") return;
+    if (!confirm(`CONFIRM DETONATION: Are you sure you want to detonate the cranial charge on ${s.id} (${s.name})?`)) return;
+    s.state = "TERMINATED";
+    playWarningSound();
+    selectFile("batch_17_live", true);
+    await savePersistentState();
+    logMsg(`CRITICAL ALERT! Cranial implant in ${s.id} (${s.name}) DETONATED. Flatline saved.`);
+  }
+
+  // ============================================================================
+  // 9. FACILITY CONTROLS
+  // ============================================================================
+  function renderFacilityControls() {
+    let blastDoorSection = "";
+    if (!blastDoorCodeUnlocked) {
+      blastDoorSection = `
+        <div class="callout-box danger">
+          <strong>3. MAGNETIC BLAST DOORS & CELL RING (LEVELS 2–4):</strong><br>
+          Status: <strong>HARDWIRED QUARANTINE LOCK [ACTIVE]</strong><br>
+          <span style="font-size:0.8rem; color:var(--text-dim);">
+            Notice: Cell ring and bulkhead magnetic seals operate on an isolated security circuit and <strong>cannot</strong> be bypassed via the Slicing Minigame. Requires manual override code obtained via a dedicated <em>Computers</em> check at the security console.
+          </span><br><br>
+          <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+            <input type="text" id="blast-code-input" placeholder="ENTER BULKHEAD CODE..." onkeydown="if(event.key==='Enter') unlockBlastDoors()">
+            <button class="warn" onclick="unlockBlastDoors()">OVERRIDE BULKHEAD LOCKS</button>
+          </div>
+        </div>
+      `;
+    } else {
+      blastDoorSection = `
+        <div class="callout-box">
+          <strong>3. MAGNETIC BLAST DOORS & CELL RING (LEVELS 2–4):</strong><br>
+          Status: <strong style="color:${containmentLocks ? 'var(--alert-red)' : 'var(--text-Bright)'};">
+            ${containmentLocks ? 'QUARANTINE LOCKED' : 'UNSEALED (OVERRIDDEN VIA KREEL-LOCK-9)'}
+          </strong><br><br>
+          <button onclick="containmentLocks=!containmentLocks; playUnlockSound(); logMsg('BULKHEAD DOORS: Quarantine locks ' + (containmentLocks?'ENGAGED':'RELEASED')); savePersistentState(); selectFile('hangar_kontrol', true);">
+            [${containmentLocks ? 'RELEASE BLAST DOORS & CELLS' : 'LOCK BLAST DOORS & CELLS'}]
+          </button>
+        </div>
+      `;
+    }
+
+    return `
+      <p><strong>PRIMARY FACILITY SYSTEMS OVERRIDE (SILO 1)</strong></p>
+      <div class="callout-box">
+        <strong>1. SURFACE ANTI-AIR DEFENSE (TURBOLASER BATTERY AUREK):</strong><br>
+        Status: <strong style="color:${aaTurretsActive ? 'var(--alert-red)' : 'var(--text-Bright)'};">
+          ${aaTurretsActive ? 'ONLINE (ENGAGING UNAUTHORIZED VESSELS)' : 'OFFLINE (SAFE FLIGHT CORRIDOR OPEN)'}
+        </strong><br><br>
+        <button onclick="aaTurretsActive=!aaTurretsActive; playUnlockSound(); logMsg('ANTI-AIR TURRETS: Status changed to ' + (aaTurretsActive?'ONLINE':'OFFLINE')); savePersistentState(); selectFile('hangar_kontrol', true);">
+          [${aaTurretsActive ? 'DEACTIVATE ANTI-AIR TURRETS' : 'ACTIVATE ANTI-AIR TURRETS'}]
+        </button>
+      </div>
+
+      <div class="callout-box">
+        <strong>2. HANGAR AUREK MAIN CLAMSHELL DOORS (LEVEL 1):</strong><br>
+        Status: <strong>${hangarDoorsOpen ? 'OPEN TO COASTAL STORM' : 'SEALED (CLOSED)'}</strong><br><br>
+        <button onclick="hangarDoorsOpen=!hangarDoorsOpen; playUnlockSound(); logMsg('HANGAR AUREK DOORS: Status changed to ' + (hangarDoorsOpen?'OPEN':'CLOSED')); savePersistentState(); selectFile('hangar_kontrol', true);">
+          [${hangarDoorsOpen ? 'CLOSE HANGAR DOORS' : 'FORCE OPEN HANGAR DOORS'}]
+        </button>
+      </div>
+
+      ${blastDoorSection}
+    `;
+  }
+
+  function unlockBlastDoors() {
+    const inp = document.getElementById("blast-code-input");
+    if (!inp) return;
+    const val = inp.value.trim().toUpperCase();
+    if (val === "KREEL-LOCK-9") {
+      blastDoorCodeUnlocked = true;
+      containmentLocks = false;
+      playUnlockSound();
+      logMsg("SECURITY OVERRIDE ACCEPTED [KREEL-LOCK-9]: Magnetic blast doors and cell ring (Levels 2–4) released!");
+      savePersistentState();
+      selectFile("hangar_kontrol", true);
+    } else {
+      playWarningSound();
+      logMsg(`ERROR: Bulkhead override code '${val}' rejected! Requires valid security code from Computers check.`);
+    }
+  }
+
+  // ============================================================================
+  // 10. PASSCODE SYSTEM (INCLUDING 'FORFRA' RESET & GM CODE)
+  // ============================================================================
+  function submitPassword() {
+    const input = document.getElementById("pass-input");
+    const rawCode = input.value.trim();
+    const upperCode = rawCode.toUpperCase();
+    input.value = "";
+
+    if (!rawCode) return;
+
+    if (upperCode === "FORFRA") {
+      resetAllToDefault();
+      return;
+    }
+
+    if (rawCode.toLowerCase() === "gung@n4x4svampesporer") {
+      gmModeUnlocked = !gmModeUnlocked;
+      playUnlockSound();
+      updateClearanceBadges();
+      logMsg(`GM OVERRIDE ${gmModeUnlocked ? 'ENABLED' : 'DISABLED'}: Slicing Access toggle, Time Modifier (-5s/-1s/+1s/+5s), Holo-Uploader & Reset unlocked.`);
+      selectFile(currentFileId, true);
+      return;
+    }
+
+    if (upperCode === "INDUR-17") {
+      clearanceLvl1 = true;
+      depotUnlocked = true;
+      playUnlockSound();
+      updateClearanceBadges();
+      logMsg("AUTHORIZATION ACCEPTED [INDUR-17]: Security Level 1 (Batch 17 Live Telemetry, Depot & Batches 01–16) decrypted!");
+      savePersistentState();
+      renderFileList();
+      selectFile("batch_17_live", true);
+    } 
+    else if (upperCode === "VERDANT-OMEGA") {
+      clearanceLvl1 = true;
+      clearanceLvl2 = true;
+      depotUnlocked = true;
+      playUnlockSound();
+      updateClearanceBadges();
+      logMsg("OMEGA AUTHORIZATION ACCEPTED [VERDANT-OMEGA]: Full access granted to Dr. Vael's research archives, Cross-Infection data, and Facility Controls!");
+      savePersistentState();
+      renderFileList();
+      selectFile("vael_krydssmitte", true);
+    } 
+    else if (upperCode === "TRIDENT-44") {
+      depotUnlocked = true;
+      playUnlockSound();
+      logMsg("DEPOT PASSCODE ACCEPTED [TRIDENT-44]: Access to Depot Section 2 Manifest unlocked.");
+      savePersistentState();
+      renderFileList();
+      selectFile("depot_sektion2", true);
+    } 
+    else if (upperCode === "KREEL-LOCK-9") {
+      blastDoorCodeUnlocked = true;
+      containmentLocks = false;
+      playUnlockSound();
+      logMsg("SECURITY OVERRIDE ACCEPTED [KREEL-LOCK-9]: Magnetic blast doors and cell ring (Levels 2–4) released!");
+      savePersistentState();
+      if (currentFileId === "hangar_kontrol") selectFile("hangar_kontrol", true);
+    }
+    else if (upperCode === "IRIZI-QUESTIS") {
+      questisUnlocked = true;
+      playUnlockSound();
+      updateClearanceBadges();
+      logMsg("CHISS BIOMETRIC PROTOCOL RECOGNIZED [IRIZI-QUESTIS]: Kethani's personal Questis interface & Personal Data tab unlocked!");
+      savePersistentState();
+      if (!isQuestisSkin) toggleSkin();
+    } 
+    else {
+      playWarningSound();
+      logMsg(`ERROR: Authorization passcode '${rawCode}' rejected by security relay.`);
+    }
+  }
+
+  // ============================================================================
+  // 11. SKIN & LANGUAGE TOGGLES
+  // ============================================================================
+  function toggleSkin() {
+    isQuestisSkin = !isQuestisSkin;
+    document.body.classList.toggle("questis-skin", isQuestisSkin);
+    const btn = document.getElementById("skin-toggle-btn");
+    const title = document.getElementById("os-title");
+    const subtitle = document.getElementById("os-subtitle");
+
+    playClickSound(920);
+    if (isQuestisSkin) {
+      btn.innerText = "SWITCH SKIN: IMPERIAL";
+      title.innerText = "QUESTIS OS // IRIZI NEURAL-LINK";
+      subtitle.innerText = "CRYSTALLINE SLICER DECK // KETHANI PERSONAL INTERFACE";
+      logMsg("OS SKIN: Questis Chiss-OS active (+4s Slicing bonus).");
+    } else {
+      btn.innerText = "SWITCH SKIN: QUESTIS";
+      title.innerText = "IMPERIAL DATAPAD // SILO-1 RELAY";
+      subtitle.innerText = "SECTOR RESEARCH DIVISION // RAKATA PRIME NETWORK";
+      logMsg("OS SKIN: Standard Imperial Datapad interface restored.");
+    }
+  }
+
+  function toggleAurebesh() {
+    isAurebesh = !isAurebesh;
+    playClickSound(600);
+    document.body.classList.toggle("aurebesh-mode", isAurebesh);
+    document.getElementById("aurebesh-btn").innerText = `AUREBESH: ${isAurebesh ? "ON" : "OFF"}`;
+  }
+
+  function logMsg(msg) {
+    const box = document.getElementById("sys-log");
+    box.innerHTML += `<br>&gt; ${msg}`;
+    box.scrollTop = box.scrollHeight;
+  }
+
+  // ============================================================================
+  // 12. SLICING MINIGAME ENGINE (WITH NATIVE IPAD TOUCH & GLOBAL GM TIME SYNC)
+  // ============================================================================
+  let sliceTimer = null;
+  let routingAnimFrame = null;
+  let timeLeft = 16.0;
+  let currentTier = 1;
+  let requiredStages = 1;
+  let completedStages = 0;
+  let lastGameType = -1;
+
+  // Game A: Hex Matrix
+  let targetSequence = [];
+  let currentStep = 0;
+
+  // Game C: Memory Pattern
+  let patternSequence = [];
+  let patternStep = 0;
+  let patternPlaying = false;
+
+  function adjustSliceTime(delta) {
+    gmBonusSeconds += delta;
+    const sign = gmBonusSeconds >= 0 ? "+" : "";
+    document.getElementById("gm-offset-label").innerText = `${sign}${gmBonusSeconds}s`;
+    timeLeft = Math.max(1.0, timeLeft + delta);
+    document.getElementById("slice-timer").innerText = `${timeLeft.toFixed(1)}s`;
+    playClickSound(delta > 0 ? 980 : 420);
+    savePersistentState(); // Syncs new GM time bonus immediately to Supabase & iPad
+  }
+
+  function openSlicingModal() {
+    playClickSound(750);
+    document.getElementById("slicing-modal").style.display = "flex";
+    document.getElementById("minigame-title").innerText = "SECURITY BYPASS PROTOCOL";
+    document.getElementById("minigame-stage-indicator").innerText = "READY TO INITIALIZE";
+    document.getElementById("minigame-desc").innerText = "Select target security level below and tap [START BYPASS]. Level 2 requires completing TWO consecutive slicing stages!";
+    document.getElementById("minigame-area").innerHTML = "";
+    const previewTime = Math.max(5.0, 16.0 + (isQuestisSkin ? 4.0 : 0.0) + gmBonusSeconds);
+    document.getElementById("slice-timer").innerText = `${previewTime.toFixed(1)}s`;
+  }
+
+  function closeSlicingModal() {
+    clearInterval(sliceTimer);
+    sliceTimer = null;
+    if (routingAnimFrame) cancelAnimationFrame(routingAnimFrame);
+    document.getElementById("slicing-modal").style.display = "none";
+  }
+
+  function startSlicingRun() {
+    clearInterval(sliceTimer);
+    sliceTimer = null;
+    if (routingAnimFrame) cancelAnimationFrame(routingAnimFrame);
+    currentTier = parseInt(document.getElementById("slice-tier-select").value, 10);
+    requiredStages = currentTier === 1 ? 1 : 2;
+    completedStages = 0;
+    lastGameType = -1;
+    launchNextMinigameStage();
+  }
+
+  function startTimer(baseSeconds) {
+    clearInterval(sliceTimer);
+    timeLeft = Math.max(4.0, baseSeconds + (isQuestisSkin ? 4.0 : 0.0) + gmBonusSeconds);
+    document.getElementById("slice-timer").innerText = `${timeLeft.toFixed(1)}s`;
+
+    sliceTimer = setInterval(() => {
+      timeLeft -= 0.1;
+      document.getElementById("slice-timer").innerText = `${Math.max(0, timeLeft).toFixed(1)}s`;
+      if (timeLeft <= 0) {
+        clearInterval(sliceTimer);
+        sliceTimer = null;
+        if (routingAnimFrame) cancelAnimationFrame(routingAnimFrame);
+        playWarningSound();
+        logMsg("ALERT! Slicing trace timer expired! Imperial firewall reset the connection.");
+        closeSlicingModal();
+      }
+    }, 100);
+  }
+
+  function applyTimePenalty() {
+    playWarningSound();
+    timeLeft = Math.max(0, timeLeft - 2.5);
+    document.getElementById("slice-timer").innerText = `${timeLeft.toFixed(1)}s`;
+    logMsg("TRACE PENALTY: Firewall collision / wrong input! -2.5 seconds deducted.");
+    if (timeLeft <= 0) {
+      clearInterval(sliceTimer);
+      sliceTimer = null;
+      if (routingAnimFrame) cancelAnimationFrame(routingAnimFrame);
+      logMsg("ALERT! Slicing trace timer expired due to penalties! Firewall reset connection.");
+      closeSlicingModal();
+    }
+  }
+
+  function launchNextMinigameStage() {
+    playClickSound(880);
+    if (routingAnimFrame) cancelAnimationFrame(routingAnimFrame);
+    document.getElementById("minigame-stage-indicator").innerText = `BYPASS STAGE ${completedStages + 1} OF ${requiredStages}`;
+
+    let options = [0, 1, 2].filter(g => g !== lastGameType);
+    let gameType = options[Math.floor(Math.random() * options.length)];
+    lastGameType = gameType;
+
+    if (gameType === 0) setupHexMatrixGame();
+    else if (gameType === 1) setupDragPacketGame();
+    else setupPatternMemoryGame();
+  }
+
+  function advanceOrFinishStage() {
+    clearInterval(sliceTimer);
+    sliceTimer = null;
+    if (routingAnimFrame) cancelAnimationFrame(routingAnimFrame);
+    completedStages++;
+
+    if (completedStages < requiredStages) {
+      playUnlockSound();
+      logMsg(`SLICING STAGE 1/${requiredStages} COMPLETE! Initializing secondary firewall bypass...`);
+      setTimeout(() => launchNextMinigameStage(), 650);
+    } else {
+      closeSlicingModal();
+      playUnlockSound();
+      if (currentTier === 1) {
+        clearanceLvl1 = true;
+        depotUnlocked = true;
+        updateClearanceBadges();
+        logMsg("SLICING SUCCESS! Level 1 Classified encryption broken.");
+        savePersistentState();
+        renderFileList();
+        selectFile("batch_17_live", true);
+      } else {
+        clearanceLvl1 = true;
+        clearanceLvl2 = true;
+        depotUnlocked = true;
+        updateClearanceBadges();
+        logMsg("CRITICAL SLICING SUCCESS! Both firewall stages bypassed — Level 2 Omega-Black Archives decrypted!");
+        savePersistentState();
+        renderFileList();
+        selectFile("vael_krydssmitte", true);
+      }
+    }
+  }
+
+  // --- MINIGAME A: MATRIX HEX-ROUTING ---
+  function setupHexMatrixGame() {
+    document.getElementById("minigame-title").innerText = "MINIGAME A // MATRIX HEX-ROUTING";
+    document.getElementById("minigame-desc").innerText = "Tap the target hexadecimal sequence in exact order. Wrong taps cost -2.5 seconds!";
+    startTimer(15.0);
+
+    const seqLength = currentTier === 1 ? 4 : 5;
+    currentStep = 0;
+
+    const hexPool = ["A7", "1F", "C4", "88", "0E", "B2", "5D", "9A", "3C", "71", "E9", "4B", "F0", "26", "D3"];
+    const gridValues = [];
+    for (let i = 0; i < 20; i++) {
+      gridValues.push(hexPool[Math.floor(Math.random() * hexPool.length)]);
+    }
+
+    targetSequence = [];
+    const usedIndices = new Set();
+    while (targetSequence.length < seqLength) {
+      let r = Math.floor(Math.random() * gridValues.length);
+      if (!usedIndices.has(r)) {
+        usedIndices.add(r);
+        targetSequence.push({ index: r, val: gridValues[r] });
+      }
+    }
+
+    const area = document.getElementById("minigame-area");
+    area.innerHTML = `
+      <div style="margin-bottom:6px; font-size:0.86rem;">
+        TARGET SEQUENCE: <strong id="target-seq" style="color:var(--accent-cyan); letter-spacing:2px;"></strong>
+      </div>
+      <div class="hex-grid" id="hex-grid"></div>
+    `;
+
+    updateHexTargetDisplay();
+
+    const gridEl = document.getElementById("hex-grid");
+    gridValues.forEach((val, idx) => {
+      const cell = document.createElement("div");
+      cell.className = "hex-cell";
+      cell.innerText = val;
+      cell.onclick = () => {
+        const expected = targetSequence[currentStep];
+        if (!expected) return;
+        if (val === expected.val && !cell.classList.contains("matched")) {
+          playClickSound(950);
+          cell.classList.add("matched");
+          currentStep++;
+          updateHexTargetDisplay();
+          if (currentStep >= targetSequence.length) advanceOrFinishStage();
+        } else {
+          cell.classList.add("wrong-flash");
+          setTimeout(() => cell.classList.remove("wrong-flash"), 250);
+          applyTimePenalty();
+        }
+      };
+      gridEl.appendChild(cell);
+    });
+  }
+
+  function updateHexTargetDisplay() {
+    const el = document.getElementById("target-seq");
+    if (!el) return;
+    el.innerHTML = targetSequence.map((item, idx) => {
+      if (idx < currentStep) return `<span style="color:var(--text-Bright); text-decoration:line-through;">${item.val}</span>`;
+      if (idx === currentStep) return `<span style="border-bottom:2px solid var(--accent-cyan);">${item.val}</span>`;
+      return `<span style="opacity:0.5;">${item.val}</span>`;
+    }).join(" - ");
+  }
+
+  // --- MINIGAME B: NATIVE IPAD TOUCH & MOUSE DRAG-AND-DROP PACKET ROUTING ---
+  function setupDragPacketGame() {
+    document.getElementById("minigame-title").innerText = "MINIGAME B // CRYSTALLINE PACKET ROUTING";
+    document.getElementById("minigame-desc").innerText = "Slide all 3 data-packets (ALPHA, BETA, GAMMA) with your finger or mouse into their matching ports on the right! Avoid the moving red Firewall bars (-2.5s penalty).";
+    startTimer(20.0);
+
+    const area = document.getElementById("minigame-area");
+    area.innerHTML = `
+      <div class="routing-arena" id="routing-arena">
+        <!-- Target Sockets on the right -->
+        <div class="socket-node" id="sock-0" style="top: 18px;">PORT ALPHA</div>
+        <div class="socket-node" id="sock-1" style="top: 96px;">PORT BETA</div>
+        <div class="socket-node" id="sock-2" style="top: 174px;">PORT GAMMA</div>
+
+        <!-- Moving Red Firewall Obstacles -->
+        <div class="firewall-bar" id="fw-0" style="left: 38%; top: 10px;"></div>
+        <div class="firewall-bar" id="fw-1" style="left: 64%; top: 140px;"></div>
+
+        <!-- Draggable Data Packets on the left -->
+        <div class="packet-node" id="pkt-0" style="left: 14px; top: 176px;">ALPHA</div>
+        <div class="packet-node" id="pkt-1" style="left: 14px; top: 20px;">BETA</div>
+        <div class="packet-node" id="pkt-2" style="left: 14px; top: 98px;">GAMMA</div>
+      </div>
+    `;
+
+    const arena = document.getElementById("routing-arena");
+    const fw0 = document.getElementById("fw-0");
+    const fw1 = document.getElementById("fw-1");
+
+    let fwState = [
+      { el: fw0, y: 10, dir: 1, speed: currentTier === 2 ? 2.4 : 1.7 },
+      { el: fw1, y: 150, dir: -1, speed: currentTier === 2 ? 2.8 : 2.0 }
+    ];
+
+    const startPositions = [
+      { left: 14, top: 176 },
+      { left: 14, top: 20 },
+      { left: 14, top: 98 }
+    ];
+    let lockedPackets = [false, false, false];
+    let activeDragIdx = null;
+    let dragOffsetX = 0;
+    let dragOffsetY = 0;
+
+    function startDrag(idx, clientX, clientY) {
+      if (lockedPackets[idx]) return;
+      activeDragIdx = idx;
+      const pkt = document.getElementById(`pkt-${idx}`);
+      if (!pkt) return;
+      pkt.classList.add("dragging");
+      const rect = pkt.getBoundingClientRect();
+      dragOffsetX = clientX - rect.left;
+      dragOffsetY = clientY - rect.top;
+      playClickSound(700 + idx * 80);
+    }
+
+    function moveDrag(clientX, clientY) {
+      if (activeDragIdx === null) return;
+      const idx = activeDragIdx;
+      if (lockedPackets[idx]) return;
+
+      const pkt = document.getElementById(`pkt-${idx}`);
+      if (!pkt || !arena) return;
+
+      const arenaRect = arena.getBoundingClientRect();
+      let newX = clientX - arenaRect.left - dragOffsetX;
+      let newY = clientY - arenaRect.top - dragOffsetY;
+
+      newX = Math.max(4, Math.min(arenaRect.width - 72, newX));
+      newY = Math.max(4, Math.min(arenaRect.height - 48, newY));
+
+      pkt.style.left = newX + "px";
+      pkt.style.top = newY + "px";
+
+      const sock = document.getElementById(`sock-${idx}`);
+      const pktRect = pkt.getBoundingClientRect();
+      const sockRect = sock.getBoundingClientRect();
+
+      const overlap = !(pktRect.right < sockRect.left || 
+                        pktRect.left > sockRect.right || 
+                        pktRect.bottom < sockRect.top || 
+                        pktRect.top > sockRect.bottom);
+
+      if (overlap) {
+        lockedPackets[idx] = true;
+        activeDragIdx = null;
+        pkt.classList.remove("dragging");
+        pkt.classList.add("locked");
+        pkt.style.left = (arenaRect.width - 84) + "px";
+        pkt.style.top = (parseInt(sock.style.top, 10) + 2) + "px";
+        playClickSound(1050);
+
+        if (lockedPackets.every(Boolean)) {
+          advanceOrFinishStage();
+        }
+      }
+    }
+
+    function endDrag() {
+      if (activeDragIdx !== null) {
+        const pkt = document.getElementById(`pkt-${activeDragIdx}`);
+        if (pkt) pkt.classList.remove("dragging");
+        activeDragIdx = null;
+      }
+    }
+
+    [0, 1, 2].forEach(idx => {
+      const pkt = document.getElementById(`pkt-${idx}`);
+
+      pkt.addEventListener("touchstart", (e) => {
+        if (lockedPackets[idx]) return;
+        e.stopPropagation();
+        if (e.cancelable) e.preventDefault();
+        const t = e.touches[0];
+        startDrag(idx, t.clientX, t.clientY);
+      }, { passive: false });
+
+      pkt.addEventListener("mousedown", (e) => {
+        if (lockedPackets[idx]) return;
+        e.preventDefault();
+        startDrag(idx, e.clientX, e.clientY);
+      });
+    });
+
+    arena.addEventListener("touchmove", (e) => {
+      if (activeDragIdx === null) return;
+      if (e.cancelable) e.preventDefault();
+      const t = e.touches[0];
+      moveDrag(t.clientX, t.clientY);
+    }, { passive: false });
+
+    arena.addEventListener("touchend", () => endDrag());
+    arena.addEventListener("touchcancel", () => endDrag());
+
+    arena.addEventListener("mousemove", (e) => {
+      if (activeDragIdx === null) return;
+      e.preventDefault();
+      moveDrag(e.clientX, e.clientY);
+    });
+    arena.addEventListener("mouseup", () => endDrag());
+    arena.addEventListener("mouseleave", () => endDrag());
+
+    function animateFirewalls() {
+      if (!document.getElementById("routing-arena")) return;
+      fwState.forEach(fw => {
+        fw.y += fw.dir * fw.speed;
+        if (fw.y <= 4) { fw.y = 4; fw.dir = 1; }
+        if (fw.y >= 168) { fw.y = 168; fw.dir = -1; }
+        fw.el.style.top = fw.y + "px";
+
+        if (activeDragIdx !== null && !lockedPackets[activeDragIdx]) {
+          const pkt = document.getElementById(`pkt-${activeDragIdx}`);
+          const pktRect = pkt.getBoundingClientRect();
+          const fwRect = fw.el.getBoundingClientRect();
+
+          const hit = !(pktRect.right < fwRect.left || 
+                        pktRect.left > fwRect.right || 
+                        pktRect.bottom < fwRect.top || 
+                        pktRect.top > fwRect.bottom);
+          if (hit) {
+            const resetIdx = activeDragIdx;
+            pkt.classList.remove("dragging");
+            activeDragIdx = null;
+            pkt.style.left = startPositions[resetIdx].left + "px";
+            pkt.style.top = startPositions[resetIdx].top + "px";
+            applyTimePenalty();
+          }
+        }
+      });
+      routingAnimFrame = requestAnimationFrame(animateFirewalls);
+    }
+
+    routingAnimFrame = requestAnimationFrame(animateFirewalls);
+  }
+
+  // --- MINIGAME C: LOGIC NODE MEMORY PATTERN ---
+  function setupPatternMemoryGame() {
+    document.getElementById("minigame-title").innerText = "MINIGAME C // NEURAL CIPHER SEQUENCE";
+    document.getElementById("minigame-desc").innerText = "Observe the flashing security nodes, then repeat the exact sequence! Wrong tap costs -2.5s and replays the pattern.";
+    startTimer(18.0);
+
+    const seqLen = currentTier === 1 ? 4 : 5;
+    patternSequence = [];
+    for (let i = 0; i < seqLen; i++) {
+      patternSequence.push(Math.floor(Math.random() * 9));
+    }
+    patternStep = 0;
+
+    const area = document.getElementById("minigame-area");
+    area.innerHTML = `
+      <div style="margin-bottom:6px; font-size:0.84rem; display:flex; justify-content:space-between;">
+        <span id="pattern-status" style="color:var(--warn-amber);">OBSERVE CIPHER SEQUENCE...</span>
+        <span id="pattern-progress">0 / ${seqLen}</span>
+      </div>
+      <div class="pattern-grid" id="pattern-grid"></div>
+    `;
+
+    const grid = document.getElementById("pattern-grid");
+    const labels = ["N-01", "N-02", "N-03", "N-04", "N-05", "N-06", "N-07", "N-08", "N-09"];
+    labels.forEach((lbl, idx) => {
+      const node = document.createElement("div");
+      node.className = "pattern-node";
+      node.id = `pnode-${idx}`;
+      node.innerText = lbl;
+      node.onclick = () => handlePatternTap(idx);
+      grid.appendChild(node);
+    });
+
+    playPatternSequence();
+  }
+
+  function playPatternSequence() {
+    patternPlaying = true;
+    patternStep = 0;
+    const statusEl = document.getElementById("pattern-status");
+    if (statusEl) statusEl.innerText = "OBSERVE CIPHER SEQUENCE...";
+
+    patternSequence.forEach((nodeIdx, step) => {
+      setTimeout(() => {
+        const el = document.getElementById(`pnode-${nodeIdx}`);
+        if (el) {
+          el.classList.add("lit");
+          playClickSound(620 + nodeIdx * 45);
+          setTimeout(() => el.classList.remove("lit"), 360);
+        }
+      }, (step + 1) * 550);
+    });
+
+    setTimeout(() => {
+      patternPlaying = false;
+      const st = document.getElementById("pattern-status");
+      if (st) st.innerText = "REPEAT SEQUENCE NOW!";
+    }, (patternSequence.length + 1) * 550);
+  }
+
+  function handlePatternTap(idx) {
+    if (patternPlaying) return;
+    const node = document.getElementById(`pnode-${idx}`);
+    if (idx === patternSequence[patternStep]) {
+      playClickSound(880 + patternStep * 60);
+      node.classList.add("matched");
+      setTimeout(() => node.classList.remove("matched"), 220);
+      patternStep++;
+      const prog = document.getElementById("pattern-progress");
+      if (prog) prog.innerText = `${patternStep} / ${patternSequence.length}`;
+
+      if (patternStep >= patternSequence.length) {
+        advanceOrFinishStage();
+      }
+    } else {
+      node.classList.add("wrong-flash");
+      setTimeout(() => node.classList.remove("wrong-flash"), 250);
+      applyTimePenalty();
+      const prog = document.getElementById("pattern-progress");
+      if (prog) prog.innerText = `0 / ${patternSequence.length}`;
+      if (timeLeft > 0) setTimeout(() => playPatternSequence(), 400);
+    }
+  }
+
+  // INITIALIZE TERMINAL
+  renderFileList();
+  selectFile("log_kaelen", true);
+  initPersistence();
+</script>
+</body>
+</html>
