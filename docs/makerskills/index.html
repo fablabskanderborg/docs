@@ -19,6 +19,8 @@
       --achieved-fill: #052e16;
       --in-progress-color: #f59e0b;
       --in-progress-fill: #3b2306;
+      --pending-color: #a855f7;
+      --pending-fill: #2e1065;
       --inactive-border: #2d4a3e;
       --text-main: #f0fdf4;
       --text-muted: #86efac;
@@ -32,10 +34,12 @@
       --card-bg: #1e293b;
       --inner-bg: #0f172a;
       --accent-primary: #38bdf8;
-      --active-achieved: #38bdf8;
-      --achieved-fill: #082f49;
+      --active-achieved: #22c55e;
+      --achieved-fill: #052e16;
       --in-progress-color: #f59e0b;
       --in-progress-fill: #3b2506;
+      --pending-color: #a855f7;
+      --pending-fill: #2e1065;
       --inactive-border: #475569;
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
@@ -53,6 +57,8 @@
       --achieved-fill: #dcfce7;
       --in-progress-color: #d97706;
       --in-progress-fill: #fef3c7;
+      --pending-color: #9333ea;
+      --pending-fill: #f3e8ff;
       --inactive-border: #cbd5e1;
       --text-main: #1e293b;
       --text-muted: #64748b;
@@ -236,6 +242,20 @@
     }
     .circle-container.in-progress .circle-icon { color: var(--in-progress-color); }
 
+    /* TILSTAND: AFVENTER GODKENDELSE (PENDING) */
+    .circle-container.pending .circle-outer-ring,
+    .enlarged-circle-svg-wrap.pending .circle-outer-ring {
+      stroke: var(--pending-color);
+      stroke-dasharray: 5 3;
+      fill: var(--pending-fill);
+      filter: drop-shadow(0 0 9px rgba(168, 85, 247, 0.5));
+    }
+    .circle-container.pending .circle-inner-ring,
+    .enlarged-circle-svg-wrap.pending .circle-inner-ring {
+      stroke: var(--pending-color);
+    }
+    .circle-container.pending .circle-icon { color: var(--pending-color); }
+
     /* TILSTAND: KAN (ACHIEVED) */
     .circle-container.achieved .circle-outer-ring,
     .cat-circle-container.completed .circle-outer-ring,
@@ -288,6 +308,23 @@
 
     .circle-level { font-size: 0.58rem; font-weight: bold; color: var(--text-muted); line-height: 1; flex-shrink: 0; }
 
+    .proof-mini-badge {
+      position: absolute;
+      bottom: 2px;
+      right: 4px;
+      background: var(--card-bg);
+      border: 1px solid var(--accent-primary);
+      border-radius: 50%;
+      width: 18px;
+      height: 18px;
+      font-size: 0.6rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 4;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+    }
+
     .cat-circle-content {
       position: absolute;
       top: 0; left: 0; width: 100%; height: 100%;
@@ -319,16 +356,9 @@
     }
 
     /* ADMIN DRAG & DROP STYLING */
-    .admin-edit-active .circle-container.skill-node {
-      cursor: grab;
-    }
-    .admin-edit-active .circle-container.skill-node:active {
-      cursor: grabbing;
-    }
-    .circle-container.dragging {
-      opacity: 0.4;
-      transform: scale(0.9);
-    }
+    .admin-edit-active .circle-container.skill-node { cursor: grab; }
+    .admin-edit-active .circle-container.skill-node:active { cursor: grabbing; }
+    .circle-container.dragging { opacity: 0.4; transform: scale(0.9); }
     .circle-container.drag-over-target .circle-outer-ring {
       stroke: #ec4899 !important;
       stroke-width: 5 !important;
@@ -386,7 +416,7 @@
       justify-content: center;
       gap: 28px;
       flex-wrap: wrap;
-      max-width: 900px;
+      max-width: 920px;
       width: 100%;
       animation: zoomInHex 0.24s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
     }
@@ -423,8 +453,8 @@
     }
 
     .enlarged-circle-svg-wrap {
-      width: 330px;
-      height: 330px;
+      width: 340px;
+      height: 340px;
       position: relative;
       display: flex;
       justify-content: center;
@@ -433,10 +463,10 @@
 
     .enlarged-circle-inner-content {
       position: absolute;
-      top: 11%;
-      left: 11%;
-      width: 78%;
-      height: 78%;
+      top: 10%;
+      left: 10%;
+      width: 80%;
+      height: 80%;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -448,14 +478,14 @@
     }
 
     .enlarged-icon-wrap {
-      width: 42px;
-      height: 42px;
+      width: 40px;
+      height: 40px;
       background: var(--card-bg);
       border-radius: 50%;
       display: flex;
       justify-content: center;
       align-items: center;
-      margin-bottom: 6px;
+      margin-bottom: 5px;
       border: 1.5px solid var(--accent-primary);
       color: var(--accent-primary);
       flex-shrink: 0;
@@ -469,12 +499,16 @@
       border-color: var(--in-progress-color);
       color: var(--in-progress-color);
     }
+    .enlarged-circle-svg-wrap.pending .enlarged-icon-wrap {
+      border-color: var(--pending-color);
+      color: var(--pending-color);
+    }
 
     .enlarged-title {
-      font-size: 1.02rem;
+      font-size: 1rem;
       font-weight: bold;
       color: var(--text-main);
-      margin-bottom: 6px;
+      margin-bottom: 5px;
       line-height: 1.2;
       max-width: 220px;
     }
@@ -482,20 +516,22 @@
     /* TABS INDE I FOKUSERET KOMPETENCE */
     .skill-tabs {
       display: flex;
-      gap: 4px;
+      gap: 3px;
       margin-bottom: 6px;
       background: var(--card-bg);
       padding: 3px;
       border-radius: 16px;
       border: 1px solid var(--inactive-border);
+      flex-wrap: wrap;
+      justify-content: center;
     }
     .skill-tab-btn {
       background: transparent;
       border: none;
       color: var(--text-muted);
-      font-size: 0.68rem;
+      font-size: 0.65rem;
       font-weight: bold;
-      padding: 4px 10px;
+      padding: 4px 8px;
       border-radius: 12px;
       cursor: pointer;
       transition: all 0.2s;
@@ -506,13 +542,13 @@
     }
 
     .enlarged-tab-panel {
-      font-size: 0.78rem;
+      font-size: 0.77rem;
       color: var(--text-main);
-      line-height: 1.38;
-      max-width: 225px;
+      line-height: 1.36;
+      max-width: 235px;
       width: 100%;
       overflow-y: auto;
-      max-height: 105px;
+      max-height: 115px;
       margin-bottom: 4px;
       padding: 2px 4px;
     }
@@ -524,7 +560,7 @@
     }
 
     .enlarged-reward {
-      font-size: 0.72rem;
+      font-size: 0.70rem;
       color: var(--active-achieved);
       font-weight: bold;
       display: flex;
@@ -537,7 +573,7 @@
       display: flex;
       flex-direction: column;
       gap: 8px;
-      width: 310px;
+      width: 320px;
       margin-top: 12px;
       z-index: 10;
     }
@@ -551,7 +587,7 @@
     .btn-state {
       flex: 1;
       padding: 10px 8px;
-      font-size: 0.82rem;
+      font-size: 0.80rem;
       border-radius: 8px;
       cursor: pointer;
       display: flex;
@@ -572,11 +608,39 @@
       box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
     }
 
+    .btn-state.pending-btn.active {
+      background: var(--pending-color);
+      border-color: var(--pending-color);
+      color: #ffffff;
+      box-shadow: 0 0 12px rgba(168, 85, 247, 0.45);
+    }
+
     .btn-state.achieved-btn.active {
       background: var(--active-achieved);
       border-color: var(--active-achieved);
       color: #052e16;
       box-shadow: 0 0 12px rgba(34, 197, 94, 0.4);
+    }
+
+    /* DOKUMENTATIONS-UPLOAD KNAP & FORHÅNDSVISNING */
+    .proof-upload-box {
+      background: var(--card-bg);
+      border: 1px dashed var(--inactive-border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .proof-preview-img {
+      max-width: 100%;
+      max-height: 110px;
+      border-radius: 6px;
+      border: 1px solid var(--accent-primary);
+      object-fit: cover;
+      cursor: pointer;
     }
 
     /* NÆSTE RELEVANTE KOMPETENCE CIRKEL */
@@ -700,7 +764,7 @@
       border: 1px solid var(--inactive-border);
       padding: 20px;
       border-radius: 10px;
-      width: 580px;
+      width: 620px;
       max-width: 100%;
       max-height: 90vh;
       overflow-y: auto;
@@ -740,6 +804,7 @@
     .btn-secondary { background: var(--inactive-border); color: var(--text-main); }
     .btn-danger { background: #ef4444; color: white; }
     .btn-warning { background: var(--in-progress-color); color: #1c1917; }
+    .btn-pending { background: var(--pending-color); color: #ffffff; }
 
     .toolbar-btns { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
 
@@ -954,11 +1019,12 @@
             </div>
             <div class="enlarged-title" id="enlargedTitle">Kompetence Titel</div>
 
-            <!-- Faneblade: Beskrivelse | Vejledning | Info -->
+            <!-- Faneblade: Beskrivelse | Vejledning | Info | Dokumentation -->
             <div class="skill-tabs">
               <button class="skill-tab-btn active" id="tabBtnDesc" onclick="switchSkillTab('desc')" data-i18n="tab_desc">Mål</button>
               <button class="skill-tab-btn" id="tabBtnGuide" onclick="switchSkillTab('guide')" data-i18n="tab_guide">Vejledning</button>
               <button class="skill-tab-btn" id="tabBtnInfo" onclick="switchSkillTab('info')" data-i18n="tab_info">Info</button>
+              <button class="skill-tab-btn" id="tabBtnProof" onclick="switchSkillTab('proof')">📷 <span data-i18n="tab_proof">Foto</span></button>
             </div>
 
             <div class="enlarged-tab-panel" id="enlargedTabContent">Beskrivelse af kompetencen...</div>
@@ -970,16 +1036,43 @@
         </div>
 
         <div class="enlarged-actions" id="enlargedActionsWrap">
-          <div class="state-buttons-row">
+          <!-- Dokumentationsbillede hurtig-bar -->
+          <div class="proof-upload-box" id="proofUploadBox">
+            <div id="proofPreviewContainer" style="display:none; width:100%; text-align:center;">
+              <img id="proofPreviewImg" class="proof-preview-img" src="" alt="Dokumentation" onclick="window.open(this.src, '_blank')">
+              <div style="margin-top:4px; display:flex; justify-content:center; gap:8px;">
+                <button class="btn btn-danger" id="btnRemoveProof" style="padding:3px 8px; font-size:0.7rem;" onclick="removeSkillProofImage()">🗑️ <span data-i18n="remove_photo">Fjern billede</span></button>
+              </div>
+            </div>
+            <label id="proofUploadLabel" style="cursor:pointer; font-size:0.76rem; color:var(--accent-primary); font-weight:bold; display:flex; align-items:center; gap:6px;">
+              <i data-lucide="camera" style="width:15px; height:15px;"></i>
+              <span data-i18n="upload_proof">Upload dokumentationsbillede</span>
+              <input type="file" id="proofFileInput" accept="image/*" style="display:none;" onchange="handleProofImageSelect(event)">
+            </label>
+          </div>
+
+          <!-- Elev knapper: Kan næsten & Kan / Anmod om godkendelse -->
+          <div class="state-buttons-row" id="studentStateButtonsRow">
             <button class="btn-state in-progress-btn" id="btnStateInProgress" onclick="setSkillState('in_progress', event)">
               <i data-lucide="clock" style="width: 17px; height: 17px;"></i>
               <span data-i18n="state_in_progress">Kan næsten</span>
             </button>
-            <button class="btn-state achieved-btn" id="btnStateAchieved" onclick="setSkillState('achieved', event)">
-              <i data-lucide="check-circle-2" style="width: 17px; height: 17px;"></i>
-              <span data-i18n="state_achieved">Kan</span>
+            <button class="btn-state achieved-btn" id="btnStateAchieved" onclick="handlePrimaryCompleteClick(event)">
+              <i data-lucide="check-circle-2" id="btnStateAchievedIcon" style="width: 17px; height: 17px;"></i>
+              <span id="btnStateAchievedText" data-i18n="state_achieved">Kan</span>
             </button>
           </div>
+
+          <!-- Lærer Validerings-knapper (vises når lærer inspicerer en elev) -->
+          <div class="state-buttons-row" id="teacherVerifyButtonsRow" style="display:none;">
+            <button class="btn" style="flex:1; background:var(--active-achieved); color:#052e16;" onclick="teacherVerifySkill('achieved')">
+              ✓ <span data-i18n="btn_approve_skill">Godkend kompetence</span>
+            </button>
+            <button class="btn btn-danger" style="flex:1;" onclick="teacherVerifySkill('in_progress')">
+              ✕ <span data-i18n="btn_reject_skill">Afvis (Tilbage til øver)</span>
+            </button>
+          </div>
+
           <button class="btn btn-secondary" style="width:100%; font-size:0.78rem;" onclick="closeEnlargedHexModal()" data-i18n="btn_close">Luk</button>
         </div>
       </div>
@@ -1010,7 +1103,7 @@
       <div class="admin-section">
         <h3 data-i18n="choose_theme">Vælg farvetema</h3>
         <div class="theme-cards">
-          <div class="theme-card" data-theme-Choice="green-dark" onclick="handleThemeChange('green-dark')">
+          <div class="theme-card" data-theme-choice="green-dark" onclick="handleThemeChange('green-dark')">
             <div class="theme-preview-dots">
               <span class="theme-dot" style="background:#07120e;"></span>
               <span class="theme-dot" style="background:#22c55e;"></span>
@@ -1134,6 +1227,9 @@
         <h2 id="studentTreeName" style="margin:2px 0 0 0; color:var(--accent-primary); font-size:1.15rem;">Elev Navn</h2>
       </div>
       <div style="display:flex; align-items:center; gap:15px; flex-wrap:wrap;">
+        <button class="btn btn-pending" id="btnApproveAllPending" style="display:none; padding:6px 12px;" onclick="approveAllPendingForInspectedStudent()">
+          ✓ Godkend alle afventende (<span id="pendingApproveCount">0</span>)
+        </button>
         <div>
           <span style="font-size:0.75rem; color:var(--text-muted);" data-i18n="student_achieved_title">Opnået titel: </span>
           <strong id="studentTreeTitle" style="color:var(--accent-primary); font-size:0.85rem;">-</strong>
@@ -1239,14 +1335,18 @@
 
       <div class="admin-section">
         <h3>1. Opret nyt Hold</h3>
-        <div style="display:flex; gap:8px; margin-bottom:12px;">
+        <div style="display:flex; gap:8px; margin-bottom:8px;">
           <input type="text" id="newClassNameInput" placeholder="Holdnavn (f.eks. Eindhoven 2026)">
           <button class="btn" onclick="handleCreateClass()">Opret Hold</button>
         </div>
+        <label style="font-size:0.8rem; color:var(--text-main); display:flex; align-items:center; gap:8px; cursor:pointer;">
+          <input type="checkbox" id="newClassRequireValidation">
+          <span data-i18n="lbl_require_validation">Kræv lærer-validering før kompetencer registreres som opnået (Pending)</span>
+        </label>
       </div>
 
       <div class="admin-section">
-        <h3>2. Administrer Hold & Hold-Kategorier</h3>
+        <h3>2. Administrer Hold & Lærer-Validering</h3>
         <div id="adminClassList"></div>
         
         <div id="adminStudentProgressView" style="display:none; margin-top:15px; background:var(--inner-bg); padding:12px; border-radius:6px; border:1px solid var(--inactive-border);">
@@ -1372,10 +1472,21 @@
         tab_desc: "Mål",
         tab_guide: "Vejledning",
         tab_info: "Info",
+        tab_proof: "Foto",
         guide_coming: "Vejledning tilføjes snart.",
         info_coming: "Ingen ekstra teknisk info angivet.",
+        proof_empty: "Intet dokumentationsbillede uploadet endnu.",
+        upload_proof: "Upload dokumentationsbillede",
+        remove_photo: "Fjern billede",
         state_in_progress: "Kan næsten",
         state_achieved: "Kan",
+        state_pending: "Afventer godkendelse",
+        state_request_approval: "Anmod om godkendelse",
+        btn_approve_skill: "Godkend kompetence",
+        btn_reject_skill: "Afvis (Øver)",
+        lbl_require_validation: "Kræv lærer-validering før kompetencer registreres som opnået (Afventer godkendelse)",
+        validation_required_badge: "🔒 Lærer-validering",
+        validation_free_badge: "🔓 Fri afkrydsning",
         next_relevant_skill: "Næste relevante kompetence",
         suggested_skill: "Foreslået ny kompetence",
         student_view: "Elev Oversigt",
@@ -1424,10 +1535,10 @@
         tut_1_text: "Opret en bruger og vælg dit foretrukne farvetema (Grøn/Sort, Blå/Sort eller Nordic Light).",
         tut_2_title: "👥 2. Tilmeld Hold & Vælg Visning",
         tut_2_text: "Tilmeld dig et hold med en 5-bogstavs kode, eller skift mellem dine tilmeldte hold i menuen.",
-        tut_3_title: "⚙️ 3. Superbruger & Live Redigering",
-        tut_3_text: "Som admin kan du trække cirkler rundt mellem niveauer og kategorier samt eksportere til CSV.",
-        tut_4_title: "🟢 4. Cirkler: 'Kan næsten' & 'Kan'",
-        tut_4_text: "Klik på en cirkel for at læse mål, vejledning og teknisk info, eller hop direkte til næste relevante kompetence!",
+        tut_3_title: "⚙️ 3. Superbruger & Validering",
+        tut_3_text: "Som admin kan du slå lærer-validering til pr. hold, godkende elevers mål og redigere træet.",
+        tut_4_title: "🟢 4. Cirkler, Foto & Status",
+        tut_4_text: "Klik på en cirkel for at læse vejledning, uploade dokumentationsbillede og markere din status!",
         tut_5_title: "👤 5. Status & Tæller",
         tut_5_text: "Nederst kan du se dit navn, aktivt hold, opnåede titler og tælleren."
       },
@@ -1452,10 +1563,21 @@
         tab_desc: "Goal",
         tab_guide: "Guide",
         tab_info: "Info",
+        tab_proof: "Photo",
         guide_coming: "Instructions coming soon.",
         info_coming: "No additional technical info provided.",
+        proof_empty: "No documentation photo uploaded yet.",
+        upload_proof: "Upload documentation photo",
+        remove_photo: "Remove photo",
         state_in_progress: "In progress",
         state_achieved: "Achieved",
+        state_pending: "Pending approval",
+        state_request_approval: "Request approval",
+        btn_approve_skill: "Approve skill",
+        btn_reject_skill: "Reject (In progress)",
+        lbl_require_validation: "Require teacher validation before skills count as achieved (Pending approval)",
+        validation_required_badge: "🔒 Teacher validation",
+        validation_free_badge: "🔓 Self-check",
         next_relevant_skill: "Next relevant skill",
         suggested_skill: "Suggested next skill",
         student_view: "Student Overview",
@@ -1505,9 +1627,9 @@
         tut_2_title: "👥 2. Join Class & View Filter",
         tut_2_text: "Join a class with a 5-letter code or switch between active classes in the menu.",
         tut_3_title: "⚙️ 3. Superuser Admin",
-        tut_3_text: "Drag and drop skill circles to reorder levels and export changes as CSV.",
-        tut_4_title: "🟢 4. Open & Achieve Skills",
-        tut_4_text: "Click a circle to view instructions, technical info, and mark it as 'In progress' or 'Achieved'!",
+        tut_3_text: "Enable teacher validation per class, approve student skills, or reorder circles.",
+        tut_4_title: "🟢 4. Open, Document & Achieve",
+        tut_4_text: "Click a circle to read guides, upload a photo proof, and mark it as 'In progress' or 'Achieved'!",
         tut_5_title: "👤 5. Status & Progress",
         tut_5_text: "At the bottom you can see your name, class, unlocked titles and counter."
       },
@@ -1532,10 +1654,21 @@
         tab_desc: "Мета",
         tab_guide: "Інструкція",
         tab_info: "Інфо",
+        tab_proof: "Фото",
         guide_coming: "Інструкція незабаром.",
         info_coming: "Додаткова технічна інформація відсутня.",
+        proof_empty: "Фото підтвердження ще не завантажено.",
+        upload_proof: "Завантажити фото підтвердження",
+        remove_photo: "Видалити фото",
         state_in_progress: "Майже вмію",
         state_achieved: "Вмію",
+        state_pending: "Очікує підтвердження",
+        state_request_approval: "Надіслати на перевірку",
+        btn_approve_skill: "Підтвердити навичку",
+        btn_reject_skill: "Відхилити (В процесі)",
+        lbl_require_validation: "Вимагати підтвердження викладачем перед зарахуванням навички",
+        validation_required_badge: "🔒 Перевірка викладачем",
+        validation_free_badge: "🔓 Вільна позначка",
         next_relevant_skill: "Наступна відповідна навичка",
         suggested_skill: "Рекомендована навичка",
         student_view: "Огляд учня",
@@ -1585,9 +1718,9 @@
         tut_2_title: "👥 2. Приєднання до групи",
         tut_2_text: "Приєднуйтесь до групи за 5-значним кодом або перемикайтеся між своїми групами в меню.",
         tut_3_title: "⚙️ 3. Адміністрування",
-        tut_3_text: "Створюйте групи, редагуйте навички або завантажуйте нові CSV-файли.",
-        tut_4_title: "🟢 4. Відкривайте навички",
-        tut_4_text: "Натисніть на коло, щоб прочитати опис, інструкцію та позначити прогрес!",
+        tut_3_text: "Налаштуйте перевірку викладачем, редагуйте навички або завантажуйте CSV.",
+        tut_4_title: "🟢 4. Відкривайте навички та фото",
+        tut_4_text: "Натисніть на коло, щоб прочитати опис, завантажити фото та позначити прогрес!",
         tut_5_title: "👤 5. Статус і лічильник",
         tut_5_text: "Знизу відображаються ваше ім'я, активна група, титули та лічильник прогресу."
       }
@@ -1717,8 +1850,27 @@
       return val === true || val === 'achieved';
     }
 
+    function isSkillPending(progressMap, skillId) {
+      return progressMap[skillId] === 'pending';
+    }
+
     function isSkillInProgress(progressMap, skillId) {
       return progressMap[skillId] === 'in_progress';
+    }
+
+    // Tjekker om elevens aktuelt valgte hold (eller et af elevens tilmeldte hold) kræver lærer-validering
+    function doesCurrentContextRequireValidation(skillCategory) {
+      if (currentUserIsAdmin) return false; // Lærere/admins validerer sig selv direkte
+      const selectedClass = userEnrolledClasses.find(c => c.id === selectedViewFilter);
+      if (selectedClass) {
+        return !!selectedClass.requireValidation;
+      }
+      // Hvis eleven er i standard-visning, men tilmeldt et hold der kræver validering for denne kategori
+      return userEnrolledClasses.some(c => {
+        if (!c.requireValidation) return false;
+        if (!c.categories || c.categories.length === 0) return true;
+        return c.categories.includes(skillCategory);
+      });
     }
 
     function getUnlockedCategoryTitles(catName, skillsList, progress) {
@@ -1778,6 +1930,7 @@
     let modifiedSkillKeys = new Set(JSON.parse(localStorage.getItem('ms_modifiedSkills') || '[]'));
     let hiddenCats = JSON.parse(localStorage.getItem('ms_hiddenCats')) || [];
     let userProgress = {};
+    let userProofImages = {};
     let currentUser = null;
     let currentUserIsAdmin = false;
     let adminEditMode = false;
@@ -1789,9 +1942,15 @@
     let isSignUpMode = false;
     let editingClassId = null;
     let activeEnlargedSkill = null;
+    let activeEnlargedIsReadOnly = false;
+    let activeEnlargedProgressMap = null;
+    let activeEnlargedProofMap = null;
+    let activeInspectedStudentId = null;
+    let activeInspectedStudentName = null;
     let activeNextSuggestedSkill = null;
     let activeSkillTab = 'desc';
     let activeInspectionClassCategories = null;
+    let activeInspectionClassId = null;
     let draggedSkill = null;
 
     function markSkillModified(lang, id) {
@@ -1907,7 +2066,6 @@
             .upsert(rowsToUpsert, { onConflict: 'id, lang' });
 
           if (error) {
-            // Fallback hvis guide_url, guide_text, info_text kolonnerne ikke er tilføjet i Supabase endnu
             const coreRows = rowsToUpsert.map(r => ({
               lang: r.lang,
               domain: r.domain,
@@ -2095,6 +2253,7 @@
 
       if (!supabaseClient) {
         userProgress = JSON.parse(localStorage.getItem('ms_local_progress')) || {};
+        userProofImages = JSON.parse(localStorage.getItem('ms_local_proofs')) || {};
         updateViewFilterOptions();
         renderApp();
         return;
@@ -2130,6 +2289,7 @@
           checkShowJoinPrompt();
         } else {
           userProgress = JSON.parse(localStorage.getItem('ms_local_progress')) || {};
+          userProofImages = JSON.parse(localStorage.getItem('ms_local_proofs')) || {};
           updateAuthUI(false);
         }
 
@@ -2229,9 +2389,15 @@
 
         if (!error && data) {
           const localStatuses = JSON.parse(localStorage.getItem(`ms_status_${currentUser.id}`)) || {};
+          const localProofs = JSON.parse(localStorage.getItem(`ms_proof_${currentUser.id}`)) || {};
           userProgress = { ...localStatuses };
+          userProofImages = { ...localProofs };
+
           data.forEach(row => {
             userProgress[row.skill_id] = row.status || localStatuses[row.skill_id] || 'achieved';
+            if (row.proof_image_url) {
+              userProofImages[row.skill_id] = row.proof_image_url;
+            }
           });
         }
       } catch (e) {
@@ -2244,15 +2410,19 @@
       try {
         const { data, error } = await supabaseClient
           .from('class_members')
-          .select('class_id, classes(id, name, invite_code, active_categories)')
+          .select('class_id, classes(*)')
           .eq('user_id', currentUser.id);
 
         if (!error && data && data.length > 0) {
+          const localClassValMap = JSON.parse(localStorage.getItem('ms_class_validation_map') || '{}');
           userEnrolledClasses = data.map(d => ({
             id: d.classes?.id,
             name: d.classes?.name,
             code: d.classes?.invite_code,
-            categories: d.classes?.active_categories || null
+            categories: d.classes?.active_categories || null,
+            requireValidation: d.classes?.require_validation !== undefined
+              ? !!d.classes.require_validation
+              : !!localClassValMap[d.classes?.id]
           })).filter(c => c.id);
 
           currentUserClass = userEnrolledClasses.map(c => c.name).join(', ');
@@ -2285,7 +2455,7 @@
         userEnrolledClasses.forEach(c => {
           const opt = document.createElement('option');
           opt.value = c.id;
-          opt.innerText = `👥 Hold: ${c.name}`;
+          opt.innerText = `👥 Hold: ${c.name}${c.requireValidation ? ' 🔒' : ''}`;
           grp.appendChild(opt);
         });
         select.appendChild(grp);
@@ -2454,6 +2624,7 @@
       userEnrolledClasses = [];
       selectedViewFilter = 'MAKER_DEFAULT';
       userProgress = JSON.parse(localStorage.getItem('ms_local_progress')) || {};
+      userProofImages = JSON.parse(localStorage.getItem('ms_local_proofs')) || {};
       updateAuthUI(false);
       updateViewFilterOptions();
       renderApp();
@@ -2466,25 +2637,67 @@
       }
 
       const nameInput = document.getElementById('newClassNameInput');
+      const reqValCheckbox = document.getElementById('newClassRequireValidation');
       const className = nameInput.value.trim();
+      const requireVal = reqValCheckbox.checked;
       if (!className) return;
 
       const code = generate5LetterCode();
 
-      const { error } = await supabaseClient
+      let { data, error } = await supabaseClient
         .from('classes')
         .insert({
           name: className,
           invite_code: code,
-          created_by: currentUser.id
-        });
+          created_by: currentUser.id,
+          require_validation: requireVal
+        })
+        .select()
+        .maybeSingle();
+
+      if (error) {
+        // Fallback hvis kolonnen require_validation ikke er oprettet endnu i Supabase
+        const res2 = await supabaseClient
+          .from('classes')
+          .insert({
+            name: className,
+            invite_code: code,
+            created_by: currentUser.id
+          })
+          .select()
+          .maybeSingle();
+        error = res2.error;
+        data = res2.data;
+      }
 
       if (error) {
         alert('Kunne ikke oprette hold: ' + error.message);
       } else {
+        if (data?.id) {
+          const localClassValMap = JSON.parse(localStorage.getItem('ms_class_validation_map') || '{}');
+          localClassValMap[data.id] = requireVal;
+          localStorage.setItem('ms_class_validation_map', JSON.stringify(localClassValMap));
+        }
         nameInput.value = '';
+        reqValCheckbox.checked = false;
         renderAdmin();
       }
+    }
+
+    async function toggleClassValidationSetting(classId, currentState) {
+      const newState = !currentState;
+      const localClassValMap = JSON.parse(localStorage.getItem('ms_class_validation_map') || '{}');
+      localClassValMap[classId] = newState;
+      localStorage.setItem('ms_class_validation_map', JSON.stringify(localClassValMap));
+
+      if (supabaseClient) {
+        try {
+          await supabaseClient.from('classes').update({ require_validation: newState }).eq('id', classId);
+        } catch (e) {}
+      }
+      await fetchUserClass();
+      renderAdmin();
+      renderApp();
     }
 
     async function handleJoinClass() {
@@ -2553,6 +2766,9 @@
         ${userEnrolledClasses.map(d => `
           <div class="class-tag">
             <span><strong>${d.name}</strong> (Kode: <code style="color:var(--accent-primary); font-weight:bold;">${d.code || '-'}</code>)</span>
+            <span style="font-size:0.74rem; color:${d.requireValidation ? 'var(--pending-color)' : 'var(--text-muted)'}; font-weight:bold;">
+              ${d.requireValidation ? t('validation_required_badge') : t('validation_free_badge')}
+            </span>
           </div>
         `).join('')}
       `;
@@ -2663,7 +2879,7 @@
 
       const { data, error } = await supabaseClient
         .from('classes')
-        .select('id, name, invite_code, active_categories, class_members(count)')
+        .select('*, class_members(count)')
         .eq('created_by', currentUser.id);
 
       if (error || !data || data.length === 0) {
@@ -2671,19 +2887,30 @@
         return;
       }
 
-      classContainer.innerHTML = data.map(c => `
-        <div class="class-tag">
-          <div>
-            <strong>${c.name}</strong><br>
-            <span style="font-size:0.75rem; color:var(--text-muted);">Kode: <strong style="color:var(--accent-primary); font-size:0.85rem; letter-spacing:1px;">${c.invite_code}</strong> | Elever: ${c.class_members[0]?.count || 0}</span>
+      const localClassValMap = JSON.parse(localStorage.getItem('ms_class_validation_map') || '{}');
+
+      classContainer.innerHTML = data.map(c => {
+        const reqVal = c.require_validation !== undefined ? !!c.require_validation : !!localClassValMap[c.id];
+        return `
+          <div class="class-tag">
+            <div>
+              <strong>${c.name}</strong>
+              <span style="margin-left:6px; font-size:0.7rem; padding:2px 6px; border-radius:10px; background:${reqVal ? 'var(--pending-fill)' : 'var(--card-bg)'}; color:${reqVal ? 'var(--pending-color)' : 'var(--text-muted)'}; border:1px solid ${reqVal ? 'var(--pending-color)' : 'var(--inactive-border)'};">
+                ${reqVal ? t('validation_required_badge') : t('validation_free_badge')}
+              </span><br>
+              <span style="font-size:0.75rem; color:var(--text-muted);">Kode: <strong style="color:var(--accent-primary); font-size:0.85rem; letter-spacing:1px;">${c.invite_code}</strong> | Elever: ${c.class_members[0]?.count || 0}</span>
+            </div>
+            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+              <button class="btn ${reqVal ? 'btn-pending' : 'btn-secondary'}" style="padding:4px 8px; font-size:0.73rem;" onclick="toggleClassValidationSetting('${c.id}', ${reqVal})" title="Slå lærer-validering til eller fra for dette hold">
+                ${reqVal ? '🔒 Validering: TIL' : '🔓 Validering: FRA'}
+              </button>
+              <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="openClassCategoriesView('${c.id}', '${c.name}', ${JSON.stringify(c.active_categories || []).replace(/"/g, '&quot;')})">⚙️ Kategorier</button>
+              <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="viewClassProgress('${c.id}', '${c.name}', ${JSON.stringify(c.active_categories || []).replace(/"/g, '&quot;')})">👥 Vis Elever</button>
+              <button class="btn btn-danger" style="padding:4px 8px; font-size:0.75rem;" onclick="deleteClass('${c.id}')">Slet</button>
+            </div>
           </div>
-          <div style="display:flex; gap:6px; flex-wrap:wrap;">
-            <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="openClassCategoriesView('${c.id}', '${c.name}', ${JSON.stringify(c.active_categories || []).replace(/"/g, '&quot;')})">⚙️ Kategorier</button>
-            <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="viewClassProgress('${c.id}', '${c.name}', ${JSON.stringify(c.active_categories || []).replace(/"/g, '&quot;')})">👥 Vis Elever</button>
-            <button class="btn btn-danger" style="padding:4px 8px; font-size:0.75rem;" onclick="deleteClass('${c.id}')">Slet</button>
-          </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     }
 
     function openClassCategoriesView(classId, className, currentCategories) {
@@ -2731,6 +2958,7 @@
     }
 
     async function viewClassProgress(classId, className, classCategories) {
+      activeInspectionClassId = classId;
       activeInspectionClassCategories = classCategories || null;
       document.getElementById('adminClassCategoriesView').style.display = 'none';
       const panel = document.getElementById('adminStudentProgressView');
@@ -2771,22 +2999,27 @@
           const studentName = profile?.full_name || profile?.username || 'Ukendt elev';
           
           const studentProg = {};
+          const studentProofs = {};
           skills?.filter(s => s.user_id === m.user_id).forEach(s => {
             studentProg[s.skill_id] = s.status || 'achieved';
+            if (s.proof_image_url) studentProofs[s.skill_id] = s.proof_image_url;
           });
           
           const completedCount = classSpecificSkills.filter(s => isSkillAchieved(studentProg, s.id)).length;
+          const pendingCount = classSpecificSkills.filter(s => isSkillPending(studentProg, s.id)).length;
           const studentTitle = calculateGlobalTitle(allSkills.filter(s => (s.lang || 'da') === currentLang), studentProg);
 
           return `
             <div class="student-row">
               <div>
-                <strong>${studentName}</strong><br>
+                <strong>${studentName}</strong>
+                ${pendingCount > 0 ? `<span style="margin-left:6px; background:var(--pending-color); color:#fff; padding:1px 7px; border-radius:10px; font-size:0.7rem; font-weight:bold;">⏳ ${pendingCount} afventer</span>` : ''}
+                <br>
                 <span style="font-size:0.75rem; color:var(--accent-primary);">${studentTitle}</span>
               </div>
               <div style="display:flex; align-items:center; gap:10px;">
                 <span style="font-size:0.8rem;"><strong style="color:var(--active-achieved);">${completedCount}</strong> / ${totalClassSkillsCount} ${t('student_goal')}</span>
-                <button class="btn" style="padding:4px 8px; font-size:0.75rem;" onclick='openStudentTreeModal(${JSON.stringify(studentName)}, ${JSON.stringify(studentProg)})'>👁️ ${t('student_view')}</button>
+                <button class="btn" style="padding:4px 8px; font-size:0.75rem;" onclick='openStudentTreeModal(${JSON.stringify(m.user_id)}, ${JSON.stringify(studentName)}, ${JSON.stringify(studentProg)}, ${JSON.stringify(studentProofs)})'>👁️ ${t('student_view')}</button>
               </div>
             </div>
           `;
@@ -2800,7 +3033,12 @@
       document.getElementById('adminStudentProgressView').style.display = 'none';
     }
 
-    function openStudentTreeModal(studentName, studentProgress) {
+    function openStudentTreeModal(studentUserId, studentName, studentProgress, studentProofs = {}) {
+      activeInspectedStudentId = studentUserId;
+      activeInspectedStudentName = studentName;
+      activeEnlargedProgressMap = studentProgress;
+      activeEnlargedProofMap = studentProofs;
+
       const modal = document.getElementById('studentTreeModal');
       const grid = document.getElementById('studentHoneycombGrid');
       const langSkills = allSkills.filter(s => (s.lang || 'da') === currentLang);
@@ -2819,16 +3057,64 @@
       }
       
       const activeCount = inspectSkills.filter(s => isSkillAchieved(studentProgress, s.id)).length;
+      const pendingSkills = inspectSkills.filter(s => isSkillPending(studentProgress, s.id));
       document.getElementById('studentTreeScore').innerText = `${activeCount} / ${inspectSkills.length}`;
 
-      renderHoneycombIntoContainer(grid, inspectSkills, studentProgress, true);
+      const btnApproveAll = document.getElementById('btnApproveAllPending');
+      if (pendingSkills.length > 0 && currentUserIsAdmin) {
+        btnApproveAll.style.display = 'inline-flex';
+        document.getElementById('pendingApproveCount').innerText = pendingSkills.length;
+      } else {
+        btnApproveAll.style.display = 'none';
+      }
+
+      renderHoneycombIntoContainer(grid, inspectSkills, studentProgress, true, studentProofs);
       modal.style.display = 'flex';
       lucide.createIcons();
+    }
+
+    async function approveAllPendingForInspectedStudent() {
+      if (!activeInspectedStudentId || !activeEnlargedProgressMap) return;
+      const pendingSkillIds = Object.keys(activeEnlargedProgressMap).filter(id => activeEnlargedProgressMap[id] === 'pending');
+      if (pendingSkillIds.length === 0) return;
+
+      for (const skillId of pendingSkillIds) {
+        activeEnlargedProgressMap[skillId] = 'achieved';
+        if (supabaseClient) {
+          await supabaseClient
+            .from('user_skills')
+            .update({ status: 'achieved', verified_by: currentUser?.id })
+            .match({ user_id: activeInspectedStudentId, skill_id: skillId });
+        }
+      }
+
+      openStudentTreeModal(activeInspectedStudentId, activeInspectedStudentName, activeEnlargedProgressMap, activeEnlargedProofMap);
+    }
+
+    async function teacherVerifySkill(newStatus) {
+      if (!activeEnlargedSkill || !activeInspectedStudentId || !activeEnlargedProgressMap) return;
+      const skillId = activeEnlargedSkill.id;
+      activeEnlargedProgressMap[skillId] = newStatus;
+
+      if (supabaseClient) {
+        try {
+          await supabaseClient
+            .from('user_skills')
+            .update({ status: newStatus, verified_by: currentUser?.id })
+            .match({ user_id: activeInspectedStudentId, skill_id: skillId });
+        } catch (e) {
+          console.error('Fejl ved validering:', e);
+        }
+      }
+
+      closeEnlargedHexModal();
+      openStudentTreeModal(activeInspectedStudentId, activeInspectedStudentName, activeEnlargedProgressMap, activeEnlargedProofMap);
     }
 
     function closeStudentTreeModal() {
       document.getElementById('studentTreeModal').style.display = 'none';
       document.getElementById('studentHoneycombGrid').innerHTML = '';
+      activeInspectedStudentId = null;
     }
 
     async function deleteClass(classId) {
@@ -2874,19 +3160,132 @@
 
     function closeTitleSplash() { document.getElementById('titleSplash').style.display = 'none'; }
 
+    /* DOKUMENTATIONS-BILLEDE KOMPRIMERING & UPLOAD */
+    function compressImageFile(file, maxWidth = 800, quality = 0.78) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            let w = img.width;
+            let h = img.height;
+            if (w > maxWidth) {
+              h = Math.round((h * maxWidth) / w);
+              w = maxWidth;
+            }
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, w, h);
+            resolve(canvas.toDataURL('image/jpeg', quality));
+          };
+          img.onerror = reject;
+          img.src = ev.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function handleProofImageSelect(event) {
+      const file = event.target.files[0];
+      if (!file || !activeEnlargedSkill) return;
+
+      try {
+        const compressedDataUrl = await compressImageFile(file, 800, 0.78);
+        const skillId = activeEnlargedSkill.id;
+        userProofImages[skillId] = compressedDataUrl;
+
+        // Hvis eleven uploader billede og endnu ikke har en status på målet, sættes den til in_progress
+        if (!userProgress[skillId]) {
+          userProgress[skillId] = 'in_progress';
+        }
+
+        await saveSkillProofAndStatusToSupabase(skillId, userProgress[skillId], compressedDataUrl);
+        updateProofUIInModal(skillId, activeEnlargedIsReadOnly, userProofImages);
+        if (activeSkillTab === 'proof') switchSkillTab('proof');
+        renderApp();
+      } catch (e) {
+        alert('Kunne ikke behandle billedet: ' + e.message);
+      } finally {
+        event.target.value = '';
+      }
+    }
+
+    async function removeSkillProofImage() {
+      if (!activeEnlargedSkill || activeEnlargedIsReadOnly) return;
+      const skillId = activeEnlargedSkill.id;
+      delete userProofImages[skillId];
+
+      await saveSkillProofAndStatusToSupabase(skillId, userProgress[skillId] || null, '');
+      updateProofUIInModal(skillId, false, userProofImages);
+      if (activeSkillTab === 'proof') switchSkillTab('proof');
+      renderApp();
+    }
+
+    async function saveSkillProofAndStatusToSupabase(skillId, statusVal, proofUrl) {
+      if (currentUser && supabaseClient) {
+        localStorage.setItem(`ms_status_${currentUser.id}`, JSON.stringify(userProgress));
+        localStorage.setItem(`ms_proof_${currentUser.id}`, JSON.stringify(userProofImages));
+        try {
+          if (statusVal || proofUrl) {
+            const { error } = await supabaseClient
+              .from('user_skills')
+              .upsert({
+                user_id: currentUser.id,
+                skill_id: skillId,
+                status: statusVal || 'in_progress',
+                proof_image_url: proofUrl
+              }, { onConflict: 'user_id, skill_id' });
+
+            if (error) {
+              await supabaseClient
+                .from('user_skills')
+                .upsert({ user_id: currentUser.id, skill_id: skillId });
+            }
+          } else {
+            await supabaseClient.from('user_skills').delete().match({ user_id: currentUser.id, skill_id: skillId });
+          }
+        } catch (e) {
+          console.error('Supabase proof save fejl:', e);
+        }
+      } else {
+        localStorage.setItem('ms_local_progress', JSON.stringify(userProgress));
+        localStorage.setItem('ms_local_proofs', JSON.stringify(userProofImages));
+      }
+    }
+
+    function updateProofUIInModal(skillId, isReadOnly, proofMap) {
+      const imgUrl = proofMap ? proofMap[skillId] : null;
+      const previewContainer = document.getElementById('proofPreviewContainer');
+      const previewImg = document.getElementById('proofPreviewImg');
+      const uploadLabel = document.getElementById('proofUploadLabel');
+      const removeBtn = document.getElementById('btnRemoveProof');
+      const uploadBox = document.getElementById('proofUploadBox');
+
+      if (imgUrl) {
+        previewImg.src = imgUrl;
+        previewContainer.style.display = 'block';
+        removeBtn.style.display = isReadOnly ? 'none' : 'inline-flex';
+      } else {
+        previewContainer.style.display = 'none';
+      }
+
+      uploadLabel.style.display = isReadOnly ? 'none' : 'flex';
+      uploadBox.style.display = (isReadOnly && !imgUrl) ? 'none' : 'flex';
+    }
+
     function findNextRelevantSkill(currentSkill, progressMap) {
       const langSkills = allSkills.filter(s => (s.lang || 'da') === currentLang && !hiddenCats.includes(s.cat));
       const sameCatSkills = langSkills.filter(s => s.cat === currentSkill.cat).sort((a, b) => a.level - b.level);
 
-      // 1. Næste ikke-opnåede kompetence på højere niveau i samme kategori
       const higherInCat = sameCatSkills.find(s => s.level > currentSkill.level && !isSkillAchieved(progressMap, s.id));
       if (higherInCat) return { skill: higherInCat, isSameCategory: true };
 
-      // 2. Eventuel tidligere oversprunget kompetence i samme kategori
       const anyUnfinishedInCat = sameCatSkills.find(s => s.id !== currentSkill.id && !isSkillAchieved(progressMap, s.id));
       if (anyUnfinishedInCat) return { skill: anyUnfinishedInCat, isSameCategory: true };
 
-      // 3. Hele rækken i kategorien er fuldført -> foreslå relevant kompetence i samme domæne eller næste kategori
       const currentDomain = DOMAIN_MAP[currentSkill.cat] || '💻 Software';
       const sameDomainUnfinished = langSkills
         .filter(s => s.cat !== currentSkill.cat && (DOMAIN_MAP[s.cat] || '💻 Software') === currentDomain && !isSkillAchieved(progressMap, s.id))
@@ -2912,6 +3311,7 @@
       document.getElementById('tabBtnDesc').classList.toggle('active', tabName === 'desc');
       document.getElementById('tabBtnGuide').classList.toggle('active', tabName === 'guide');
       document.getElementById('tabBtnInfo').classList.toggle('active', tabName === 'info');
+      document.getElementById('tabBtnProof').classList.toggle('active', tabName === 'proof');
 
       const panel = document.getElementById('enlargedTabContent');
       if (!activeEnlargedSkill) return;
@@ -2944,14 +3344,29 @@
         } else {
           panel.innerText = iText;
         }
+      } else if (tabName === 'proof') {
+        const proofMap = activeEnlargedProofMap || userProofImages;
+        const pUrl = proofMap[activeEnlargedSkill.id];
+        if (!pUrl) {
+          panel.innerHTML = `<span style="color:var(--text-muted); font-style:italic;">${t('proof_empty')}</span>`;
+        } else {
+          panel.innerHTML = `<img src="${pUrl}" alt="Dokumentation" style="max-height:95px; cursor:pointer;" onclick="window.open(this.src, '_blank')">`;
+        }
       }
     }
 
-    function openSkillEnlargedModal(skill, event, isReadOnly = false, currentProg = null) {
+    function openSkillEnlargedModal(skill, event, isReadOnly = false, currentProg = null, currentProofs = null) {
       activeEnlargedSkill = skill;
+      activeEnlargedIsReadOnly = isReadOnly;
       const prog = currentProg || userProgress;
+      const proofs = currentProofs || userProofImages;
+      activeEnlargedProgressMap = prog;
+      activeEnlargedProofMap = proofs;
+
       const achieved = isSkillAchieved(prog, skill.id);
+      const pending = isSkillPending(prog, skill.id);
       const inProg = isSkillInProgress(prog, skill.id);
+      const requiresVal = doesCurrentContextRequireValidation(skill.cat);
 
       const modal = document.getElementById('enlargedHexModal');
       const hexWrap = document.getElementById('enlargedHexWrap');
@@ -2960,9 +3375,11 @@
       const meta = document.getElementById('enlargedMeta');
       const rewardWrap = document.getElementById('enlargedReward');
       const rewardText = document.getElementById('enlargedRewardText');
-      const actionsWrap = document.getElementById('enlargedActionsWrap');
+      const studentRow = document.getElementById('studentStateButtonsRow');
+      const teacherRow = document.getElementById('teacherVerifyButtonsRow');
       const btnInProg = document.getElementById('btnStateInProgress');
       const btnAchieved = document.getElementById('btnStateAchieved');
+      const btnAchievedText = document.getElementById('btnStateAchievedText');
       const adminEditBtn = document.getElementById('enlargedAdminEditBtn');
 
       title.innerText = skill.shortDesc;
@@ -2972,6 +3389,7 @@
       adminEditBtn.style.display = currentUserIsAdmin ? 'inline-flex' : 'none';
 
       switchSkillTab('desc');
+      updateProofUIInModal(skill.id, isReadOnly, proofs);
 
       if (skill.catTitle && skill.catTitle !== '#' && skill.catTitle !== '-') {
         rewardWrap.style.display = 'flex';
@@ -2980,22 +3398,37 @@
         rewardWrap.style.display = 'none';
       }
 
-      hexWrap.classList.remove('achieved', 'in-progress');
+      hexWrap.classList.remove('achieved', 'in-progress', 'pending');
       if (achieved) hexWrap.classList.add('achieved');
+      else if (pending) hexWrap.classList.add('pending');
       else if (inProg) hexWrap.classList.add('in-progress');
 
       btnInProg.classList.toggle('active', inProg);
-      btnAchieved.classList.toggle('active', achieved);
 
-      if (isReadOnly) {
-        btnInProg.style.display = 'none';
-        btnAchieved.style.display = 'none';
+      // Tilpas primær knap efter om holdet kræver validering
+      btnAchieved.classList.remove('achieved-btn', 'pending-btn', 'active');
+      if (achieved) {
+        btnAchieved.classList.add('achieved-btn', 'active');
+        btnAchievedText.innerText = t('state_achieved');
+      } else if (pending) {
+        btnAchieved.classList.add('pending-btn', 'active');
+        btnAchievedText.innerText = t('state_pending');
+      } else if (requiresVal) {
+        btnAchieved.classList.add('pending-btn');
+        btnAchievedText.innerText = t('state_request_approval');
       } else {
-        btnInProg.style.display = 'flex';
-        btnAchieved.style.display = 'flex';
+        btnAchieved.classList.add('achieved-btn');
+        btnAchievedText.innerText = t('state_achieved');
       }
 
-      // Opdater Næste relevante kompetence cirkel
+      if (isReadOnly) {
+        studentRow.style.display = 'none';
+        teacherRow.style.display = (currentUserIsAdmin && activeInspectedStudentId) ? 'flex' : 'none';
+      } else {
+        studentRow.style.display = 'flex';
+        teacherRow.style.display = 'none';
+      }
+
       const nextRes = findNextRelevantSkill(skill, prog);
       const nextPanel = document.getElementById('nextSkillPanel');
       if (nextRes && nextRes.skill) {
@@ -3019,7 +3452,7 @@
 
     function openNextRelevantSkill(event) {
       if (!activeNextSuggestedSkill) return;
-      openSkillEnlargedModal(activeNextSuggestedSkill, event, false, userProgress);
+      openSkillEnlargedModal(activeNextSuggestedSkill, event, activeEnlargedIsReadOnly, activeEnlargedProgressMap, activeEnlargedProofMap);
     }
 
     function handleHexModalBackdrop(event) {
@@ -3033,15 +3466,23 @@
       activeEnlargedSkill = null;
     }
 
+    async function handlePrimaryCompleteClick(event) {
+      if (!activeEnlargedSkill) return;
+      const s = activeEnlargedSkill;
+      const requiresVal = doesCurrentContextRequireValidation(s.cat);
+      const targetState = requiresVal ? 'pending' : 'achieved';
+      await setSkillState(targetState, event);
+    }
+
     async function setSkillState(targetStatus, event) {
       if (!activeEnlargedSkill) return;
       const s = activeEnlargedSkill;
       const currentStatus = userProgress[s.id];
-      const newStatus = (currentStatus === targetStatus) ? null : targetStatus;
+      const newStatus = (currentStatus === targetStatus || (targetStatus === 'pending' && currentStatus === 'achieved')) ? null : targetStatus;
 
       await updateSkillStatus(s.id, newStatus, event, s.cat);
       if (activeEnlargedSkill) {
-        openSkillEnlargedModal(s, event, false, userProgress);
+        openSkillEnlargedModal(s, event, false, userProgress, userProofImages);
       }
     }
 
@@ -3061,25 +3502,7 @@
         delete userProgress[skillId];
       }
 
-      if (currentUser && supabaseClient) {
-        localStorage.setItem(`ms_status_${currentUser.id}`, JSON.stringify(userProgress));
-        try {
-          if (newStatus) {
-            const { error } = await supabaseClient
-              .from('user_skills')
-              .upsert({ user_id: currentUser.id, skill_id: skillId, status: newStatus }, { onConflict: 'user_id, skill_id' });
-            if (error) {
-              await supabaseClient.from('user_skills').upsert({ user_id: currentUser.id, skill_id: skillId });
-            }
-          } else {
-            await supabaseClient.from('user_skills').delete().match({ user_id: currentUser.id, skill_id: skillId });
-          }
-        } catch (e) {
-          console.error('Fejl ved gemning i Supabase:', e);
-        }
-      } else {
-        localStorage.setItem('ms_local_progress', JSON.stringify(userProgress));
-      }
+      await saveSkillProofAndStatusToSupabase(skillId, newStatus, userProofImages[skillId] || '');
 
       if (newStatus === 'achieved') {
         const newCatTitles = getUnlockedCategoryTitles(category, langSkills, userProgress).map(t => t.title);
@@ -3168,15 +3591,20 @@
 
       const oldCat = editingOriginalSkill ? editingOriginalSkill.cat : null;
 
-      // Fjern gammel version hvis den fandtes
       allSkills = allSkills.filter(s => !((s.lang || 'da') === lang && s.id === (editingOriginalSkill ? editingOriginalSkill.id : id)));
 
-      // Indsæt i ny kategori og genberegn niveauer i både gammel og ny kategori
       const catList = allSkills.filter(s => (s.lang || 'da') === lang && s.cat === cat).sort((a, b) => a.level - b.level);
       const insertIndex = Math.max(0, Math.min(catList.length, desiredLevel - 1));
 
+      // Hvis kategorien bruger underkategorier, og feltet er tomt, arves nærmeste underkategori
+      let resolvedSubCat = subCat;
+      if (!resolvedSubCat && catList.length > 0) {
+        const neighbor = catList[Math.min(insertIndex, catList.length - 1)] || catList[catList.length - 1];
+        if (neighbor && neighbor.subCat) resolvedSubCat = neighbor.subCat;
+      }
+
       const updatedObj = {
-        lang, cat, catTitle, subCat, id, level: desiredLevel,
+        lang, cat, catTitle, subCat: resolvedSubCat, id, level: desiredLevel,
         svg, shortDesc, fullDesc, guideUrl, guideText, infoText
       };
 
@@ -3218,7 +3646,6 @@
         await supabaseClient.from('skills').delete().match({ id: id, lang: lang || 'da' });
       }
 
-      // Genberegn niveauer for resterende i kategorien
       const remaining = allSkills.filter(s => (s.lang || 'da') === (lang || 'da') && s.cat === cat).sort((a, b) => a.level - b.level);
       const rowsToSync = [];
       remaining.forEach((item, idx) => {
@@ -3250,13 +3677,12 @@
       };
     }
 
-    /* DRAG & DROP REORDERING AF CIRKLER (MED AUTOMATISK NIVEAU-BEREGNING) */
+    /* DRAG & DROP REORDERING AF CIRKLER */
     async function handleDropSkillOnTarget(dragged, targetCat, targetLevelIndex) {
       if (!dragged) return;
       const lang = dragged.lang || currentLang;
       const sourceCat = dragged.cat;
 
-      // Fjern fra nuværende position
       const sourceList = allSkills
         .filter(s => (s.lang || 'da') === lang && s.cat === sourceCat && s.id !== dragged.id)
         .sort((a, b) => a.level - b.level);
@@ -3292,13 +3718,20 @@
       renderApp();
     }
 
-    function createSkillCircle(s, progressMap, isReadOnly = false) {
+    function createSkillCircle(s, progressMap, isReadOnly = false, proofMap = null) {
       const achieved = isSkillAchieved(progressMap, s.id);
+      const pending = isSkillPending(progressMap, s.id);
       const inProg = isSkillInProgress(progressMap, s.id);
+      const hasPhoto = proofMap && !!proofMap[s.id];
+
+      let statusClass = '';
+      if (achieved) statusClass = 'achieved';
+      else if (pending) statusClass = 'pending';
+      else if (inProg) statusClass = 'in-progress';
 
       const circle = document.createElement('div');
-      circle.className = `circle-container skill-node ${achieved ? 'achieved' : (inProg ? 'in-progress' : '')}`;
-      circle.onclick = (e) => openSkillEnlargedModal(s, e, isReadOnly, progressMap);
+      circle.className = `circle-container skill-node ${statusClass}`;
+      circle.onclick = (e) => openSkillEnlargedModal(s, e, isReadOnly, progressMap, proofMap);
 
       if (adminEditMode && !isReadOnly) {
         circle.draggable = true;
@@ -3334,17 +3767,19 @@
           <circle class="circle-inner-ring" cx="50" cy="50" r="40" />
         </svg>
         <div class="circle-content">
-          <i data-lucide="${s.svg}" class="circle-icon"></i>
+          <i data-lucide="${pending ? 'hourglass' : s.svg}" class="circle-icon"></i>
           <div class="circle-text">${s.shortDesc}</div>
           <div class="circle-level">${s.level}</div>
         </div>
+        ${hasPhoto ? `<div class="proof-mini-badge" title="Dokumentationsbillede vedhæftet">📷</div>` : ''}
         ${adminEditMode && !isReadOnly ? `<div class="edit-badge-overlay" title="Rediger kompetence" onclick="event.stopPropagation(); openSkillEditorModal(allSkills.find(x => x.id === '${s.id}' && (x.lang||'da') === '${s.lang||'da'}'))">✎</div>` : ''}
       `;
       return circle;
     }
 
-    function renderHoneycombIntoContainer(container, skillsList, progressMap, isReadOnly = false) {
+    function renderHoneycombIntoContainer(container, skillsList, progressMap, isReadOnly = false, proofMap = null) {
       container.innerHTML = '';
+      const activeProofs = proofMap || userProofImages;
       const activeDomains = [...new Set(skillsList.map(s => DOMAIN_MAP[s.cat] || '💻 Software'))];
       const orderedDomains = DOMAIN_ORDER.filter(d => activeDomains.includes(d));
       if (orderedDomains.length === 0 && activeDomains.length > 0) orderedDomains.push(...activeDomains);
@@ -3413,25 +3848,25 @@
           if (adminEditMode || subCatNames.length === 0) {
             const firstFourSkills = catSkills.filter(s => s.level <= 4);
             const firstFourCompleted = firstFourSkills.filter(s => isSkillAchieved(progressMap, s.id)).length;
-            const isFirstFourDone = adminEditMode || (firstFourCompleted === firstFourSkills.length && firstFourSkills.length > 0);
+            const isFirstFourDone = adminEditMode || isReadOnly || (firstFourCompleted === firstFourSkills.length && firstFourSkills.length > 0);
 
             const visibleSkills = isFirstFourDone ? catSkills : catSkills.filter(s => s.level <= 4);
 
             visibleSkills.forEach(s => {
-              col.appendChild(createSkillCircle(s, progressMap, isReadOnly));
+              col.appendChild(createSkillCircle(s, progressMap, isReadOnly, activeProofs));
             });
           } else {
             let allPrevCompleted = true;
 
             subCatNames.forEach((scName) => {
-              if (!allPrevCompleted) return;
+              if (!allPrevCompleted && !isReadOnly) return;
 
               const scSkills = catSkills.filter(s => s.subCat === scName).sort((a,b) => a.level - b.level);
               const scCompletedCount = scSkills.filter(s => isSkillAchieved(progressMap, s.id)).length;
               const isScCompleted = (scCompletedCount === scSkills.length && scSkills.length > 0);
 
               const subCatKey = `${catName}_${scName}`;
-              let isExpanded = !isScCompleted;
+              let isExpanded = !isScCompleted || isReadOnly;
               if (manualSubCatExpanded[subCatKey] !== undefined) {
                 isExpanded = manualSubCatExpanded[subCatKey];
               }
@@ -3462,7 +3897,7 @@
 
               if (isExpanded) {
                 scSkills.forEach(s => {
-                  col.appendChild(createSkillCircle(s, progressMap, isReadOnly));
+                  col.appendChild(createSkillCircle(s, progressMap, isReadOnly, activeProofs));
                 });
               }
 
@@ -3520,7 +3955,7 @@
       document.getElementById('footerUserTitle').innerText = calculateGlobalTitle(langSkills, userProgress);
       document.getElementById('footerScore').innerText = `${activeSkillsCount} / ${totalSkillsCount}`;
 
-      renderHoneycombIntoContainer(honeycombGrid, availableSkills, userProgress, false);
+      renderHoneycombIntoContainer(honeycombGrid, availableSkills, userProgress, false, userProofImages);
       lucide.createIcons();
     }
 
