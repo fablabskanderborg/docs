@@ -1,0 +1,3626 @@
+<!DOCTYPE html>
+<html lang="da" data-theme="green-dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Maker Skill Tree</title>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root, [data-theme="green-dark"] {
+      --bg-color: #07120e;
+      --bg-gradient: radial-gradient(circle at center, #0f291e 0%, #07120e 100%);
+      --header-bg: #040d0a;
+      --card-bg: #11221c;
+      --inner-bg: #091712;
+      --accent-primary: #10b981;
+      --active-achieved: #22c55e;
+      --achieved-fill: #052e16;
+      --in-progress-color: #f59e0b;
+      --in-progress-fill: #3b2306;
+      --inactive-border: #2d4a3e;
+      --text-main: #f0fdf4;
+      --text-muted: #86efac;
+      --modal-backdrop: rgba(4, 13, 10, 0.86);
+    }
+
+    [data-theme="blue-dark"] {
+      --bg-color: #0b1329;
+      --bg-gradient: radial-gradient(circle at center, #131f3f 0%, #0b1329 100%);
+      --header-bg: #0f172a;
+      --card-bg: #1e293b;
+      --inner-bg: #0f172a;
+      --accent-primary: #38bdf8;
+      --active-achieved: #38bdf8;
+      --achieved-fill: #082f49;
+      --in-progress-color: #f59e0b;
+      --in-progress-fill: #3b2506;
+      --inactive-border: #475569;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --modal-backdrop: rgba(11, 19, 41, 0.86);
+    }
+
+    [data-theme="nordic-light"] {
+      --bg-color: #f4f1ea;
+      --bg-gradient: radial-gradient(circle at center, #ffffff 0%, #ebe5d8 100%);
+      --header-bg: #ffffff;
+      --card-bg: #ffffff;
+      --inner-bg: #f8f6f0;
+      --accent-primary: #0d9488;
+      --active-achieved: #16a34a;
+      --achieved-fill: #dcfce7;
+      --in-progress-color: #d97706;
+      --in-progress-fill: #fef3c7;
+      --inactive-border: #cbd5e1;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --modal-backdrop: rgba(30, 41, 59, 0.65);
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    .shake { animation: screenShake 0.3s ease-in-out; }
+    @keyframes screenShake {
+      0%, 100% { transform: translate(0, 0); }
+      20% { transform: translate(-4px, 3px); }
+      40% { transform: translate(4px, -3px); }
+      60% { transform: translate(-3px, -2px); }
+      80% { transform: translate(3px, 2px); }
+    }
+
+    header {
+      background: var(--header-bg);
+      padding: 10px 20px;
+      border-bottom: 1px solid var(--inactive-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 100;
+      position: relative;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    h1 { margin: 0; font-size: 1.25rem; color: var(--text-main); letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px; }
+
+    .header-btns { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+    .view-filter-select, .lang-select {
+      background: var(--card-bg);
+      border: 1px solid var(--accent-primary);
+      color: var(--accent-primary);
+      font-weight: bold;
+      font-size: 0.82rem;
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      width: auto;
+    }
+
+    .lang-select { border-color: var(--inactive-border); color: var(--text-main); }
+
+    .main-container { display: flex; flex: 1; overflow: hidden; position: relative; }
+
+    .viewport {
+      flex: 1;
+      padding: 15px;
+      overflow-x: auto;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg-gradient);
+    }
+
+    .empty-state {
+      margin: 60px auto;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 1rem;
+      max-width: 450px;
+      line-height: 1.5;
+      padding: 0 15px;
+    }
+
+    /* CIRKEL SKILL TREE GRID */
+    .honeycomb-grid {
+      display: flex;
+      gap: 38px;
+      padding: 30px 45px 100px 45px;
+      align-items: flex-end;
+      min-width: max-content;
+      margin: auto;
+    }
+
+    .domain-section { display: flex; flex-direction: column; align-items: center; position: relative; }
+
+    .domain-header {
+      font-size: 0.8rem;
+      font-weight: bold;
+      color: var(--accent-primary);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+      padding: 6px 16px;
+      background: var(--card-bg);
+      border: 1px solid var(--inactive-border);
+      border-radius: 20px;
+      white-space: nowrap;
+      z-index: 10;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .domain-columns { display: flex; padding-top: 55px; }
+
+    .column {
+      display: flex;
+      flex-direction: column-reverse;
+      gap: 12px;
+      margin-right: -12px;
+      position: relative;
+      z-index: 1;
+      align-items: center;
+      width: 102px;
+      flex-shrink: 0;
+      transition: transform 0.2s;
+    }
+
+    .column:hover { z-index: 100; }
+    .column:nth-child(even) { transform: translateY(-48px); }
+
+    /* CIRKEL ELEMENTER */
+    .circle-container {
+      width: 94px;
+      height: 94px;
+      border-radius: 50%;
+      position: relative;
+      cursor: pointer;
+      z-index: 1;
+      transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s ease;
+      touch-action: manipulation;
+      user-select: none;
+    }
+
+    .circle-container:hover { transform: scale(1.06); z-index: 30; }
+    .circle-container:active { transform: scale(0.95); }
+
+    .circle-svg { width: 100%; height: 100%; position: absolute; top: 0; left: 0; overflow: visible; }
+
+    .circle-outer-ring {
+      fill: var(--card-bg);
+      stroke: var(--inactive-border);
+      stroke-width: 3.2;
+      transition: stroke 0.3s, fill 0.3s, filter 0.3s;
+    }
+
+    .circle-outer-ring.dashed-frame {
+      stroke-dasharray: 6 4;
+      stroke: var(--accent-primary);
+    }
+
+    .circle-inner-ring {
+      fill: var(--inner-bg);
+      stroke: var(--inactive-border);
+      stroke-width: 1.5;
+      transition: stroke 0.3s, fill 0.3s;
+    }
+
+    .cat-circle-container { order: -1; margin-top: 14px; }
+
+    /* TILSTAND: KAN NÆSTEN (IN PROGRESS) */
+    .circle-container.in-progress .circle-outer-ring,
+    .enlarged-circle-svg-wrap.in-progress .circle-outer-ring {
+      stroke: var(--in-progress-color);
+      stroke-dasharray: 7 4;
+      fill: var(--in-progress-fill);
+      filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.4));
+    }
+    .circle-container.in-progress .circle-inner-ring,
+    .enlarged-circle-svg-wrap.in-progress .circle-inner-ring {
+      stroke: var(--in-progress-color);
+    }
+    .circle-container.in-progress .circle-icon { color: var(--in-progress-color); }
+
+    /* TILSTAND: KAN (ACHIEVED) */
+    .circle-container.achieved .circle-outer-ring,
+    .cat-circle-container.completed .circle-outer-ring,
+    .subcat-circle.completed .circle-outer-ring,
+    .enlarged-circle-svg-wrap.achieved .circle-outer-ring {
+      stroke: var(--active-achieved);
+      fill: var(--achieved-fill);
+      filter: drop-shadow(0 0 9px rgba(34, 197, 94, 0.5));
+    }
+
+    .circle-container.achieved .circle-inner-ring,
+    .cat-circle-container.completed .circle-inner-ring,
+    .subcat-circle.completed .circle-inner-ring,
+    .enlarged-circle-svg-wrap.achieved .circle-inner-ring {
+      stroke: var(--active-achieved);
+    }
+
+    .circle-content {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      padding: 12px;
+      box-sizing: border-box;
+      pointer-events: none;
+    }
+
+    .circle-icon { color: var(--accent-primary); width: 16px; height: 16px; flex-shrink: 0; }
+    .circle-container.achieved .circle-icon { color: var(--active-achieved); }
+
+    .circle-text {
+      font-size: 0.54rem;
+      font-weight: 700;
+      text-align: center;
+      line-height: 1.12;
+      color: var(--text-main);
+      padding: 0 2px;
+      max-width: 68px;
+      overflow-wrap: break-word;
+      word-break: break-word;
+      hyphens: auto;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .circle-level { font-size: 0.58rem; font-weight: bold; color: var(--text-muted); line-height: 1; flex-shrink: 0; }
+
+    .cat-circle-content {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      padding: 10px;
+      box-sizing: border-box;
+      gap: 2px;
+    }
+
+    .cat-big-icon { width: 25px; height: 25px; color: var(--accent-primary); transition: color 0.3s; flex-shrink: 0; }
+    .cat-circle-container.completed .cat-big-icon { color: var(--active-achieved); }
+
+    .cat-badge-label {
+      font-size: 0.46rem;
+      font-weight: 800;
+      color: var(--active-achieved);
+      text-align: center;
+      line-height: 1.05;
+      max-width: 70px;
+      overflow-wrap: break-word;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* ADMIN DRAG & DROP STYLING */
+    .admin-edit-active .circle-container.skill-node {
+      cursor: grab;
+    }
+    .admin-edit-active .circle-container.skill-node:active {
+      cursor: grabbing;
+    }
+    .circle-container.dragging {
+      opacity: 0.4;
+      transform: scale(0.9);
+    }
+    .circle-container.drag-over-target .circle-outer-ring {
+      stroke: #ec4899 !important;
+      stroke-width: 5 !important;
+      stroke-dasharray: 4 2 !important;
+    }
+    .edit-badge-overlay {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      background: var(--accent-primary);
+      color: #000;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      font-weight: bold;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+      pointer-events: auto;
+      cursor: pointer;
+      z-index: 5;
+    }
+
+    .floating-emoji {
+      position: fixed;
+      pointer-events: none;
+      z-index: 15000;
+      font-size: 1.4rem;
+      animation: floatEmoji 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    }
+    @keyframes floatEmoji {
+      0% { transform: translate(0, 0) scale(0.6); opacity: 1; }
+      100% { transform: translate(var(--tx), -70px) scale(1.3); opacity: 0; }
+    }
+
+    /* FORSTØRRET FOKUSERET CIRKEL POPUP */
+    .enlarged-hex-modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: var(--modal-backdrop);
+      backdrop-filter: blur(7px);
+      z-index: 15000;
+      justify-content: center;
+      align-items: center;
+      padding: 15px;
+      overflow-y: auto;
+    }
+
+    .enlarged-popup-layout {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 28px;
+      flex-wrap: wrap;
+      max-width: 900px;
+      width: 100%;
+      animation: zoomInHex 0.24s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    .enlarged-popup-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    @keyframes zoomInHex {
+      from { transform: scale(0.45); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .enlarged-outer-header {
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: var(--accent-primary);
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      text-align: center;
+      margin-bottom: 10px;
+      background: var(--card-bg);
+      padding: 6px 18px;
+      border-radius: 20px;
+      border: 1px solid var(--inactive-border);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .enlarged-circle-svg-wrap {
+      width: 330px;
+      height: 330px;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .enlarged-circle-inner-content {
+      position: absolute;
+      top: 11%;
+      left: 11%;
+      width: 78%;
+      height: 78%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      text-align: center;
+      padding: 8px;
+      box-sizing: border-box;
+      z-index: 2;
+    }
+
+    .enlarged-icon-wrap {
+      width: 42px;
+      height: 42px;
+      background: var(--card-bg);
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 6px;
+      border: 1.5px solid var(--accent-primary);
+      color: var(--accent-primary);
+      flex-shrink: 0;
+    }
+
+    .enlarged-circle-svg-wrap.achieved .enlarged-icon-wrap {
+      border-color: var(--active-achieved);
+      color: var(--active-achieved);
+    }
+    .enlarged-circle-svg-wrap.in-progress .enlarged-icon-wrap {
+      border-color: var(--in-progress-color);
+      color: var(--in-progress-color);
+    }
+
+    .enlarged-title {
+      font-size: 1.02rem;
+      font-weight: bold;
+      color: var(--text-main);
+      margin-bottom: 6px;
+      line-height: 1.2;
+      max-width: 220px;
+    }
+
+    /* TABS INDE I FOKUSERET KOMPETENCE */
+    .skill-tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 6px;
+      background: var(--card-bg);
+      padding: 3px;
+      border-radius: 16px;
+      border: 1px solid var(--inactive-border);
+    }
+    .skill-tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.68rem;
+      font-weight: bold;
+      padding: 4px 10px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .skill-tab-btn.active {
+      background: var(--accent-primary);
+      color: #04130e;
+    }
+
+    .enlarged-tab-panel {
+      font-size: 0.78rem;
+      color: var(--text-main);
+      line-height: 1.38;
+      max-width: 225px;
+      width: 100%;
+      overflow-y: auto;
+      max-height: 105px;
+      margin-bottom: 4px;
+      padding: 2px 4px;
+    }
+
+    .enlarged-tab-panel img, .enlarged-tab-panel iframe {
+      max-width: 100%;
+      border-radius: 6px;
+      margin-top: 6px;
+    }
+
+    .enlarged-reward {
+      font-size: 0.72rem;
+      color: var(--active-achieved);
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: auto;
+    }
+
+    .enlarged-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 310px;
+      margin-top: 12px;
+      z-index: 10;
+    }
+
+    .state-buttons-row {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+    }
+
+    .btn-state {
+      flex: 1;
+      padding: 10px 8px;
+      font-size: 0.82rem;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-weight: bold;
+      border: 2px solid var(--inactive-border);
+      background: var(--card-bg);
+      color: var(--text-main);
+      transition: all 0.2s;
+    }
+
+    .btn-state.in-progress-btn.active {
+      background: var(--in-progress-color);
+      border-color: var(--in-progress-color);
+      color: #1c1917;
+      box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+    }
+
+    .btn-state.achieved-btn.active {
+      background: var(--active-achieved);
+      border-color: var(--active-achieved);
+      color: #052e16;
+      box-shadow: 0 0 12px rgba(34, 197, 94, 0.4);
+    }
+
+    /* NÆSTE RELEVANTE KOMPETENCE CIRKEL */
+    .next-skill-panel {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0,0,0,0.2);
+      padding: 14px 18px;
+      border-radius: 20px;
+      border: 1px dashed var(--inactive-border);
+      max-width: 210px;
+    }
+
+    .next-skill-label {
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--accent-primary);
+      text-align: center;
+    }
+
+    .next-skill-circle {
+      width: 135px;
+      height: 135px;
+      border-radius: 50%;
+      position: relative;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+    .next-skill-circle:hover { transform: scale(1.06); }
+
+    /* ELEV SKILLTREE OVERLAY */
+    .student-tree-modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: var(--modal-backdrop);
+      backdrop-filter: blur(8px);
+      z-index: 16000;
+      flex-direction: column;
+    }
+
+    .student-tree-header {
+      background: var(--header-bg);
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--inactive-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .student-tree-viewport {
+      flex: 1;
+      overflow: auto;
+      padding: 20px;
+      display: flex;
+    }
+
+    .splash-modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: var(--modal-backdrop);
+      backdrop-filter: blur(8px);
+      z-index: 20000;
+      justify-content: center;
+      align-items: center;
+      padding: 15px;
+    }
+    .splash-card {
+      background: var(--card-bg);
+      border: 2px solid var(--accent-primary);
+      box-shadow: 0 0 35px rgba(16, 185, 129, 0.35);
+      border-radius: 16px;
+      padding: 30px 25px;
+      text-align: center;
+      max-width: 400px;
+      width: 100%;
+      animation: popScale 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+    @keyframes popScale {
+      from { transform: scale(0.7); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    footer {
+      background: var(--header-bg);
+      border-top: 1px solid var(--inactive-border);
+      padding: 10px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      z-index: 10;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .footer-info { display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
+    .footer-label { color: var(--text-muted); margin-right: 4px; }
+    .footer-val { color: var(--text-main); font-weight: bold; }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: var(--modal-backdrop);
+      z-index: 10000;
+      justify-content: center;
+      align-items: center;
+      padding: 12px;
+    }
+
+    .modal-box {
+      background: var(--card-bg);
+      border: 1px solid var(--inactive-border);
+      padding: 20px;
+      border-radius: 10px;
+      width: 580px;
+      max-width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      color: var(--text-main);
+    }
+
+    .admin-section { margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid var(--inactive-border); }
+    .admin-section h3 { margin-top: 0; font-size: 0.95rem; color: var(--accent-primary); }
+    .input-group { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+
+    input[type="text"], input[type="email"], input[type="password"], input[type="number"], select, textarea, input[type="file"] {
+      background: var(--inner-bg);
+      border: 1px solid var(--inactive-border);
+      color: var(--text-main);
+      padding: 9px 12px;
+      border-radius: 6px;
+      font-size: 0.88rem;
+      width: 100%;
+      font-family: inherit;
+    }
+
+    .btn {
+      background: var(--accent-primary);
+      color: #04130e;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-weight: bold;
+      font-size: 0.84rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      touch-action: manipulation;
+    }
+    .btn-secondary { background: var(--inactive-border); color: var(--text-main); }
+    .btn-danger { background: #ef4444; color: white; }
+    .btn-warning { background: var(--in-progress-color); color: #1c1917; }
+
+    .toolbar-btns { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+
+    .domain-group-box {
+      background: var(--inner-bg);
+      border: 1px solid var(--inactive-border);
+      border-radius: 6px;
+      margin-bottom: 10px;
+      padding: 8px 12px;
+    }
+
+    .domain-group-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: bold;
+      color: var(--accent-primary);
+      font-size: 0.85rem;
+      margin-bottom: 6px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid var(--inactive-border);
+    }
+
+    .domain-group-items {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      padding-left: 4px;
+    }
+
+    .class-tag {
+      background: var(--inner-bg);
+      border: 1px solid var(--inactive-border);
+      padding: 10px 12px;
+      border-radius: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .student-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--inactive-border);
+      font-size: 0.85rem;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .theme-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .theme-card {
+      border: 2px solid var(--inactive-border);
+      border-radius: 8px;
+      padding: 10px;
+      cursor: pointer;
+      text-align: center;
+      font-size: 0.8rem;
+      font-weight: bold;
+      transition: all 0.2s;
+    }
+    .theme-card.active {
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 2px var(--accent-primary);
+    }
+    .theme-preview-dots {
+      display: flex;
+      justify-content: center;
+      gap: 5px;
+      margin-bottom: 6px;
+    }
+    .theme-dot { width: 16px; height: 16px; border-radius: 50%; border: 1px solid rgba(128,128,128,0.4); }
+
+    .admin-edit-banner {
+      display: none;
+      background: var(--in-progress-color);
+      color: #1c1917;
+      padding: 6px 16px;
+      font-size: 0.82rem;
+      font-weight: bold;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .tutorial-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 11000; }
+    .tutorial-box {
+      position: fixed;
+      background: var(--card-bg);
+      border: 2px solid var(--accent-primary);
+      border-radius: 10px;
+      padding: 18px;
+      width: 300px;
+      max-width: 90vw;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.9);
+      z-index: 12000;
+    }
+    .tutorial-box h4 { margin: 0 0 8px 0; color: var(--accent-primary); }
+    .tutorial-box p { margin: 0 0 15px 0; font-size: 0.82rem; line-height: 1.4; }
+    .tutorial-nav { display: flex; justify-content: space-between; align-items: center; }
+
+    .highlight-target {
+      position: relative !important;
+      z-index: 11500 !important;
+      box-shadow: 0 0 0 4px var(--accent-primary), 0 0 20px var(--accent-primary) !important;
+      border-radius: 6px;
+    }
+
+    @media (max-width: 768px) {
+      header { padding: 10px 15px; }
+      h1 { font-size: 1.1rem; width: 100%; text-align: center; justify-content: center; }
+      .header-btns { width: 100%; justify-content: center; }
+      .btn { padding: 6px 10px; font-size: 0.78rem; }
+      footer { padding: 8px 12px; font-size: 0.78rem; justify-content: center; }
+      .footer-info { gap: 10px; justify-content: center; }
+      .honeycomb-grid { gap: 25px; padding-bottom: 90px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>MAKER SKILL TREE</h1>
+    <div class="header-btns">
+      <select id="userLangSelect" class="lang-select" onchange="handleLanguageChange(this.value)">
+        <option value="da">🇩🇰 Dansk</option>
+        <option value="en">🇬🇧 English</option>
+        <option value="uk">🇺🇦 Українська</option>
+      </select>
+      <select id="userViewFilterSelect" class="view-filter-select" onchange="handleViewFilterChange(this.value)">
+        <option value="MAKER_DEFAULT" data-i18n="maker_default">🛠️ Maker Skills (Standard)</option>
+        <option value="ALL" data-i18n="show_all">🌐 Vis Alt (Alle moduler)</option>
+      </select>
+      <button class="btn btn-secondary" onclick="openSettingsModal()" title="Tema & Indstillinger">🎨 <span data-i18n="btn_theme">Tema</span></button>
+      <button class="btn btn-secondary" onclick="startTutorial()" data-i18n="btn_guide">❓ Guide</button>
+      <button class="btn" id="teamBtn" onclick="openTeamModal()" data-i18n="btn_team">👥 Mit Hold</button>
+      <button class="btn btn-warning" id="adminLiveEditBtn" onclick="toggleAdminEditMode()" style="display:none;">✏️ <span data-i18n="btn_edit_tree">Rediger Træ</span></button>
+      <button class="btn" id="adminBtn" onclick="openAdmin()" style="display:none;" data-i18n="btn_admin">⚙️ Superbruger</button>
+      <button class="btn" id="authBtn" onclick="openAuthModal()" data-i18n="btn_login">🔑 Log ind</button>
+    </div>
+  </header>
+
+  <div class="admin-edit-banner" id="adminEditBanner">
+    <span>🛠️ <strong>Redigeringstilstand aktiv:</strong> Træk og slip cirkler for at ændre niveau eller flytte mellem kategorier. Klik på en cirkel for at redigere tekst, vejledning og info.</span>
+    <div style="display:flex; gap:8px;">
+      <button class="btn" style="background:#04130e; color:#fff; padding:5px 10px;" onclick="openSkillEditorModal(null)">➕ Opret Ny Kompetence</button>
+      <button class="btn" style="background:#04130e; color:#fff; padding:5px 10px;" onclick="exportSkillsCSV(true)">📥 Eksporter Ændringer (<span id="modifiedCountLabel">0</span>)</button>
+      <button class="btn" style="background:#04130e; color:#fff; padding:5px 10px;" onclick="exportSkillsCSV(false)">📥 Eksporter Hele CSV</button>
+    </div>
+  </div>
+
+  <div class="main-container">
+    <div class="viewport">
+      <div id="emptyState" class="empty-state" style="display:none;">
+        <i data-lucide="upload-cloud" style="width: 48px; height: 48px; margin-bottom: 15px; color: var(--accent-primary);"></i><br>
+        <strong id="emptyTitle">Indlæser...</strong><br>
+        <span id="emptyDesc">Vælg eller opdater kompetencer under Superbruger Admin.</span>
+      </div>
+      <div class="honeycomb-grid" id="honeycombGrid"></div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-info">
+      <div id="targetUser">
+        <span class="footer-label" data-i18n="lbl_name">Navn:</span>
+        <span class="footer-val" id="footerUserName">Gæst</span>
+      </div>
+      <div>
+        <span class="footer-label" data-i18n="lbl_class">Hold:</span>
+        <span class="footer-val" id="footerUserClass" style="color: var(--accent-primary);">Intet hold</span>
+      </div>
+      <div>
+        <span class="footer-label" data-i18n="lbl_title">Titel:</span>
+        <span class="footer-val" id="footerUserTitle" style="color: var(--accent-primary);">Deltager</span>
+      </div>
+      <div id="targetScore">
+        <span class="footer-label" data-i18n="lbl_score">Opnåede kompetencer:</span>
+        <span class="footer-val" id="footerScore" style="color: var(--active-achieved);">0 / 0</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- FORSTØRRET FOKUSERET CIRKEL POPUP -->
+  <div class="enlarged-hex-modal" id="enlargedHexModal" onclick="handleHexModalBackdrop(event)">
+    <div class="enlarged-popup-layout" onclick="event.stopPropagation();">
+      <div class="enlarged-popup-wrapper">
+        <div class="enlarged-outer-header">
+          <span id="enlargedMeta">Folieskæring • Niveau 1</span>
+          <button id="enlargedAdminEditBtn" class="btn btn-warning" style="display:none; padding:2px 8px; font-size:0.7rem;" onclick="openSkillEditorModal(activeEnlargedSkill)">✏️ Rediger</button>
+        </div>
+
+        <div class="enlarged-circle-svg-wrap" id="enlargedHexWrap">
+          <svg class="circle-svg" viewBox="0 0 100 100">
+            <circle class="circle-outer-ring" cx="50" cy="50" r="46" />
+            <circle class="circle-inner-ring" cx="50" cy="50" r="40" />
+          </svg>
+
+          <div class="enlarged-circle-inner-content">
+            <div class="enlarged-icon-wrap" id="enlargedIconWrap">
+              <i data-lucide="box" id="enlargedIcon" style="width: 22px; height: 22px;"></i>
+            </div>
+            <div class="enlarged-title" id="enlargedTitle">Kompetence Titel</div>
+
+            <!-- Faneblade: Beskrivelse | Vejledning | Info -->
+            <div class="skill-tabs">
+              <button class="skill-tab-btn active" id="tabBtnDesc" onclick="switchSkillTab('desc')" data-i18n="tab_desc">Mål</button>
+              <button class="skill-tab-btn" id="tabBtnGuide" onclick="switchSkillTab('guide')" data-i18n="tab_guide">Vejledning</button>
+              <button class="skill-tab-btn" id="tabBtnInfo" onclick="switchSkillTab('info')" data-i18n="tab_info">Info</button>
+            </div>
+
+            <div class="enlarged-tab-panel" id="enlargedTabContent">Beskrivelse af kompetencen...</div>
+
+            <div class="enlarged-reward" id="enlargedReward" style="display:none;">
+              <span>🎖️</span> <span id="enlargedRewardText">Låser op for titel</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="enlarged-actions" id="enlargedActionsWrap">
+          <div class="state-buttons-row">
+            <button class="btn-state in-progress-btn" id="btnStateInProgress" onclick="setSkillState('in_progress', event)">
+              <i data-lucide="clock" style="width: 17px; height: 17px;"></i>
+              <span data-i18n="state_in_progress">Kan næsten</span>
+            </button>
+            <button class="btn-state achieved-btn" id="btnStateAchieved" onclick="setSkillState('achieved', event)">
+              <i data-lucide="check-circle-2" style="width: 17px; height: 17px;"></i>
+              <span data-i18n="state_achieved">Kan</span>
+            </button>
+          </div>
+          <button class="btn btn-secondary" style="width:100%; font-size:0.78rem;" onclick="closeEnlargedHexModal()" data-i18n="btn_close">Luk</button>
+        </div>
+      </div>
+
+      <!-- NÆSTE RELEVANTE KOMPETENCE CIRKEL -->
+      <div class="next-skill-panel" id="nextSkillPanel" style="display:none;">
+        <div class="next-skill-label" id="nextSkillHeaderLabel" data-i18n="next_relevant_skill">Næste relevante kompetence</div>
+        <div class="next-skill-circle" id="nextSkillCircle" onclick="openNextRelevantSkill(event)">
+          <svg class="circle-svg" viewBox="0 0 100 100">
+            <circle class="circle-outer-ring dashed-frame" cx="50" cy="50" r="46" />
+            <circle class="circle-inner-ring" cx="50" cy="50" r="40" />
+          </svg>
+          <div class="circle-content" style="padding:14px;">
+            <i data-lucide="arrow-right-circle" id="nextSkillIcon" class="circle-icon" style="width:20px; height:20px;"></i>
+            <div class="circle-text" id="nextSkillShortTitle" style="font-size:0.65rem; max-width:95px; -webkit-line-clamp:2;">Næste mål</div>
+            <div id="nextSkillFullDesc" style="font-size:0.52rem; color:var(--text-muted); text-align:center; line-height:1.15; max-width:100px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; margin-top:2px;">Beskrivelse</div>
+            <div class="circle-level" id="nextSkillMetaLvl" style="margin-top:2px;">Niv. 2</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INDSTILLINGER & TEMA MODAL -->
+  <div class="modal" id="settingsModal">
+    <div class="modal-box" style="width: 440px;">
+      <h2 style="margin-top:0;" data-i18n="settings_title">Brugerindstillinger & Tema</h2>
+      <div class="admin-section">
+        <h3 data-i18n="choose_theme">Vælg farvetema</h3>
+        <div class="theme-cards">
+          <div class="theme-card" data-theme-Choice="green-dark" onclick="handleThemeChange('green-dark')">
+            <div class="theme-preview-dots">
+              <span class="theme-dot" style="background:#07120e;"></span>
+              <span class="theme-dot" style="background:#22c55e;"></span>
+            </div>
+            <span data-i18n="theme_green">Grøn / Sort</span>
+          </div>
+          <div class="theme-card" data-theme-choice="blue-dark" onclick="handleThemeChange('blue-dark')">
+            <div class="theme-preview-dots">
+              <span class="theme-dot" style="background:#0b1329;"></span>
+              <span class="theme-dot" style="background:#38bdf8;"></span>
+            </div>
+            <span data-i18n="theme_blue">Blå / Sort</span>
+          </div>
+          <div class="theme-card" data-theme-choice="nordic-light" onclick="handleThemeChange('nordic-light')">
+            <div class="theme-preview-dots">
+              <span class="theme-dot" style="background:#f4f1ea;"></span>
+              <span class="theme-dot" style="background:#0d9488;"></span>
+            </div>
+            <span data-i18n="theme_light">Nordic Light</span>
+          </div>
+        </div>
+      </div>
+      <div class="admin-section" style="border-bottom:none;">
+        <h3 data-i18n="pref_lang">Foretrukket sprog</h3>
+        <select id="settingsLangSelect" onchange="handleLanguageChange(this.value)">
+          <option value="da">🇩🇰 Dansk</option>
+          <option value="en">🇬🇧 English</option>
+          <option value="uk">🇺🇦 Українська</option>
+        </select>
+      </div>
+      <div style="text-align:right;">
+        <button class="btn" onclick="closeSettingsModal()" data-i18n="btn_close">Luk</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADMIN OPRET / REDIGER KOMPETENCE MODAL -->
+  <div class="modal" id="skillEditorModal">
+    <div class="modal-box">
+      <h2 id="skillEditorModalTitle" style="margin-top:0;">Rediger Kompetence</h2>
+      <div class="input-group">
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+          <div>
+            <label style="font-size:0.78rem; color:var(--text-muted);">Unikt ID (f.eks. LAS_FOCUS_SET):</label>
+            <input type="text" id="editSkillId" placeholder="KAT_NAVN">
+          </div>
+          <div>
+            <label style="font-size:0.78rem; color:var(--text-muted);">Sprog:</label>
+            <select id="editSkillLang">
+              <option value="da">Dansk (da)</option>
+              <option value="en">English (en)</option>
+              <option value="uk">Українська (uk)</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 2fr 1fr; gap:10px;">
+          <div>
+            <label style="font-size:0.78rem; color:var(--text-muted);">Kategori:</label>
+            <input type="text" id="editSkillCat" list="existingCategoriesList" placeholder="F.eks. CO2 Laserskæring">
+            <datalist id="existingCategoriesList"></datalist>
+          </div>
+          <div>
+            <label style="font-size:0.78rem; color:var(--text-muted);">Niveau (placering i række):</label>
+            <input type="number" id="editSkillLevel" min="1" max="30" value="1">
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;">
+          <div>
+            <label style="font-size:0.78rem; color:var(--text-muted);">Underkategori (valgfri):</label>
+            <input type="text" id="editSkillSubCat" placeholder="F.eks. Sikkerhed">
+          </div>
+          <div>
+            <label style="font-size:0.78rem; color:var(--text-muted);">Kategori-titel belønning (# = ingen):</label>
+            <input type="text" id="editSkillCatTitle" placeholder="F.eks. Foton-Fører">
+          </div>
+          <div>
+            <label style="font-size:0.78rem; color:var(--text-muted);">Lucide SVG Ikon:</label>
+            <input type="text" id="editSkillSvg" placeholder="flame, box, zap...">
+          </div>
+        </div>
+
+        <div>
+          <label style="font-size:0.78rem; color:var(--text-muted);">Kort Beskrivelse (vises i cirklen):</label>
+          <input type="text" id="editSkillShortDesc" placeholder="Maks 20-25 tegn">
+        </div>
+
+        <div>
+          <label style="font-size:0.78rem; color:var(--text-muted);">Kompetence-beskrivelse (Mål):</label>
+          <textarea id="editSkillFullDesc" rows="2" placeholder="Fuld beskrivelse af kompetencen..."></textarea>
+        </div>
+
+        <div>
+          <label style="font-size:0.78rem; color:var(--text-muted);">Vejledning (Tekst + evt. Billede/YouTube URL):</label>
+          <input type="text" id="editSkillGuideUrl" placeholder="URL til billede eller YouTube/video (valgfri)" style="margin-bottom:5px;">
+          <textarea id="editSkillGuideText" rows="2" placeholder="Trin-for-trin vejledning..."></textarea>
+        </div>
+
+        <div>
+          <label style="font-size:0.78rem; color:var(--text-muted);">Teknisk Info / Ekstra Info (Info-fanen):</label>
+          <textarea id="editSkillInfoText" rows="2" placeholder="Tekniske specifikationer, sikkerhedsdata, materialeparametre..."></textarea>
+        </div>
+      </div>
+
+      <div style="margin-top:15px; display:flex; justify-content:space-between; gap:10px;">
+        <button class="btn btn-danger" id="deleteSkillBtn" onclick="deleteCurrentEditedSkill()" style="display:none;">🗑️ Slet</button>
+        <div style="display:flex; gap:10px; margin-left:auto;">
+          <button class="btn btn-secondary" onclick="closeSkillEditorModal()">Annuller</button>
+          <button class="btn" onclick="saveEditedSkill()">💾 Gem Kompetence</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ELEV SKILLTREE OVERLAY -->
+  <div class="student-tree-modal" id="studentTreeModal">
+    <div class="student-tree-header">
+      <div>
+        <span style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px;" data-i18n="student_view">Elev Oversigt</span>
+        <h2 id="studentTreeName" style="margin:2px 0 0 0; color:var(--accent-primary); font-size:1.15rem;">Elev Navn</h2>
+      </div>
+      <div style="display:flex; align-items:center; gap:15px; flex-wrap:wrap;">
+        <div>
+          <span style="font-size:0.75rem; color:var(--text-muted);" data-i18n="student_achieved_title">Opnået titel: </span>
+          <strong id="studentTreeTitle" style="color:var(--accent-primary); font-size:0.85rem;">-</strong>
+        </div>
+        <div>
+          <span style="font-size:0.75rem; color:var(--text-muted);" data-i18n="student_goal">Mål: </span>
+          <strong id="studentTreeScore" style="color:var(--active-achieved); font-size:0.85rem;">0 / 0</strong>
+        </div>
+        <button class="btn btn-secondary" onclick="closeStudentTreeModal()" data-i18n="btn_close_student">✕ Luk Elev-visning</button>
+      </div>
+    </div>
+    <div class="student-tree-viewport">
+      <div class="honeycomb-grid" id="studentHoneycombGrid"></div>
+    </div>
+  </div>
+
+  <!-- PROMPT: TILMELD HOLD -->
+  <div class="modal" id="joinPromptModal">
+    <div class="modal-box" style="border: 2px solid var(--accent-primary);">
+      <h2 style="margin-top:0; color:var(--accent-primary);" data-i18n="welcome_title">Velkommen til Maker Skill Tree!</h2>
+      <p style="font-size:0.85rem; color:var(--text-main); line-height:1.4;" data-i18n="welcome_desc">
+        Er du tilknyttet et hold eller en workshop? Indtast den 5-bogstavs holdkode, du har fået udleveret af din underviser:
+      </p>
+      <div style="display:flex; gap:8px; margin: 15px 0;">
+        <input type="text" id="promptJoinCodeInput" placeholder="F.eks. EINDH" maxlength="5" style="text-transform: uppercase; font-weight:bold; font-size:1.1rem; letter-spacing:2px; text-align:center; width:140px;">
+        <button class="btn" onclick="handlePromptJoinClass()" data-i18n="btn_join_class">Tilmeld Hold</button>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px; border-top:1px solid var(--inactive-border); padding-top:12px;">
+        <label style="font-size:0.75rem; color:var(--text-muted); display:flex; align-items:center; gap:6px; cursor:pointer;">
+          <input type="checkbox" id="dontShowJoinPromptAgain"> <span data-i18n="dont_show_again">Vis ikke dette vindue igen</span>
+        </label>
+        <button class="btn btn-secondary" onclick="closeJoinPromptModal()" data-i18n="btn_continue_guest">Fortsæt som gæst</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AUTH MODAL -->
+  <div class="modal" id="authModal">
+    <div class="modal-box">
+      <h2 id="authModalTitle" style="margin-top:0;" data-i18n="login_title">Log ind</h2>
+      <div class="input-group">
+        <div id="nameInputWrapper" style="display:none;">
+          <label style="font-size:0.8rem; color:var(--text-muted);" data-i18n="full_name">Dit fulde navn:</label>
+          <input type="text" id="authName" placeholder="F.eks. Lærke Jensen">
+          
+          <label style="font-size:0.8rem; color:var(--text-muted); margin-top:8px; display:block;" data-i18n="pref_lang">Foretrukket sprog:</label>
+          <select id="authPrefLang" style="margin-top:2px;">
+            <option value="da">🇩🇰 Dansk</option>
+            <option value="en">🇬🇧 English</option>
+            <option value="uk">🇺🇦 Українська</option>
+          </select>
+
+          <label style="font-size:0.8rem; color:var(--text-muted); margin-top:8px; display:block;" data-i18n="choose_theme">Vælg tema:</label>
+          <select id="authPrefTheme" style="margin-top:2px;" onchange="handleThemeChange(this.value)">
+            <option value="green-dark" data-i18n="theme_green">🟢 Grøn / Sort (Maker Standard)</option>
+            <option value="blue-dark" data-i18n="theme_blue">🔵 Blå / Sort (Cyber Blue)</option>
+            <option value="nordic-light" data-i18n="theme_light">☀️ Nordic Light (Lyst tema)</option>
+          </select>
+        </div>
+
+        <label style="font-size:0.8rem; color:var(--text-muted);" data-i18n="email">E-mail:</label>
+        <input type="email" id="authEmail" placeholder="elev@skole.dk">
+        
+        <label style="font-size:0.8rem; color:var(--text-muted);" data-i18n="password">Kodeord:</label>
+        <input type="password" id="authPassword" placeholder="••••••••">
+      </div>
+      <div style="margin-top:15px; display:flex; gap:10px; justify-content:flex-end;">
+        <button class="btn btn-secondary" onclick="closeAuthModal()" data-i18n="cancel">Annuller</button>
+        <button class="btn" id="authSubmitBtn" onclick="handleAuthAction()" data-i18n="btn_login">Log ind</button>
+      </div>
+      <div style="margin-top:15px; text-align:center;">
+        <a href="javascript:void(0)" id="authToggleLink" onclick="toggleAuthMode()" style="color:var(--accent-primary); font-size:0.8rem;" data-i18n="link_no_account">Har du ikke en bruger? Opret her</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ELEV HOLD MODAL -->
+  <div class="modal" id="teamModal">
+    <div class="modal-box">
+      <h2 style="margin-top:0;" data-i18n="my_team_header">Mit Hold</h2>
+      <div class="admin-section">
+        <h3 data-i18n="join_team_sub">Tilmeld dig et hold</h3>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin:0 0 10px 0;" data-i18n="join_code_desc">Indtast den 5-bogstavs holdkode du har fået:</p>
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="joinCodeInput" placeholder="F.eks. EINDH" maxlength="5" style="text-transform: uppercase; font-weight:bold; font-size:1.1rem; letter-spacing:2px; text-align:center; width:140px;">
+          <button class="btn" onclick="handleJoinClass()" data-i18n="btn_join">Tilmeld</button>
+        </div>
+      </div>
+      <div class="admin-section" style="border-bottom:none;">
+        <h3 data-i18n="enrolled_teams_sub">Dine tilmeldte hold & visningsfilter</h3>
+        <div id="userClassList"></div>
+      </div>
+      <div style="text-align: right;">
+        <button class="btn" onclick="closeTeamModal()" data-i18n="btn_close">Luk</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUPERBRUGER ADMIN MODAL -->
+  <div class="modal" id="adminModal">
+    <div class="modal-box">
+      <h2 style="margin-top:0;">Superbruger Admin</h2>
+
+      <div class="admin-section">
+        <h3>1. Opret nyt Hold</h3>
+        <div style="display:flex; gap:8px; margin-bottom:12px;">
+          <input type="text" id="newClassNameInput" placeholder="Holdnavn (f.eks. Eindhoven 2026)">
+          <button class="btn" onclick="handleCreateClass()">Opret Hold</button>
+        </div>
+      </div>
+
+      <div class="admin-section">
+        <h3>2. Administrer Hold & Hold-Kategorier</h3>
+        <div id="adminClassList"></div>
+        
+        <div id="adminStudentProgressView" style="display:none; margin-top:15px; background:var(--inner-bg); padding:12px; border-radius:6px; border:1px solid var(--inactive-border);">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <strong id="progressClassTitle" style="color:var(--accent-primary);">Elever på holdet</strong>
+            <button class="btn btn-secondary" style="padding:2px 8px; font-size:0.75rem;" onclick="closeClassProgressView()">✕ Luk oversigt</button>
+          </div>
+          <div id="studentProgressList"></div>
+        </div>
+
+        <div id="adminClassCategoriesView" style="display:none; margin-top:15px; background:var(--inner-bg); padding:12px; border-radius:6px; border:1px solid var(--inactive-border);">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <strong id="classCategoriesTitle" style="color:var(--accent-primary);">Vælg aktive kategorier</strong>
+            <button class="btn btn-secondary" style="padding:2px 8px; font-size:0.75rem;" onclick="closeClassCategoriesView()">✕ Luk</button>
+          </div>
+          <p style="font-size:0.75rem; color:var(--text-muted); margin:0 0 10px 0;">Vælg hvilke kategorier dette hold skal arbejde med:</p>
+          
+          <div class="toolbar-btns">
+            <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="setAllClassCategories(true)">✓ Vælg alle</button>
+            <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="setAllClassCategories(false)">✕ Fjern alle</button>
+          </div>
+
+          <div id="classCategoriesCheckboxes" style="max-height:240px; overflow-y:auto; margin-bottom:12px;"></div>
+          <button class="btn" style="width:100%;" onclick="saveClassCategories()">💾 Gem Hold-Kategorier</button>
+        </div>
+      </div>
+
+      <div class="admin-section">
+        <h3>3. Kompetence-redigering & CSV Import/Eksport</h3>
+        <p style="font-size: 0.78rem; color: var(--text-muted); margin:0 0 10px 0;">
+          Format: Sprog, Kategori, Kategori_Titel, Underkategori, ID, Niveau, SVG_Ikon, Kort_Beskrivelse, Kompetence, Vejledning_URL, Vejledning_Tekst, Info_Tekst
+        </p>
+        <div class="toolbar-btns">
+          <button class="btn btn-warning" onclick="closeAdmin(); toggleAdminEditMode(true);">✏️ Slå Drag & Drop Redigering til på siden</button>
+          <button class="btn" onclick="openSkillEditorModal(null)">➕ Opret Ny Kompetence</button>
+        </div>
+        <div style="display:flex; gap:10px; margin-bottom:10px;">
+          <input type="file" id="csvFileInput" accept=".csv">
+          <button class="btn" onclick="handleFileUpload()">📤 Upload CSV</button>
+        </div>
+        <div class="toolbar-btns">
+          <button class="btn btn-secondary" onclick="exportSkillsCSV(true)">📥 Eksporter kun ændringer (CSV)</button>
+          <button class="btn btn-secondary" onclick="exportSkillsCSV(false)">📥 Eksporter hele Skill Tree (CSV)</button>
+        </div>
+      </div>
+
+      <div class="admin-section">
+        <h3>4. Generelt Synlige Kategorier (Global)</h3>
+        <div class="toolbar-btns">
+          <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="setAllGlobalCategories(true)">✓ Vis alle</button>
+          <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="setAllGlobalCategories(false)">✕ Skjul alle</button>
+        </div>
+        <div id="adminCategoryList" style="max-height:240px; overflow-y:auto;"></div>
+      </div>
+
+      <div class="admin-section" style="border-bottom:none;">
+        <h3>5. Data-styring</h3>
+        <button class="btn btn-danger" onclick="clearAllData()">Ryd Lokal Cache</button>
+      </div>
+
+      <div style="text-align: right;">
+        <button class="btn" onclick="closeAdmin()">Luk</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TITLE SPLASHSCREEN -->
+  <div class="splash-modal" id="titleSplash">
+    <div class="splash-card">
+      <div style="font-size: 3rem; margin-bottom: 10px;" id="splashIcon">👑</div>
+      <h2 style="color: var(--active-achieved); margin: 0 0 5px 0;" id="splashHeader" data-i18n="splash_new_title">NY TITEL OPNÅET!</h2>
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;" id="splashSub" data-i18n="splash_rank_up">Du er steget i rang og mestring:</p>
+      <div id="splashTitleText" style="font-size: 1.35rem; font-weight: bold; color: var(--accent-primary); margin-bottom: 25px;">-</div>
+      <button class="btn" style="width: 100%; padding: 10px;" onclick="closeTitleSplash()" data-i18n="btn_continue">Fortsæt!</button>
+    </div>
+  </div>
+
+  <!-- TUTORIAL -->
+  <div class="tutorial-overlay" id="tutorialOverlay"></div>
+  <div class="tutorial-box" id="tutorialBox" style="display:none;">
+    <h4 id="tutTitle">Velkommen!</h4>
+    <p id="tutText">Dette er en kort introduktion til Maker Skill Tree.</p>
+    <div class="tutorial-nav">
+      <span id="tutStepCount" style="font-size:0.75rem; color:var(--text-muted);">Trin 1 / 5</span>
+      <div>
+        <button class="btn btn-secondary" style="padding:4px 10px; font-size:0.75rem;" onclick="closeTutorial()" data-i18n="tut_skip">Spring over</button>
+        <button class="btn" style="padding:4px 10px; font-size:0.75rem; margin-left:5px;" id="tutNextBtn" onclick="nextTutorialStep()">Næste ➔</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://roxcgmhqtyenmhdubzig.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJveGNnbWhxdHllbm1oZHViemlnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5NjA3MTgsImV4cCI6MjEwMjUzNjcxOH0.ZBs7GtWZX02ZVTig88DDq-CCSWuGGSGqzvJxdwcsY1g';
+    
+    let supabaseClient = null;
+    if (SUPABASE_URL && !SUPABASE_URL.includes('INDSÆT_DIN_SUPABASE')) {
+      supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+
+    let currentLang = localStorage.getItem('ms_language') || 'da';
+    let currentTheme = localStorage.getItem('ms_theme') || 'green-dark';
+
+    const TRANSLATIONS = {
+      da: {
+        maker_default: "🛠️ Maker Skills (Standard)",
+        show_all: "🌐 Vis Alt (Alle moduler)",
+        btn_theme: "Tema",
+        btn_guide: "❓ Guide",
+        btn_team: "👥 Mit Hold",
+        btn_admin: "⚙️ Superbruger",
+        btn_edit_tree: "Rediger Træ",
+        btn_login: "🔑 Log ind",
+        btn_logout: "🚪 Log ud",
+        lbl_name: "Navn:",
+        lbl_class: "Hold:",
+        lbl_title: "Titel:",
+        lbl_score: "Opnåede kompetencer:",
+        guest: "Gæst",
+        no_class: "Intet hold",
+        participant: "Deltager",
+        level: "Niveau",
+        tab_desc: "Mål",
+        tab_guide: "Vejledning",
+        tab_info: "Info",
+        guide_coming: "Vejledning tilføjes snart.",
+        info_coming: "Ingen ekstra teknisk info angivet.",
+        state_in_progress: "Kan næsten",
+        state_achieved: "Kan",
+        next_relevant_skill: "Næste relevante kompetence",
+        suggested_skill: "Foreslået ny kompetence",
+        student_view: "Elev Oversigt",
+        student_achieved_title: "Opnået titel:",
+        student_goal: "mål",
+        btn_close_student: "✕ Luk Elev-visning",
+        welcome_title: "Velkommen til Maker Skill Tree!",
+        welcome_desc: "Er du tilknyttet et hold eller en workshop? Indtast den 5-bogstavs holdkode, du har fået udleveret af din underviser:",
+        btn_join_class: "Tilmeld Hold",
+        dont_show_again: "Vis ikke dette vindue igen",
+        btn_continue_guest: "Fortsæt som gæst",
+        login_title: "Log ind",
+        signup_title: "Opret Bruger",
+        full_name: "Dit fulde navn:",
+        pref_lang: "Foretrukket sprog:",
+        choose_theme: "Vælg farvetema:",
+        theme_green: "Grøn / Sort",
+        theme_blue: "Blå / Sort",
+        theme_light: "Nordic Light",
+        settings_title: "Brugerindstillinger & Tema",
+        email: "E-mail:",
+        password: "Kodeord:",
+        cancel: "Annuller",
+        btn_create_profile: "Opret Profil",
+        link_no_account: "Har du ikke en bruger? Opret her",
+        link_has_account: "Har du allerede en bruger? Log ind her",
+        my_team_header: "Mit Hold",
+        join_team_sub: "Tilmeld dig et hold",
+        join_code_desc: "Indtast den 5-bogstavs holdkode du har fået:",
+        btn_join: "Tilmeld",
+        enrolled_teams_sub: "Dine tilmeldte hold & visningsfilter",
+        btn_close: "Luk",
+        splash_new_title: "NY TITEL OPNÅET!",
+        splash_rank_up: "Du er steget i rang og mestring:",
+        btn_continue: "Fortsæt!",
+        splash_wizard: "EKSLUSIV MESTERRANG!",
+        splash_wizard_desc: "Du har opnået en sjælden overordnet titel:",
+        titles_count: "opnåede titler",
+        fold_hide: "▲ Skjul",
+        fold_show: "▼ Vis",
+        tut_skip: "Spring over",
+        tut_next: "Næste ➔",
+        tut_finish: "Afslut",
+        tut_step: "Trin",
+        tut_1_title: "🔑 1. Login & Tema",
+        tut_1_text: "Opret en bruger og vælg dit foretrukne farvetema (Grøn/Sort, Blå/Sort eller Nordic Light).",
+        tut_2_title: "👥 2. Tilmeld Hold & Vælg Visning",
+        tut_2_text: "Tilmeld dig et hold med en 5-bogstavs kode, eller skift mellem dine tilmeldte hold i menuen.",
+        tut_3_title: "⚙️ 3. Superbruger & Live Redigering",
+        tut_3_text: "Som admin kan du trække cirkler rundt mellem niveauer og kategorier samt eksportere til CSV.",
+        tut_4_title: "🟢 4. Cirkler: 'Kan næsten' & 'Kan'",
+        tut_4_text: "Klik på en cirkel for at læse mål, vejledning og teknisk info, eller hop direkte til næste relevante kompetence!",
+        tut_5_title: "👤 5. Status & Tæller",
+        tut_5_text: "Nederst kan du se dit navn, aktivt hold, opnåede titler og tælleren."
+      },
+      en: {
+        maker_default: "🛠️ Maker Skills (Default)",
+        show_all: "🌐 View All (All modules)",
+        btn_theme: "Theme",
+        btn_guide: "❓ Guide",
+        btn_team: "👥 My Class",
+        btn_admin: "⚙️ Admin",
+        btn_edit_tree: "Edit Tree",
+        btn_login: "🔑 Log in",
+        btn_logout: "🚪 Log out",
+        lbl_name: "Name:",
+        lbl_class: "Class:",
+        lbl_title: "Title:",
+        lbl_score: "Achieved skills:",
+        guest: "Guest",
+        no_class: "No class",
+        participant: "Participant",
+        level: "Level",
+        tab_desc: "Goal",
+        tab_guide: "Guide",
+        tab_info: "Info",
+        guide_coming: "Instructions coming soon.",
+        info_coming: "No additional technical info provided.",
+        state_in_progress: "In progress",
+        state_achieved: "Achieved",
+        next_relevant_skill: "Next relevant skill",
+        suggested_skill: "Suggested next skill",
+        student_view: "Student Overview",
+        student_achieved_title: "Achieved title:",
+        student_goal: "goals",
+        btn_close_student: "✕ Close Student View",
+        welcome_title: "Welcome to Maker Skill Tree!",
+        welcome_desc: "Are you part of a class or workshop? Enter the 5-letter class code provided by your instructor:",
+        btn_join_class: "Join Class",
+        dont_show_again: "Do not show this window again",
+        btn_continue_guest: "Continue as guest",
+        login_title: "Log in",
+        signup_title: "Sign up",
+        full_name: "Full name:",
+        pref_lang: "Preferred language:",
+        choose_theme: "Choose theme:",
+        theme_green: "Green / Black",
+        theme_blue: "Blue / Black",
+        theme_light: "Nordic Light",
+        settings_title: "User Settings & Theme",
+        email: "Email:",
+        password: "Password:",
+        cancel: "Cancel",
+        btn_create_profile: "Create Profile",
+        link_no_account: "Don't have an account? Sign up here",
+        link_has_account: "Already have an account? Log in here",
+        my_team_header: "My Class",
+        join_team_sub: "Join a class",
+        join_code_desc: "Enter the 5-letter class code you received:",
+        btn_join: "Join",
+        enrolled_teams_sub: "Your enrolled classes & view filter",
+        btn_close: "Close",
+        splash_new_title: "NEW TITLE ACHIEVED!",
+        splash_rank_up: "You leveled up in mastery:",
+        btn_continue: "Continue!",
+        splash_wizard: "EXCLUSIVE MASTER RANK!",
+        splash_wizard_desc: "You unlocked a rare overall title:",
+        titles_count: "titles unlocked",
+        fold_hide: "▲ Hide",
+        fold_show: "▼ Show",
+        tut_skip: "Skip",
+        tut_next: "Next ➔",
+        tut_finish: "Finish",
+        tut_step: "Step",
+        tut_1_title: "🔑 1. Login & Theme",
+        tut_1_text: "Create an account and choose your preferred color theme.",
+        tut_2_title: "👥 2. Join Class & View Filter",
+        tut_2_text: "Join a class with a 5-letter code or switch between active classes in the menu.",
+        tut_3_title: "⚙️ 3. Superuser Admin",
+        tut_3_text: "Drag and drop skill circles to reorder levels and export changes as CSV.",
+        tut_4_title: "🟢 4. Open & Achieve Skills",
+        tut_4_text: "Click a circle to view instructions, technical info, and mark it as 'In progress' or 'Achieved'!",
+        tut_5_title: "👤 5. Status & Progress",
+        tut_5_text: "At the bottom you can see your name, class, unlocked titles and counter."
+      },
+      uk: {
+        maker_default: "🛠️ Мейкер-навички (Стандарт)",
+        show_all: "🌐 Показати все (Усі модулі)",
+        btn_theme: "Тема",
+        btn_guide: "❓ Інструкція",
+        btn_team: "👥 Моя група",
+        btn_admin: "⚙️ Адмін",
+        btn_edit_tree: "Редагувати",
+        btn_login: "🔑 Увійти",
+        btn_logout: "🚪 Вийти",
+        lbl_name: "Ім'я:",
+        lbl_class: "Група:",
+        lbl_title: "Титул:",
+        lbl_score: "Отримані навички:",
+        guest: "Гість",
+        no_class: "Немає групи",
+        participant: "Учасник",
+        level: "Рівень",
+        tab_desc: "Мета",
+        tab_guide: "Інструкція",
+        tab_info: "Інфо",
+        guide_coming: "Інструкція незабаром.",
+        info_coming: "Додаткова технічна інформація відсутня.",
+        state_in_progress: "Майже вмію",
+        state_achieved: "Вмію",
+        next_relevant_skill: "Наступна відповідна навичка",
+        suggested_skill: "Рекомендована навичка",
+        student_view: "Огляд учня",
+        student_achieved_title: "Отриманий титул:",
+        student_goal: "цілей",
+        btn_close_student: "✕ Закрити огляд",
+        welcome_title: "Ласкаво просимо до Maker Skill Tree!",
+        welcome_desc: "Ви берете участь у групі чи воркшопі? Введіть 5-значний код групи, отриманий від викладача:",
+        btn_join_class: "Приєднатися до групи",
+        dont_show_again: "Більше не показувати це вікно",
+        btn_continue_guest: "Продовжити як гість",
+        login_title: "Вхід",
+        signup_title: "Реєстрація",
+        full_name: "Ваше повне ім'я:",
+        pref_lang: "Бажана мова:",
+        choose_theme: "Оберіть тему:",
+        theme_green: "Зелена / Чорна",
+        theme_blue: "Синя / Чорна",
+        theme_light: "Nordic Light",
+        settings_title: "Налаштування та тема",
+        email: "Електронна пошта:",
+        password: "Пароль:",
+        cancel: "Скасувати",
+        btn_create_profile: "Створити профіль",
+        link_no_account: "Немає облікового запису? Зареєструйтесь",
+        link_has_account: "Вже маєте обліковий запис? Увійдіть",
+        my_team_header: "Моя група",
+        join_team_sub: "Приєднатися до групи",
+        join_code_desc: "Введіть 5-значний код групи:",
+        btn_join: "Приєднатися",
+        enrolled_teams_sub: "Ваші групи та фільтр перегляду",
+        btn_close: "Закрити",
+        splash_new_title: "НОВИЙ ТИТУЛ ОТРИМАНО!",
+        splash_rank_up: "Ви підвищили свій рівень майстерності:",
+        btn_continue: "Продовжити!",
+        splash_wizard: "ЕКСКЛЮЗИВНИЙ РАНГ МАЙСТРА!",
+        splash_wizard_desc: "Вам присвоєно особливий загальний титул:",
+        titles_count: "отриманих титулів",
+        fold_hide: "▲ Приховати",
+        fold_show: "▼ Показати",
+        tut_skip: "Пропустити",
+        tut_next: "Далі ➔",
+        tut_finish: "Завершити",
+        tut_step: "Крок",
+        tut_1_title: "🔑 1. Вхід та тема",
+        tut_1_text: "Створіть обліковий запис та оберіть кольорову тему.",
+        tut_2_title: "👥 2. Приєднання до групи",
+        tut_2_text: "Приєднуйтесь до групи за 5-значним кодом або перемикайтеся між своїми групами в меню.",
+        tut_3_title: "⚙️ 3. Адміністрування",
+        tut_3_text: "Створюйте групи, редагуйте навички або завантажуйте нові CSV-файли.",
+        tut_4_title: "🟢 4. Відкривайте навички",
+        tut_4_text: "Натисніть на коло, щоб прочитати опис, інструкцію та позначити прогрес!",
+        tut_5_title: "👤 5. Статус і лічильник",
+        tut_5_text: "Знизу відображаються ваше ім'я, активна група, титули та лічильник прогресу."
+      }
+    };
+
+    function t(key) {
+      return (TRANSLATIONS[currentLang] && TRANSLATIONS[currentLang][key]) || TRANSLATIONS.da[key] || key;
+    }
+
+    function applyTheme(themeName) {
+      currentTheme = themeName || 'green-dark';
+      document.documentElement.setAttribute('data-theme', currentTheme);
+      localStorage.setItem('ms_theme', currentTheme);
+      document.querySelectorAll('.theme-card').forEach(card => {
+        card.classList.toggle('active', card.getAttribute('data-theme-choice') === currentTheme);
+      });
+      const authThemeSel = document.getElementById('authPrefTheme');
+      if (authThemeSel) authThemeSel.value = currentTheme;
+    }
+
+    async function handleThemeChange(newTheme) {
+      applyTheme(newTheme);
+      if (currentUser && supabaseClient) {
+        try {
+          await supabaseClient.from('profiles').update({ theme: newTheme }).eq('id', currentUser.id);
+        } catch (e) {}
+      }
+    }
+
+    function openSettingsModal() {
+      applyTheme(currentTheme);
+      const sel = document.getElementById('settingsLangSelect');
+      if (sel) sel.value = currentLang;
+      document.getElementById('settingsModal').style.display = 'flex';
+    }
+    function closeSettingsModal() {
+      document.getElementById('settingsModal').style.display = 'none';
+    }
+
+    function applyTranslations() {
+      document.documentElement.lang = currentLang;
+      const langSel = document.getElementById('userLangSelect');
+      if (langSel) langSel.value = currentLang;
+
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        el.innerText = t(key);
+      });
+
+      if (!currentUser) {
+        document.getElementById('authBtn').innerText = t('btn_login');
+        document.getElementById('footerUserName').innerText = t('guest');
+        document.getElementById('footerUserClass').innerText = t('no_class');
+        document.getElementById('footerUserTitle').innerText = t('participant');
+      } else {
+        document.getElementById('authBtn').innerText = t('btn_logout');
+      }
+
+      if (isSignUpMode) {
+        document.getElementById('authModalTitle').innerText = t('signup_title');
+        document.getElementById('authSubmitBtn').innerText = t('btn_create_profile');
+        document.getElementById('authToggleLink').innerText = t('link_has_account');
+      } else {
+        document.getElementById('authModalTitle').innerText = t('login_title');
+        document.getElementById('authSubmitBtn').innerText = t('btn_login');
+        document.getElementById('authToggleLink').innerText = t('link_no_account');
+      }
+    }
+
+    async function handleLanguageChange(newLang) {
+      currentLang = newLang;
+      localStorage.setItem('ms_language', newLang);
+
+      if (currentUser && supabaseClient) {
+        supabaseClient.from('profiles').update({ preferred_language: newLang }).eq('id', currentUser.id);
+      }
+
+      applyTranslations();
+      updateViewFilterOptions();
+      renderApp();
+    }
+
+    const DOMAIN_MAP = {
+      'Filhåndtering': '💻 Software',
+      'Vektorgrafik': '💻 Software',
+      'Rastergrafik': '💻 Software',
+      '3D-Modellering': '💻 Software',
+
+      'CO2 Laserskæring': '⚙️ Maskiner',
+      'Laserskæring': '⚙️ Maskiner',
+      '3D-Printning': '⚙️ Maskiner',
+      'Folieskæring': '⚙️ Maskiner',
+      'Digitalt Broderi': '⚙️ Maskiner',
+      'Materialekendskab': '⚙️ Maskiner',
+
+      'Elektronik': '🔌 Hardware og Elektronik',
+      'Microcontroller': '🔌 Hardware og Elektronik',
+
+      'Værkstedskultur': '🤝 Værkstedskultur',
+
+      'Netværk & Fællesskab': '👥 Fællesskab & Netværk',
+      'Pædagogik & Praksis': '🎓 Didaktik & Facilitering',
+      'Entreprenørskab': '💼 Forretning & Værksted',
+      'Kultur & Oplevelse': '✨ Maker Faire & Kultur'
+    };
+
+    const DOMAIN_ORDER = [
+      '💻 Software', 
+      '⚙️ Maskiner', 
+      '🔌 Hardware og Elektronik', 
+      '🤝 Værkstedskultur',
+      '👥 Fællesskab & Netværk',
+      '🎓 Didaktik & Facilitering',
+      '💼 Forretning & Værksted',
+      '✨ Maker Faire & Kultur'
+    ];
+
+    const MAKER_DEFAULT_DOMAINS = [
+      '💻 Software', 
+      '⚙️ Maskiner', 
+      '🔌 Hardware og Elektronik', 
+      '🤝 Værkstedskultur'
+    ];
+
+    function isSkillAchieved(progressMap, skillId) {
+      const val = progressMap[skillId];
+      return val === true || val === 'achieved';
+    }
+
+    function isSkillInProgress(progressMap, skillId) {
+      return progressMap[skillId] === 'in_progress';
+    }
+
+    function getUnlockedCategoryTitles(catName, skillsList, progress) {
+      const catSkills = skillsList.filter(s => s.cat === catName).sort((a, b) => a.level - b.level);
+      const unlocked = [];
+
+      for (let i = 0; i < catSkills.length; i++) {
+        const s = catSkills[i];
+        const title = (s.catTitle || '').trim();
+        if (title && title !== '#' && title !== '-' && title.toLowerCase() !== 'null') {
+          const allPriorDone = catSkills.slice(0, i + 1).every(prevSkill => isSkillAchieved(progress, prevSkill.id));
+          if (allPriorDone) {
+            unlocked.push({ title: title, skillId: s.id, level: s.level });
+          }
+        }
+      }
+      return unlocked;
+    }
+
+    function getLatestCategoryTitle(catName, skillsList, progress) {
+      const titles = getUnlockedCategoryTitles(catName, skillsList, progress);
+      if (titles.length === 0) return null;
+      return titles[titles.length - 1].title;
+    }
+
+    function calculateGlobalTitle(allSkillsList, progress) {
+      if (allSkillsList.length === 0) return t('participant');
+
+      const totalCompleted = allSkillsList.filter(s => isSkillAchieved(progress, s.id)).length;
+      const currentYear = new Date().getFullYear();
+
+      if (totalCompleted === allSkillsList.length && allSkillsList.length > 0) {
+        return `Maker-Guru ${currentYear}`;
+      }
+
+      const allCats = [...new Set(allSkillsList.map(s => s.cat))];
+      const allCatsHaveTitle = allCats.length > 0 && allCats.every(c => getUnlockedCategoryTitles(c, allSkillsList, progress).length > 0);
+      const advancedCompleted = allSkillsList.filter(s => s.level >= 5 && isSkillAchieved(progress, s.id)).length;
+
+      if (allCatsHaveTitle && advancedCompleted >= 8) {
+        return (currentLang === 'uk' ? `Майстер Майстерні ${currentYear}` : (currentLang === 'en' ? `Workshop Wizard ${currentYear}` : `Værksteds-Troldmand ${currentYear}`));
+      }
+
+      let totalBadges = 0;
+      allCats.forEach(c => {
+        totalBadges += getUnlockedCategoryTitles(c, allSkillsList, progress).length;
+      });
+
+      if (totalBadges > 0) {
+        return `${totalBadges} ${t('titles_count')}`;
+      }
+
+      return t('participant');
+    }
+
+    let allSkills = [];
+    let modifiedSkillKeys = new Set(JSON.parse(localStorage.getItem('ms_modifiedSkills') || '[]'));
+    let hiddenCats = JSON.parse(localStorage.getItem('ms_hiddenCats')) || [];
+    let userProgress = {};
+    let currentUser = null;
+    let currentUserIsAdmin = false;
+    let adminEditMode = false;
+    let currentUserName = "Gæst";
+    let currentUserClass = "Intet hold";
+    let userEnrolledClasses = [];
+    let selectedViewFilter = localStorage.getItem('ms_selectedViewFilter') || 'MAKER_DEFAULT';
+    let manualSubCatExpanded = {};
+    let isSignUpMode = false;
+    let editingClassId = null;
+    let activeEnlargedSkill = null;
+    let activeNextSuggestedSkill = null;
+    let activeSkillTab = 'desc';
+    let activeInspectionClassCategories = null;
+    let draggedSkill = null;
+
+    function markSkillModified(lang, id) {
+      modifiedSkillKeys.add(`${lang || 'da'}_${id}`);
+      localStorage.setItem('ms_modifiedSkills', JSON.stringify(Array.from(modifiedSkillKeys)));
+      const lbl = document.getElementById('modifiedCountLabel');
+      if (lbl) lbl.innerText = modifiedSkillKeys.size;
+    }
+
+    function generate5LetterCode() {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      let code = '';
+      for (let i = 0; i < 5; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return code;
+    }
+
+    function sanitizeIcon(iconName) {
+      if (!iconName) return 'folder';
+      const clean = iconName.toLowerCase().trim();
+      if (clean === 'spline-pointer' || clean === 'spline') return 'pen-tool';
+      if (clean === 'squares-unite') return 'shapes';
+      if (clean === 'axis-3d') return 'box';
+      if (clean === 'spool') return 'disc';
+      return clean;
+    }
+
+    function parseCSVLine(line) {
+      const result = [];
+      let current = '';
+      let inQuotes = false;
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        if (char === '"') {
+          if (inQuotes && line[i + 1] === '"') {
+            current += '"';
+            i++;
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (char === ',' && !inQuotes) {
+          result.push(current.trim());
+          current = '';
+        } else {
+          current += char;
+        }
+      }
+      result.push(current.trim());
+      return result;
+    }
+
+    async function parseCSVText(text, showAlert = true) {
+      const lines = text.trim().split(/\r?\n/);
+      if (lines.length < 2) return;
+
+      const header = parseCSVLine(lines[0]).map(h => h.toLowerCase().trim());
+      const langIdx = header.findIndex(h => h === 'sprog' || h === 'lang' || h === 'language');
+      const catIdx = header.indexOf('kategori');
+      const catTitleIdx = header.indexOf('kategori_titel');
+      const subCatIdx = header.indexOf('underkategori');
+      const idIdx = header.indexOf('id');
+      const lvlIdx = header.indexOf('niveau');
+      const iconIdx = header.indexOf('svg_ikon');
+      const shortDescIdx = header.indexOf('kort_beskrivelse');
+      const descIdx = header.indexOf('kompetence');
+      const guideUrlIdx = header.findIndex(h => h === 'vejledning_url' || h === 'guide_url');
+      const guideTextIdx = header.findIndex(h => h === 'vejledning_tekst' || h === 'guide_text' || h === 'vejledning');
+      const infoTextIdx = header.findIndex(h => h === 'info_tekst' || h === 'info_text' || h === 'info');
+
+      const rowsToUpsert = [];
+
+      for (let i = 1; i < lines.length; i++) {
+        if (!lines[i].trim()) continue;
+        const values = parseCSVLine(lines[i]);
+        if (values.length < 5) continue;
+
+        const lang = (langIdx >= 0 ? values[langIdx] : 'da').toLowerCase().trim() || 'da';
+        const category = (catIdx >= 0 ? values[catIdx] : values[langIdx >= 0 ? 1 : 0]) || '';
+        const id = (idIdx >= 0 ? values[idIdx] : values[langIdx >= 0 ? 4 : 3]) || '';
+        if (!id) continue;
+
+        const rawCatTitle = catTitleIdx >= 0 ? values[catTitleIdx] : '';
+        const catTitle = (rawCatTitle && rawCatTitle !== '#') ? rawCatTitle.trim() : '#';
+
+        const skillObj = {
+          lang: lang,
+          domain: DOMAIN_MAP[category.trim()] || '💻 Software',
+          category: category.trim(),
+          category_title: catTitle,
+          subcategory: (subCatIdx >= 0 ? values[subCatIdx] : '') || '',
+          id: id.trim(),
+          level: parseInt((lvlIdx >= 0 ? values[lvlIdx] : 1), 10) || 1,
+          svg_icon: sanitizeIcon(iconIdx >= 0 ? values[iconIdx] : 'folder'),
+          short_desc: ((shortDescIdx >= 0 ? values[shortDescIdx] : '') || '').trim(),
+          full_desc: ((descIdx >= 0 ? values[descIdx] : '') || '').replace(/^"|"$/g, '').trim(),
+          guide_url: guideUrlIdx >= 0 ? (values[guideUrlIdx] || '').trim() : '',
+          guide_text: guideTextIdx >= 0 ? (values[guideTextIdx] || '').trim() : '',
+          info_text: infoTextIdx >= 0 ? (values[infoTextIdx] || '').trim() : ''
+        };
+
+        rowsToUpsert.push(skillObj);
+      }
+
+      await syncSkillsListToSupabaseAndLocal(rowsToUpsert, showAlert);
+    }
+
+    async function syncSkillsListToSupabaseAndLocal(rowsToUpsert, showAlert = false) {
+      if (supabaseClient) {
+        try {
+          let { error } = await supabaseClient
+            .from('skills')
+            .upsert(rowsToUpsert, { onConflict: 'id, lang' });
+
+          if (error) {
+            // Fallback hvis guide_url, guide_text, info_text kolonnerne ikke er tilføjet i Supabase endnu
+            const coreRows = rowsToUpsert.map(r => ({
+              lang: r.lang,
+              domain: r.domain,
+              category: r.category,
+              category_title: r.category_title,
+              subcategory: r.subcategory,
+              id: r.id,
+              level: r.level,
+              svg_icon: r.svg_icon,
+              short_desc: r.short_desc,
+              full_desc: r.full_desc
+            }));
+            const res2 = await supabaseClient.from('skills').upsert(coreRows, { onConflict: 'id, lang' });
+            if (res2.error) {
+              await supabaseClient.from('skills').upsert(coreRows, { onConflict: 'id' });
+            }
+          }
+        } catch (err) {
+          console.error('Supabase sync advarsel:', err);
+        }
+      }
+
+      const existingMap = new Map(allSkills.map(s => [`${s.lang || 'da'}_${s.id}`, s]));
+      rowsToUpsert.forEach(r => {
+        existingMap.set(`${r.lang}_${r.id}`, {
+          lang: r.lang,
+          cat: r.category,
+          catTitle: r.category_title,
+          subCat: r.subcategory,
+          id: r.id,
+          level: r.level,
+          svg: r.svg_icon,
+          shortDesc: r.short_desc,
+          fullDesc: r.full_desc,
+          guideUrl: r.guide_url || '',
+          guideText: r.guide_text || '',
+          infoText: r.info_text || ''
+        });
+      });
+      allSkills = Array.from(existingMap.values());
+      localStorage.setItem('ms_allSkills', JSON.stringify(allSkills));
+
+      if (showAlert) alert(`Succes: ${rowsToUpsert.length} kompetencer opdateret!`);
+      updateViewFilterOptions();
+      renderApp();
+      if (document.getElementById('adminModal').style.display === 'flex') renderAdmin();
+    }
+
+    function escapeCSVField(val) {
+      const str = String(val ?? '');
+      if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    }
+
+    function exportSkillsCSV(onlyChanges = false) {
+      let targetSkills = [...allSkills];
+      if (onlyChanges) {
+        targetSkills = targetSkills.filter(s => modifiedSkillKeys.has(`${s.lang || 'da'}_${s.id}`));
+        if (targetSkills.length === 0) {
+          alert('Der er ingen registrerede ændringer endnu. Rediger eller flyt en kompetence først.');
+          return;
+        }
+      }
+
+      targetSkills.sort((a, b) => {
+        if ((a.lang || 'da') !== (b.lang || 'da')) return (a.lang || 'da').localeCompare(b.lang || 'da');
+        if (a.cat !== b.cat) return a.cat.localeCompare(b.cat);
+        return a.level - b.level;
+      });
+
+      const headers = [
+        'Sprog', 'Kategori', 'Kategori_Titel', 'Underkategori',
+        'ID', 'Niveau', 'SVG_Ikon', 'Kort_Beskrivelse', 'Kompetence',
+        'Vejledning_URL', 'Vejledning_Tekst', 'Info_Tekst'
+      ];
+
+      const csvRows = [headers.join(',')];
+      targetSkills.forEach(s => {
+        csvRows.push([
+          escapeCSVField(s.lang || 'da'),
+          escapeCSVField(s.cat),
+          escapeCSVField(s.catTitle || '#'),
+          escapeCSVField(s.subCat || ''),
+          escapeCSVField(s.id),
+          escapeCSVField(s.level),
+          escapeCSVField(s.svg || 'folder'),
+          escapeCSVField(s.shortDesc || ''),
+          escapeCSVField(s.fullDesc || ''),
+          escapeCSVField(s.guideUrl || ''),
+          escapeCSVField(s.guideText || ''),
+          escapeCSVField(s.infoText || '')
+        ].join(','));
+      });
+
+      const blob = new Blob(["\uFEFF" + csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const dateStr = new Date().toISOString().slice(0, 10);
+      a.download = onlyChanges ? `makerskilltree-aendringer-${dateStr}.csv` : `makerskilltree-komplet-${dateStr}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function handleFileUpload() {
+      const fileInput = document.getElementById('csvFileInput');
+      const file = fileInput.files[0];
+      if (!file) {
+        alert('Vælg venligst en CSV-fil først.');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        await parseCSVText(e.target.result, true);
+        fileInput.value = '';
+      };
+      reader.readAsText(file);
+    }
+
+    async function checkUserRole(userId) {
+      if (!supabaseClient || !userId) return false;
+      try {
+        const { data, error } = await supabaseClient
+          .from('profiles')
+          .select('role')
+          .eq('id', userId)
+          .maybeSingle();
+
+        if (error || !data) return false;
+        return data.role === 'admin' || data.role === 'teacher';
+      } catch (e) {
+        return false;
+      }
+    }
+
+    async function ensureUserProfile(user, preferredLanguage = 'da', preferredTheme = 'green-dark') {
+      if (!supabaseClient || !user) return;
+      try {
+        const { data } = await supabaseClient
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        if (!data) {
+          const fallbackName = user.user_metadata?.full_name || user.email.split('@')[0];
+          await supabaseClient.from('profiles').insert({
+            id: user.id,
+            username: user.email.split('@')[0],
+            full_name: fallbackName,
+            role: 'student',
+            preferred_language: preferredLanguage,
+            theme: preferredTheme
+          });
+        } else {
+          if (data.preferred_language) {
+            currentLang = data.preferred_language;
+            localStorage.setItem('ms_language', currentLang);
+          }
+          if (data.theme) {
+            applyTheme(data.theme);
+          }
+        }
+      } catch (e) {
+        console.error('Kunne ikke sikre profil:', e);
+      }
+    }
+
+    async function initData() {
+      applyTheme(currentTheme);
+      applyTranslations();
+
+      const localCachedSkills = JSON.parse(localStorage.getItem('ms_allSkills'));
+      if (localCachedSkills && localCachedSkills.length > 0) {
+        allSkills = localCachedSkills;
+      }
+
+      const lbl = document.getElementById('modifiedCountLabel');
+      if (lbl) lbl.innerText = modifiedSkillKeys.size;
+
+      if (!supabaseClient) {
+        userProgress = JSON.parse(localStorage.getItem('ms_local_progress')) || {};
+        updateViewFilterOptions();
+        renderApp();
+        return;
+      }
+
+      try {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (session) {
+          currentUser = session.user;
+          await ensureUserProfile(currentUser);
+          
+          const { data: prof } = await supabaseClient
+            .from('profiles')
+            .select('*')
+            .eq('id', currentUser.id)
+            .maybeSingle();
+
+          currentUserName = prof?.full_name || currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
+          if (prof?.preferred_language) {
+            currentLang = prof.preferred_language;
+            localStorage.setItem('ms_language', currentLang);
+            applyTranslations();
+          }
+          if (prof?.theme) {
+            applyTheme(prof.theme);
+          }
+
+          currentUserIsAdmin = prof?.role === 'admin' || prof?.role === 'teacher';
+          
+          updateAuthUI(true, currentUserName, currentUserIsAdmin);
+          await fetchUserProgress();
+          await fetchUserClass();
+          checkShowJoinPrompt();
+        } else {
+          userProgress = JSON.parse(localStorage.getItem('ms_local_progress')) || {};
+          updateAuthUI(false);
+        }
+
+        const { data: skillsData, error: skillsError } = await supabaseClient
+          .from('skills')
+          .select('*')
+          .order('level', { ascending: true });
+
+        if (!skillsError && skillsData && skillsData.length > 0) {
+          const localExtras = new Map((localCachedSkills || []).map(s => [`${s.lang || 'da'}_${s.id}`, s]));
+          allSkills = skillsData.map(s => {
+            const loc = localExtras.get(`${s.lang || 'da'}_${s.id}`) || {};
+            return {
+              lang: s.lang || 'da',
+              cat: s.category,
+              catTitle: s.category_title || '#',
+              subCat: s.subcategory || '',
+              id: s.id,
+              level: s.level,
+              svg: sanitizeIcon(s.svg_icon),
+              shortDesc: s.short_desc,
+              fullDesc: s.full_desc,
+              guideUrl: s.guide_url || loc.guideUrl || '',
+              guideText: s.guide_text || loc.guideText || '',
+              infoText: s.info_text || loc.infoText || ''
+            };
+          });
+          localStorage.setItem('ms_allSkills', JSON.stringify(allSkills));
+        }
+
+        updateViewFilterOptions();
+        renderApp();
+      } catch (err) {
+        console.error('Fejl under initialisering:', err);
+        updateViewFilterOptions();
+        renderApp();
+      }
+    }
+
+    function checkShowJoinPrompt() {
+      const hidePrompt = localStorage.getItem('ms_hide_join_prompt');
+      if (currentUser && userEnrolledClasses.length === 0 && !hidePrompt) {
+        setTimeout(() => {
+          document.getElementById('joinPromptModal').style.display = 'flex';
+        }, 800);
+      }
+    }
+
+    function closeJoinPromptModal() {
+      if (document.getElementById('dontShowJoinPromptAgain').checked) {
+        localStorage.setItem('ms_hide_join_prompt', 'true');
+      }
+      document.getElementById('joinPromptModal').style.display = 'none';
+    }
+
+    async function handlePromptJoinClass() {
+      const codeInput = document.getElementById('promptJoinCodeInput');
+      const code = codeInput.value.trim().toUpperCase();
+
+      if (code.length !== 5) {
+        alert(t('join_code_desc'));
+        return;
+      }
+
+      const { data: classData, error: findError } = await supabaseClient
+        .from('classes')
+        .select('id, name')
+        .ilike('invite_code', code)
+        .maybeSingle();
+
+      if (findError || !classData) {
+        alert('Fandt intet hold med koden: ' + code);
+        return;
+      }
+
+      const { error: joinError } = await supabaseClient
+        .from('class_members')
+        .insert({ class_id: classData.id, user_id: currentUser.id });
+
+      if (joinError) {
+        alert('Du er allerede tilmeldt dette hold eller der opstod en fejl.');
+      } else {
+        alert(`Du er nu tilmeldt holdet: ${classData.name}!`);
+        closeJoinPromptModal();
+        await fetchUserClass();
+        handleViewFilterChange(classData.id);
+      }
+    }
+
+    async function fetchUserProgress() {
+      if (!currentUser || !supabaseClient) return;
+      try {
+        const { data, error } = await supabaseClient
+          .from('user_skills')
+          .select('*')
+          .eq('user_id', currentUser.id);
+
+        if (!error && data) {
+          const localStatuses = JSON.parse(localStorage.getItem(`ms_status_${currentUser.id}`)) || {};
+          userProgress = { ...localStatuses };
+          data.forEach(row => {
+            userProgress[row.skill_id] = row.status || localStatuses[row.skill_id] || 'achieved';
+          });
+        }
+      } catch (e) {
+        console.error('Fejl ved hentning af fremskridt:', e);
+      }
+    }
+
+    async function fetchUserClass() {
+      if (!currentUser || !supabaseClient) return;
+      try {
+        const { data, error } = await supabaseClient
+          .from('class_members')
+          .select('class_id, classes(id, name, invite_code, active_categories)')
+          .eq('user_id', currentUser.id);
+
+        if (!error && data && data.length > 0) {
+          userEnrolledClasses = data.map(d => ({
+            id: d.classes?.id,
+            name: d.classes?.name,
+            code: d.classes?.invite_code,
+            categories: d.classes?.active_categories || null
+          })).filter(c => c.id);
+
+          currentUserClass = userEnrolledClasses.map(c => c.name).join(', ');
+        } else {
+          userEnrolledClasses = [];
+          currentUserClass = t('no_class');
+        }
+        document.getElementById('footerUserClass').innerText = currentUserClass;
+        updateViewFilterOptions();
+      } catch (e) {
+        userEnrolledClasses = [];
+        currentUserClass = t('no_class');
+        document.getElementById('footerUserClass').innerText = t('no_class');
+        updateViewFilterOptions();
+      }
+    }
+
+    function updateViewFilterOptions() {
+      const select = document.getElementById('userViewFilterSelect');
+      if (!select) return;
+
+      select.innerHTML = `
+        <option value="MAKER_DEFAULT">${t('maker_default')}</option>
+        <option value="ALL">${t('show_all')}</option>
+      `;
+
+      if (userEnrolledClasses.length > 0) {
+        const grp = document.createElement('optgroup');
+        grp.label = `— ${t('lbl_class')} —`;
+        userEnrolledClasses.forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c.id;
+          opt.innerText = `👥 Hold: ${c.name}`;
+          grp.appendChild(opt);
+        });
+        select.appendChild(grp);
+      }
+
+      const relevantSkills = allSkills.filter(s => (s.lang || 'da') === currentLang);
+      const activeDomains = [...new Set(relevantSkills.map(s => DOMAIN_MAP[s.cat] || '💻 Software'))];
+      if (activeDomains.length > 1) {
+        const grp = document.createElement('optgroup');
+        grp.label = '— Domæner —';
+        activeDomains.forEach(d => {
+          const opt = document.createElement('option');
+          opt.value = `DOMAIN:${d}`;
+          opt.innerText = `📂 ${d}`;
+          grp.appendChild(opt);
+        });
+        select.appendChild(grp);
+      }
+
+      if (Array.from(select.options).some(o => o.value === selectedViewFilter)) {
+        select.value = selectedViewFilter;
+      } else {
+        selectedViewFilter = 'MAKER_DEFAULT';
+        select.value = 'MAKER_DEFAULT';
+      }
+    }
+
+    function handleViewFilterChange(val) {
+      selectedViewFilter = val;
+      localStorage.setItem('ms_selectedViewFilter', val);
+      renderApp();
+    }
+
+    function updateAuthUI(isLoggedIn, displayName = '', isAdmin = false) {
+      const authBtn = document.getElementById('authBtn');
+      const adminBtn = document.getElementById('adminBtn');
+      const adminLiveEditBtn = document.getElementById('adminLiveEditBtn');
+      const footerUserName = document.getElementById('footerUserName');
+
+      if (isLoggedIn) {
+        authBtn.innerText = t('btn_logout');
+        authBtn.className = 'btn btn-secondary';
+        authBtn.onclick = handleSignOut;
+        footerUserName.innerText = displayName;
+
+        if (isAdmin) {
+          adminBtn.style.display = 'inline-flex';
+          adminLiveEditBtn.style.display = 'inline-flex';
+        } else {
+          adminBtn.style.display = 'none';
+          adminLiveEditBtn.style.display = 'none';
+          toggleAdminEditMode(false);
+        }
+      } else {
+        authBtn.innerText = t('btn_login');
+        authBtn.className = 'btn';
+        authBtn.onclick = openAuthModal;
+        adminBtn.style.display = 'none';
+        adminLiveEditBtn.style.display = 'none';
+        toggleAdminEditMode(false);
+        footerUserName.innerText = t('guest');
+        document.getElementById('footerUserClass').innerText = t('no_class');
+      }
+    }
+
+    function toggleAdminEditMode(forceState) {
+      adminEditMode = forceState !== undefined ? forceState : !adminEditMode;
+      document.body.classList.toggle('admin-edit-active', adminEditMode);
+      document.getElementById('adminEditBanner').style.display = adminEditMode ? 'flex' : 'none';
+      renderApp();
+    }
+
+    function openAuthModal() { document.getElementById('authModal').style.display = 'flex'; }
+    function closeAuthModal() { document.getElementById('authModal').style.display = 'none'; }
+    function openTeamModal() { renderTeamModal(); document.getElementById('teamModal').style.display = 'flex'; }
+    function closeTeamModal() { document.getElementById('teamModal').style.display = 'none'; }
+    function openAdmin() { renderAdmin(); document.getElementById('adminModal').style.display = 'flex'; }
+    function closeAdmin() { document.getElementById('adminModal').style.display = 'none'; renderApp(); }
+
+    function toggleAuthMode() {
+      isSignUpMode = !isSignUpMode;
+      document.getElementById('nameInputWrapper').style.display = isSignUpMode ? 'block' : 'none';
+      applyTranslations();
+    }
+
+    async function handleAuthAction() {
+      if (!supabaseClient) return;
+
+      const email = document.getElementById('authEmail').value.trim();
+      const password = document.getElementById('authPassword').value.trim();
+      const fullName = document.getElementById('authName').value.trim();
+      const chosenLang = document.getElementById('authPrefLang').value;
+      const chosenTheme = document.getElementById('authPrefTheme').value;
+
+      if (!email || !password) {
+        alert('Udfyld venligst e-mail og kodeord.');
+        return;
+      }
+
+      try {
+        if (isSignUpMode) {
+          if (!fullName) {
+            alert('Udfyld venligst dit fulde navn.');
+            return;
+          }
+          const { data, error } = await supabaseClient.auth.signUp({
+            email,
+            password,
+            options: { data: { full_name: fullName, preferred_language: chosenLang, theme: chosenTheme } }
+          });
+          if (error) throw error;
+          
+          if (data.user) {
+            await supabaseClient.from('profiles').upsert({
+              id: data.user.id,
+              username: email.split('@')[0],
+              full_name: fullName,
+              role: 'student',
+              preferred_language: chosenLang,
+              theme: chosenTheme
+            });
+          }
+
+          alert('Bruger oprettet!');
+          currentUser = data.user;
+          currentUserName = fullName;
+          await handleThemeChange(chosenTheme);
+          await handleLanguageChange(chosenLang);
+        } else {
+          const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+          if (error) throw error;
+          currentUser = data.user;
+          await ensureUserProfile(currentUser);
+
+          const { data: prof } = await supabaseClient
+            .from('profiles')
+            .select('*')
+            .eq('id', currentUser.id)
+            .maybeSingle();
+
+          currentUserName = prof?.full_name || currentUser.user_metadata?.full_name || email.split('@')[0];
+          if (prof?.theme) applyTheme(prof.theme);
+          if (prof?.preferred_language) {
+            await handleLanguageChange(prof.preferred_language);
+          }
+        }
+
+        closeAuthModal();
+        currentUserIsAdmin = await checkUserRole(currentUser.id);
+        updateAuthUI(true, currentUserName, currentUserIsAdmin);
+        await fetchUserProgress();
+        await fetchUserClass();
+        checkShowJoinPrompt();
+        renderApp();
+      } catch (err) {
+        alert('Auth fejl: ' + err.message);
+      }
+    }
+
+    async function handleSignOut() {
+      if (supabaseClient) await supabaseClient.auth.signOut();
+      currentUser = null;
+      currentUserIsAdmin = false;
+      currentUserName = t('guest');
+      currentUserClass = t('no_class');
+      userEnrolledClasses = [];
+      selectedViewFilter = 'MAKER_DEFAULT';
+      userProgress = JSON.parse(localStorage.getItem('ms_local_progress')) || {};
+      updateAuthUI(false);
+      updateViewFilterOptions();
+      renderApp();
+    }
+
+    async function handleCreateClass() {
+      if (!currentUser || !supabaseClient) {
+        alert('Du skal være logget ind for at oprette et hold.');
+        return;
+      }
+
+      const nameInput = document.getElementById('newClassNameInput');
+      const className = nameInput.value.trim();
+      if (!className) return;
+
+      const code = generate5LetterCode();
+
+      const { error } = await supabaseClient
+        .from('classes')
+        .insert({
+          name: className,
+          invite_code: code,
+          created_by: currentUser.id
+        });
+
+      if (error) {
+        alert('Kunne ikke oprette hold: ' + error.message);
+      } else {
+        nameInput.value = '';
+        renderAdmin();
+      }
+    }
+
+    async function handleJoinClass() {
+      if (!currentUser || !supabaseClient) {
+        alert('Log ind for at tilmelde dig et hold.');
+        return;
+      }
+
+      const codeInput = document.getElementById('joinCodeInput');
+      const code = codeInput.value.trim().toUpperCase();
+
+      if (code.length !== 5) {
+        alert(t('join_code_desc'));
+        return;
+      }
+
+      const { data: classData, error: findError } = await supabaseClient
+        .from('classes')
+        .select('id, name')
+        .ilike('invite_code', code)
+        .maybeSingle();
+
+      if (findError || !classData) {
+        alert('Fandt intet hold med koden: ' + code);
+        return;
+      }
+
+      const { error: joinError } = await supabaseClient
+        .from('class_members')
+        .insert({ class_id: classData.id, user_id: currentUser.id });
+
+      if (joinError) {
+        alert('Du er allerede tilmeldt dette hold eller der opstod en fejl.');
+      } else {
+        alert(`Du er nu tilmeldt holdet: ${classData.name}!`);
+        codeInput.value = '';
+        await fetchUserClass();
+        renderTeamModal();
+        handleViewFilterChange(classData.id);
+      }
+    }
+
+    async function renderTeamModal() {
+      const container = document.getElementById('userClassList');
+      if (!currentUser || !supabaseClient) {
+        container.innerHTML = `<span style="font-size:0.8rem; color:var(--text-muted);">${t('no_class')}</span>`;
+        return;
+      }
+
+      if (userEnrolledClasses.length === 0) {
+        container.innerHTML = `<span style="font-size:0.8rem; color:var(--text-muted);">${t('no_class')}</span>`;
+        return;
+      }
+
+      container.innerHTML = `
+        <div style="margin-bottom:12px;">
+          <label style="font-size:0.8rem; color:var(--text-muted);">${t('lbl_class')}:</label>
+          <select style="margin-top:4px;" onchange="handleViewFilterChange(this.value)">
+            <option value="MAKER_DEFAULT" ${selectedViewFilter === 'MAKER_DEFAULT' ? 'selected' : ''}>${t('maker_default')}</option>
+            <option value="ALL" ${selectedViewFilter === 'ALL' ? 'selected' : ''}>${t('show_all')}</option>
+            ${userEnrolledClasses.map(c => `
+              <option value="${c.id}" ${selectedViewFilter === c.id ? 'selected' : ''}>👥 Hold: ${c.name}</option>
+            `).join('')}
+          </select>
+        </div>
+        ${userEnrolledClasses.map(d => `
+          <div class="class-tag">
+            <span><strong>${d.name}</strong> (Kode: <code style="color:var(--accent-primary); font-weight:bold;">${d.code || '-'}</code>)</span>
+          </div>
+        `).join('')}
+      `;
+    }
+
+    function buildGroupedCategoryHTML(containerId, checkboxClass, isCheckedFn) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = '';
+
+      const relevantSkills = allSkills.filter(s => (s.lang || 'da') === currentLang);
+      const allCats = [...new Set(relevantSkills.map(s => s.cat))];
+
+      if (allCats.length === 0) {
+        container.innerHTML = '<span style="font-size:0.8rem; color:var(--text-muted);">Ingen kategorier fundet.</span>';
+        return;
+      }
+
+      const domainGroups = {};
+      allCats.forEach(cat => {
+        const dom = DOMAIN_MAP[cat] || '💻 Software';
+        if (!domainGroups[dom]) domainGroups[dom] = [];
+        domainGroups[dom].push(cat);
+      });
+
+      Object.keys(domainGroups).forEach((domain, gIdx) => {
+        const catsInGroup = domainGroups[domain];
+        const allChecked = catsInGroup.every(cat => isCheckedFn(cat));
+        const btnLabel = allChecked ? 'Skjul alle' : 'Vis alle';
+
+        const groupEl = document.createElement('div');
+        groupEl.className = 'domain-group-box';
+
+        groupEl.innerHTML = `
+          <div class="domain-group-header">
+            <span>${domain}</span>
+            <button type="button" id="btn_grp_${containerId}_${gIdx}" class="btn btn-secondary" style="padding:2px 8px; font-size:0.7rem;" onclick="toggleDomainGroupCheckboxes('${containerId}', '${domain}', ${gIdx})">${btnLabel}</button>
+          </div>
+          <div class="domain-group-items" data-domain="${domain}">
+            ${catsInGroup.map(cat => `
+              <label style="display:flex; gap:8px; font-size:0.85rem; color:var(--text-main); align-items:center;">
+                <input type="checkbox" class="${checkboxClass}" data-domain="${domain}" data-group-index="${gIdx}" value="${cat}" ${isCheckedFn(cat) ? 'checked' : ''} onchange="updateDomainHeaderBtn('${containerId}', '${domain}', ${gIdx})">
+                <span>${cat}</span>
+              </label>
+            `).join('')}
+          </div>
+        `;
+        container.appendChild(groupEl);
+      });
+    }
+
+    function updateDomainHeaderBtn(containerId, domain, gIdx) {
+      const container = document.getElementById(containerId);
+      const boxes = container.querySelectorAll(`input[data-domain="${domain}"]`);
+      const allChecked = Array.from(boxes).every(b => b.checked);
+      const btn = document.getElementById(`btn_grp_${containerId}_${gIdx}`);
+      if (btn) btn.innerText = allChecked ? 'Skjul alle' : 'Vis alle';
+    }
+
+    function toggleDomainGroupCheckboxes(containerId, domain, gIdx) {
+      const container = document.getElementById(containerId);
+      const boxes = container.querySelectorAll(`input[data-domain="${domain}"]`);
+      const allChecked = Array.from(boxes).every(b => b.checked);
+      const targetState = !allChecked;
+      boxes.forEach(b => {
+        b.checked = targetState;
+        b.dispatchEvent(new Event('change'));
+      });
+      updateDomainHeaderBtn(containerId, domain, gIdx);
+    }
+
+    function setAllClassCategories(state) {
+      document.querySelectorAll('.class-cat-checkbox').forEach(b => {
+        b.checked = state;
+        b.dispatchEvent(new Event('change'));
+      });
+    }
+
+    function setAllGlobalCategories(state) {
+      const relevantSkills = allSkills.filter(s => (s.lang || 'da') === currentLang);
+      const allCats = [...new Set(relevantSkills.map(s => s.cat))];
+      hiddenCats = state ? [] : [...allCats];
+      localStorage.setItem('ms_hiddenCats', JSON.stringify(hiddenCats));
+      renderAdmin();
+      renderApp();
+    }
+
+    async function renderAdmin() {
+      buildGroupedCategoryHTML('adminCategoryList', 'global-cat-checkbox', (cat) => !hiddenCats.includes(cat));
+
+      document.querySelectorAll('.global-cat-checkbox').forEach(cb => {
+        cb.addEventListener('change', (e) => {
+          const cat = e.target.value;
+          if (e.target.checked) {
+            hiddenCats = hiddenCats.filter(c => c !== cat);
+          } else if (!hiddenCats.includes(cat)) {
+            hiddenCats.push(cat);
+          }
+          localStorage.setItem('ms_hiddenCats', JSON.stringify(hiddenCats));
+          renderApp();
+        });
+      });
+
+      const classContainer = document.getElementById('adminClassList');
+      if (!currentUser || !supabaseClient) {
+        classContainer.innerHTML = '<span style="font-size:0.8rem; color:var(--text-muted);">Log ind for at administrere hold.</span>';
+        return;
+      }
+
+      const { data, error } = await supabaseClient
+        .from('classes')
+        .select('id, name, invite_code, active_categories, class_members(count)')
+        .eq('created_by', currentUser.id);
+
+      if (error || !data || data.length === 0) {
+        classContainer.innerHTML = '<span style="font-size:0.8rem; color:var(--text-muted);">Du har ikke oprettet nogen hold endnu.</span>';
+        return;
+      }
+
+      classContainer.innerHTML = data.map(c => `
+        <div class="class-tag">
+          <div>
+            <strong>${c.name}</strong><br>
+            <span style="font-size:0.75rem; color:var(--text-muted);">Kode: <strong style="color:var(--accent-primary); font-size:0.85rem; letter-spacing:1px;">${c.invite_code}</strong> | Elever: ${c.class_members[0]?.count || 0}</span>
+          </div>
+          <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="openClassCategoriesView('${c.id}', '${c.name}', ${JSON.stringify(c.active_categories || []).replace(/"/g, '&quot;')})">⚙️ Kategorier</button>
+            <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="viewClassProgress('${c.id}', '${c.name}', ${JSON.stringify(c.active_categories || []).replace(/"/g, '&quot;')})">👥 Vis Elever</button>
+            <button class="btn btn-danger" style="padding:4px 8px; font-size:0.75rem;" onclick="deleteClass('${c.id}')">Slet</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function openClassCategoriesView(classId, className, currentCategories) {
+      editingClassId = classId;
+      document.getElementById('adminStudentProgressView').style.display = 'none';
+      const panel = document.getElementById('adminClassCategoriesView');
+      document.getElementById('classCategoriesTitle').innerText = `Kategorier for: ${className}`;
+      panel.style.display = 'block';
+
+      const isAllSelected = !currentCategories || currentCategories.length === 0;
+      buildGroupedCategoryHTML(
+        'classCategoriesCheckboxes', 
+        'class-cat-checkbox', 
+        (cat) => isAllSelected || currentCategories.includes(cat)
+      );
+    }
+
+    function closeClassCategoriesView() {
+      document.getElementById('adminClassCategoriesView').style.display = 'none';
+      editingClassId = null;
+    }
+
+    async function saveClassCategories() {
+      if (!editingClassId || !supabaseClient) return;
+
+      const checked = Array.from(document.querySelectorAll('.class-cat-checkbox:checked')).map(cb => cb.value);
+      const relevantSkills = allSkills.filter(s => (s.lang || 'da') === currentLang);
+      const allCats = [...new Set(relevantSkills.map(s => s.cat))];
+      const toSave = (checked.length === allCats.length) ? null : checked;
+
+      const { error } = await supabaseClient
+        .from('classes')
+        .update({ active_categories: toSave })
+        .eq('id', editingClassId);
+
+      if (error) {
+        alert('Kunne ikke gemme kategorier: ' + error.message);
+      } else {
+        alert('Hold-kategorier opdateret!');
+        closeClassCategoriesView();
+        renderAdmin();
+        await fetchUserClass();
+        renderApp();
+      }
+    }
+
+    async function viewClassProgress(classId, className, classCategories) {
+      activeInspectionClassCategories = classCategories || null;
+      document.getElementById('adminClassCategoriesView').style.display = 'none';
+      const panel = document.getElementById('adminStudentProgressView');
+      const list = document.getElementById('studentProgressList');
+      document.getElementById('progressClassTitle').innerText = `Elever på: ${className}`;
+
+      panel.style.display = 'block';
+      list.innerHTML = '<span style="font-size:0.8rem; color:var(--text-muted);">Henter elever og progression...</span>';
+
+      try {
+        const { data: members, error: memError } = await supabaseClient
+          .from('class_members')
+          .select('user_id')
+          .eq('class_id', classId);
+
+        if (memError || !members || members.length === 0) {
+          list.innerHTML = '<span style="font-size:0.8rem; color:var(--text-muted);">Ingen elever tilmeldt dette hold endnu.</span>';
+          return;
+        }
+
+        const userIds = members.map(m => m.user_id);
+        const { data: profiles } = await supabaseClient.from('profiles').select('id, full_name, username').in('id', userIds);
+        const { data: skills } = await supabaseClient.from('user_skills').select('*').in('user_id', userIds);
+
+        let classSpecificSkills = allSkills.filter(s => (s.lang || 'da') === currentLang);
+        if (activeInspectionClassCategories && activeInspectionClassCategories.length > 0) {
+          const allowedSkillIds = new Set(
+            allSkills
+              .filter(s => activeInspectionClassCategories.includes(s.cat))
+              .map(s => s.id)
+          );
+          classSpecificSkills = classSpecificSkills.filter(s => allowedSkillIds.has(s.id));
+        }
+        const totalClassSkillsCount = classSpecificSkills.length;
+
+        list.innerHTML = members.map(m => {
+          const profile = profiles?.find(p => p.id === m.user_id);
+          const studentName = profile?.full_name || profile?.username || 'Ukendt elev';
+          
+          const studentProg = {};
+          skills?.filter(s => s.user_id === m.user_id).forEach(s => {
+            studentProg[s.skill_id] = s.status || 'achieved';
+          });
+          
+          const completedCount = classSpecificSkills.filter(s => isSkillAchieved(studentProg, s.id)).length;
+          const studentTitle = calculateGlobalTitle(allSkills.filter(s => (s.lang || 'da') === currentLang), studentProg);
+
+          return `
+            <div class="student-row">
+              <div>
+                <strong>${studentName}</strong><br>
+                <span style="font-size:0.75rem; color:var(--accent-primary);">${studentTitle}</span>
+              </div>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <span style="font-size:0.8rem;"><strong style="color:var(--active-achieved);">${completedCount}</strong> / ${totalClassSkillsCount} ${t('student_goal')}</span>
+                <button class="btn" style="padding:4px 8px; font-size:0.75rem;" onclick='openStudentTreeModal(${JSON.stringify(studentName)}, ${JSON.stringify(studentProg)})'>👁️ ${t('student_view')}</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } catch (err) {
+        list.innerHTML = '<span style="font-size:0.8rem; color:#ef4444;">Fejl ved indlæsning af holddata.</span>';
+      }
+    }
+
+    function closeClassProgressView() {
+      document.getElementById('adminStudentProgressView').style.display = 'none';
+    }
+
+    function openStudentTreeModal(studentName, studentProgress) {
+      const modal = document.getElementById('studentTreeModal');
+      const grid = document.getElementById('studentHoneycombGrid');
+      const langSkills = allSkills.filter(s => (s.lang || 'da') === currentLang);
+
+      document.getElementById('studentTreeName').innerText = studentName;
+      document.getElementById('studentTreeTitle').innerText = calculateGlobalTitle(langSkills, studentProgress);
+      
+      let inspectSkills = langSkills;
+      if (activeInspectionClassCategories && activeInspectionClassCategories.length > 0) {
+        const allowedSkillIds = new Set(
+          allSkills
+            .filter(s => activeInspectionClassCategories.includes(s.cat))
+            .map(s => s.id)
+        );
+        inspectSkills = inspectSkills.filter(s => allowedSkillIds.has(s.id));
+      }
+      
+      const activeCount = inspectSkills.filter(s => isSkillAchieved(studentProgress, s.id)).length;
+      document.getElementById('studentTreeScore').innerText = `${activeCount} / ${inspectSkills.length}`;
+
+      renderHoneycombIntoContainer(grid, inspectSkills, studentProgress, true);
+      modal.style.display = 'flex';
+      lucide.createIcons();
+    }
+
+    function closeStudentTreeModal() {
+      document.getElementById('studentTreeModal').style.display = 'none';
+      document.getElementById('studentHoneycombGrid').innerHTML = '';
+    }
+
+    async function deleteClass(classId) {
+      if (!confirm('Er du sikker på, at du vil slette dette hold?')) return;
+      await supabaseClient.from('classes').delete().eq('id', classId);
+      renderAdmin();
+      closeClassProgressView();
+      closeClassCategoriesView();
+      await fetchUserClass();
+      renderApp();
+    }
+
+    function spawnFloatingEmojis(x, y) {
+      const list = ['⭐', '✨', '🚀', '🎯', '💡', '🔥', '⚙️'];
+      for (let i = 0; i < 5; i++) {
+        const el = document.createElement('div');
+        el.className = 'floating-emoji';
+        el.innerText = list[Math.floor(Math.random() * list.length)];
+        el.style.left = (x + (Math.random() * 40 - 20)) + 'px';
+        el.style.top = (y + (Math.random() * 20 - 10)) + 'px';
+        el.style.setProperty('--tx', (Math.random() * 60 - 30) + 'px');
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 1000);
+      }
+    }
+
+    function triggerScreenShake() {
+      document.body.classList.add('shake');
+      setTimeout(() => document.body.classList.remove('shake'), 300);
+    }
+
+    function showSpecialSplash(icon, header, sub, title) {
+      document.getElementById('splashIcon').innerText = icon;
+      document.getElementById('splashHeader').innerText = header;
+      document.getElementById('splashSub').innerText = sub;
+      document.getElementById('splashTitleText').innerText = title;
+      document.getElementById('titleSplash').style.display = 'flex';
+      triggerScreenShake();
+      if (typeof confetti === 'function') {
+        confetti({ particleCount: 140, spread: 85, origin: { y: 0.6 } });
+      }
+    }
+
+    function closeTitleSplash() { document.getElementById('titleSplash').style.display = 'none'; }
+
+    function findNextRelevantSkill(currentSkill, progressMap) {
+      const langSkills = allSkills.filter(s => (s.lang || 'da') === currentLang && !hiddenCats.includes(s.cat));
+      const sameCatSkills = langSkills.filter(s => s.cat === currentSkill.cat).sort((a, b) => a.level - b.level);
+
+      // 1. Næste ikke-opnåede kompetence på højere niveau i samme kategori
+      const higherInCat = sameCatSkills.find(s => s.level > currentSkill.level && !isSkillAchieved(progressMap, s.id));
+      if (higherInCat) return { skill: higherInCat, isSameCategory: true };
+
+      // 2. Eventuel tidligere oversprunget kompetence i samme kategori
+      const anyUnfinishedInCat = sameCatSkills.find(s => s.id !== currentSkill.id && !isSkillAchieved(progressMap, s.id));
+      if (anyUnfinishedInCat) return { skill: anyUnfinishedInCat, isSameCategory: true };
+
+      // 3. Hele rækken i kategorien er fuldført -> foreslå relevant kompetence i samme domæne eller næste kategori
+      const currentDomain = DOMAIN_MAP[currentSkill.cat] || '💻 Software';
+      const sameDomainUnfinished = langSkills
+        .filter(s => s.cat !== currentSkill.cat && (DOMAIN_MAP[s.cat] || '💻 Software') === currentDomain && !isSkillAchieved(progressMap, s.id))
+        .sort((a, b) => a.level - b.level);
+
+      if (sameDomainUnfinished.length > 0) {
+        return { skill: sameDomainUnfinished[0], isSameCategory: false };
+      }
+
+      const anyOtherUnfinished = langSkills
+        .filter(s => s.cat !== currentSkill.cat && !isSkillAchieved(progressMap, s.id))
+        .sort((a, b) => a.level - b.level);
+
+      if (anyOtherUnfinished.length > 0) {
+        return { skill: anyOtherUnfinished[0], isSameCategory: false };
+      }
+
+      return null;
+    }
+
+    function switchSkillTab(tabName) {
+      activeSkillTab = tabName;
+      document.getElementById('tabBtnDesc').classList.toggle('active', tabName === 'desc');
+      document.getElementById('tabBtnGuide').classList.toggle('active', tabName === 'guide');
+      document.getElementById('tabBtnInfo').classList.toggle('active', tabName === 'info');
+
+      const panel = document.getElementById('enlargedTabContent');
+      if (!activeEnlargedSkill) return;
+
+      if (tabName === 'desc') {
+        panel.innerText = activeEnlargedSkill.fullDesc || '';
+      } else if (tabName === 'guide') {
+        const gText = activeEnlargedSkill.guideText || '';
+        const gUrl = activeEnlargedSkill.guideUrl || '';
+        if (!gText && !gUrl) {
+          panel.innerHTML = `<span style="color:var(--text-muted); font-style:italic;">${t('guide_coming')}</span>`;
+        } else {
+          let mediaHtml = '';
+          if (gUrl) {
+            if (gUrl.includes('youtube.com') || gUrl.includes('youtu.be')) {
+              const vidId = gUrl.split('v=')[1]?.split('&')[0] || gUrl.split('/').pop();
+              mediaHtml = `<iframe width="100%" height="110" src="https://www.youtube.com/embed/${vidId}" frameborder="0" allowfullscreen></iframe>`;
+            } else if (gUrl.match(/\.(jpeg|jpg|gif|png|webp|svg)$/i)) {
+              mediaHtml = `<img src="${gUrl}" alt="Guide">`;
+            } else {
+              mediaHtml = `<div style="margin-top:6px;"><a href="${gUrl}" target="_blank" style="color:var(--accent-primary); font-weight:bold;">🔗 Åbn vejledning / video</a></div>`;
+            }
+          }
+          panel.innerHTML = `<div>${gText}</div>${mediaHtml}`;
+        }
+      } else if (tabName === 'info') {
+        const iText = activeEnlargedSkill.infoText || '';
+        if (!iText) {
+          panel.innerHTML = `<span style="color:var(--text-muted); font-style:italic;">${t('info_coming')}</span>`;
+        } else {
+          panel.innerText = iText;
+        }
+      }
+    }
+
+    function openSkillEnlargedModal(skill, event, isReadOnly = false, currentProg = null) {
+      activeEnlargedSkill = skill;
+      const prog = currentProg || userProgress;
+      const achieved = isSkillAchieved(prog, skill.id);
+      const inProg = isSkillInProgress(prog, skill.id);
+
+      const modal = document.getElementById('enlargedHexModal');
+      const hexWrap = document.getElementById('enlargedHexWrap');
+      const icon = document.getElementById('enlargedIcon');
+      const title = document.getElementById('enlargedTitle');
+      const meta = document.getElementById('enlargedMeta');
+      const rewardWrap = document.getElementById('enlargedReward');
+      const rewardText = document.getElementById('enlargedRewardText');
+      const actionsWrap = document.getElementById('enlargedActionsWrap');
+      const btnInProg = document.getElementById('btnStateInProgress');
+      const btnAchieved = document.getElementById('btnStateAchieved');
+      const adminEditBtn = document.getElementById('enlargedAdminEditBtn');
+
+      title.innerText = skill.shortDesc;
+      meta.innerText = `${skill.cat} • ${t('level')} ${skill.level}`;
+      icon.setAttribute('data-lucide', skill.svg);
+
+      adminEditBtn.style.display = currentUserIsAdmin ? 'inline-flex' : 'none';
+
+      switchSkillTab('desc');
+
+      if (skill.catTitle && skill.catTitle !== '#' && skill.catTitle !== '-') {
+        rewardWrap.style.display = 'flex';
+        rewardText.innerText = `${t('splash_new_title')} ${skill.catTitle}`;
+      } else {
+        rewardWrap.style.display = 'none';
+      }
+
+      hexWrap.classList.remove('achieved', 'in-progress');
+      if (achieved) hexWrap.classList.add('achieved');
+      else if (inProg) hexWrap.classList.add('in-progress');
+
+      btnInProg.classList.toggle('active', inProg);
+      btnAchieved.classList.toggle('active', achieved);
+
+      if (isReadOnly) {
+        btnInProg.style.display = 'none';
+        btnAchieved.style.display = 'none';
+      } else {
+        btnInProg.style.display = 'flex';
+        btnAchieved.style.display = 'flex';
+      }
+
+      // Opdater Næste relevante kompetence cirkel
+      const nextRes = findNextRelevantSkill(skill, prog);
+      const nextPanel = document.getElementById('nextSkillPanel');
+      if (nextRes && nextRes.skill) {
+        activeNextSuggestedSkill = nextRes.skill;
+        nextPanel.style.display = 'flex';
+        document.getElementById('nextSkillHeaderLabel').innerText = nextRes.isSameCategory
+          ? t('next_relevant_skill')
+          : `${t('suggested_skill')} (${nextRes.skill.cat})`;
+        document.getElementById('nextSkillShortTitle').innerText = nextRes.skill.shortDesc;
+        document.getElementById('nextSkillFullDesc').innerText = nextRes.skill.fullDesc;
+        document.getElementById('nextSkillMetaLvl').innerText = `${t('level')} ${nextRes.skill.level}`;
+        document.getElementById('nextSkillIcon').setAttribute('data-lucide', nextRes.skill.svg || 'arrow-right-circle');
+      } else {
+        activeNextSuggestedSkill = null;
+        nextPanel.style.display = 'none';
+      }
+
+      modal.style.display = 'flex';
+      lucide.createIcons();
+    }
+
+    function openNextRelevantSkill(event) {
+      if (!activeNextSuggestedSkill) return;
+      openSkillEnlargedModal(activeNextSuggestedSkill, event, false, userProgress);
+    }
+
+    function handleHexModalBackdrop(event) {
+      if (event.target.id === 'enlargedHexModal') {
+        closeEnlargedHexModal();
+      }
+    }
+
+    function closeEnlargedHexModal() {
+      document.getElementById('enlargedHexModal').style.display = 'none';
+      activeEnlargedSkill = null;
+    }
+
+    async function setSkillState(targetStatus, event) {
+      if (!activeEnlargedSkill) return;
+      const s = activeEnlargedSkill;
+      const currentStatus = userProgress[s.id];
+      const newStatus = (currentStatus === targetStatus) ? null : targetStatus;
+
+      await updateSkillStatus(s.id, newStatus, event, s.cat);
+      if (activeEnlargedSkill) {
+        openSkillEnlargedModal(s, event, false, userProgress);
+      }
+    }
+
+    async function updateSkillStatus(skillId, newStatus, event, category) {
+      const langSkills = allSkills.filter(s => (s.lang || 'da') === currentLang);
+      const prevTitle = calculateGlobalTitle(langSkills, userProgress);
+      const prevCatTitles = getUnlockedCategoryTitles(category, langSkills, userProgress).map(t => t.title);
+
+      if (newStatus) {
+        userProgress[skillId] = newStatus;
+        if (newStatus === 'achieved') {
+          const clientX = event?.clientX || window.innerWidth / 2;
+          const clientY = event?.clientY || window.innerHeight / 2;
+          spawnFloatingEmojis(clientX, clientY);
+        }
+      } else {
+        delete userProgress[skillId];
+      }
+
+      if (currentUser && supabaseClient) {
+        localStorage.setItem(`ms_status_${currentUser.id}`, JSON.stringify(userProgress));
+        try {
+          if (newStatus) {
+            const { error } = await supabaseClient
+              .from('user_skills')
+              .upsert({ user_id: currentUser.id, skill_id: skillId, status: newStatus }, { onConflict: 'user_id, skill_id' });
+            if (error) {
+              await supabaseClient.from('user_skills').upsert({ user_id: currentUser.id, skill_id: skillId });
+            }
+          } else {
+            await supabaseClient.from('user_skills').delete().match({ user_id: currentUser.id, skill_id: skillId });
+          }
+        } catch (e) {
+          console.error('Fejl ved gemning i Supabase:', e);
+        }
+      } else {
+        localStorage.setItem('ms_local_progress', JSON.stringify(userProgress));
+      }
+
+      if (newStatus === 'achieved') {
+        const newCatTitles = getUnlockedCategoryTitles(category, langSkills, userProgress).map(t => t.title);
+        const freshlyUnlocked = newCatTitles.filter(t => !prevCatTitles.includes(t));
+        if (freshlyUnlocked.length > 0) {
+          showSpecialSplash('🎖️', t('splash_new_title'), `${t('splash_rank_up')} ${category}:`, freshlyUnlocked[0]);
+        }
+
+        const newTitle = calculateGlobalTitle(langSkills, userProgress);
+        if (newTitle !== prevTitle && (newTitle.startsWith('Værksteds-Troldmand') || newTitle.startsWith('Maker-Guru') || newTitle.startsWith('Майстер Майстерні') || newTitle.startsWith('Workshop Wizard'))) {
+          showSpecialSplash('🧙‍♂️', t('splash_wizard'), t('splash_wizard_desc'), newTitle);
+        }
+      }
+
+      renderApp();
+    }
+
+    /* ADMIN MODAL: OPRET ELLER REDIGER KOMPETENCE + GENBEREGN NIVEAUER */
+    let editingOriginalSkill = null;
+
+    function openSkillEditorModal(skillObj = null) {
+      editingOriginalSkill = skillObj;
+      const modal = document.getElementById('skillEditorModal');
+      const datalist = document.getElementById('existingCategoriesList');
+      const allCats = [...new Set(allSkills.map(s => s.cat))];
+      datalist.innerHTML = allCats.map(c => `<option value="${c}">`).join('');
+
+      if (skillObj) {
+        document.getElementById('skillEditorModalTitle').innerText = `Rediger: ${skillObj.shortDesc}`;
+        document.getElementById('editSkillId').value = skillObj.id;
+        document.getElementById('editSkillLang').value = skillObj.lang || currentLang;
+        document.getElementById('editSkillCat').value = skillObj.cat;
+        document.getElementById('editSkillLevel').value = skillObj.level;
+        document.getElementById('editSkillSubCat').value = skillObj.subCat || '';
+        document.getElementById('editSkillCatTitle').value = skillObj.catTitle || '#';
+        document.getElementById('editSkillSvg').value = skillObj.svg || 'box';
+        document.getElementById('editSkillShortDesc').value = skillObj.shortDesc || '';
+        document.getElementById('editSkillFullDesc').value = skillObj.fullDesc || '';
+        document.getElementById('editSkillGuideUrl').value = skillObj.guideUrl || '';
+        document.getElementById('editSkillGuideText').value = skillObj.guideText || '';
+        document.getElementById('editSkillInfoText').value = skillObj.infoText || '';
+        document.getElementById('deleteSkillBtn').style.display = 'inline-flex';
+      } else {
+        document.getElementById('skillEditorModalTitle').innerText = 'Opret Ny Kompetence';
+        document.getElementById('editSkillId').value = 'NY_SKILL_' + Math.floor(100 + Math.random() * 900);
+        document.getElementById('editSkillLang').value = currentLang;
+        document.getElementById('editSkillCat').value = allCats[0] || 'Vektorgrafik';
+        document.getElementById('editSkillLevel').value = 1;
+        document.getElementById('editSkillSubCat').value = '';
+        document.getElementById('editSkillCatTitle').value = '#';
+        document.getElementById('editSkillSvg').value = 'box';
+        document.getElementById('editSkillShortDesc').value = '';
+        document.getElementById('editSkillFullDesc').value = '';
+        document.getElementById('editSkillGuideUrl').value = '';
+        document.getElementById('editSkillGuideText').value = '';
+        document.getElementById('editSkillInfoText').value = '';
+        document.getElementById('deleteSkillBtn').style.display = 'none';
+      }
+
+      modal.style.display = 'flex';
+    }
+
+    function closeSkillEditorModal() {
+      document.getElementById('skillEditorModal').style.display = 'none';
+      editingOriginalSkill = null;
+    }
+
+    async function saveEditedSkill() {
+      const id = document.getElementById('editSkillId').value.trim();
+      const lang = document.getElementById('editSkillLang').value;
+      const cat = document.getElementById('editSkillCat').value.trim();
+      const desiredLevel = parseInt(document.getElementById('editSkillLevel').value, 10) || 1;
+      const subCat = document.getElementById('editSkillSubCat').value.trim();
+      const catTitle = document.getElementById('editSkillCatTitle').value.trim() || '#';
+      const svg = sanitizeIcon(document.getElementById('editSkillSvg').value.trim() || 'box');
+      const shortDesc = document.getElementById('editSkillShortDesc').value.trim();
+      const fullDesc = document.getElementById('editSkillFullDesc').value.trim();
+      const guideUrl = document.getElementById('editSkillGuideUrl').value.trim();
+      const guideText = document.getElementById('editSkillGuideText').value.trim();
+      const infoText = document.getElementById('editSkillInfoText').value.trim();
+
+      if (!id || !cat || !shortDesc) {
+        alert('Udfyld venligst ID, Kategori og Kort Beskrivelse.');
+        return;
+      }
+
+      const oldCat = editingOriginalSkill ? editingOriginalSkill.cat : null;
+
+      // Fjern gammel version hvis den fandtes
+      allSkills = allSkills.filter(s => !((s.lang || 'da') === lang && s.id === (editingOriginalSkill ? editingOriginalSkill.id : id)));
+
+      // Indsæt i ny kategori og genberegn niveauer i både gammel og ny kategori
+      const catList = allSkills.filter(s => (s.lang || 'da') === lang && s.cat === cat).sort((a, b) => a.level - b.level);
+      const insertIndex = Math.max(0, Math.min(catList.length, desiredLevel - 1));
+
+      const updatedObj = {
+        lang, cat, catTitle, subCat, id, level: desiredLevel,
+        svg, shortDesc, fullDesc, guideUrl, guideText, infoText
+      };
+
+      catList.splice(insertIndex, 0, updatedObj);
+      const rowsToSync = [];
+
+      catList.forEach((item, idx) => {
+        item.level = idx + 1;
+        markSkillModified(item.lang, item.id);
+        rowsToSync.push(toSupabaseSkillRow(item));
+      });
+
+      if (oldCat && oldCat !== cat) {
+        const oldCatList = allSkills.filter(s => (s.lang || 'da') === lang && s.cat === oldCat).sort((a, b) => a.level - b.level);
+        oldCatList.forEach((item, idx) => {
+          item.level = idx + 1;
+          markSkillModified(item.lang, item.id);
+          rowsToSync.push(toSupabaseSkillRow(item));
+        });
+      }
+
+      const otherSkills = allSkills.filter(s => !((s.lang || 'da') === lang && (s.cat === cat || s.cat === oldCat)));
+      const oldCatRemaining = (oldCat && oldCat !== cat) ? allSkills.filter(s => (s.lang || 'da') === lang && s.cat === oldCat) : [];
+      allSkills = [...otherSkills, ...oldCatRemaining, ...catList];
+
+      await syncSkillsListToSupabaseAndLocal(rowsToSync, false);
+      closeSkillEditorModal();
+      closeEnlargedHexModal();
+    }
+
+    async function deleteCurrentEditedSkill() {
+      if (!editingOriginalSkill) return;
+      if (!confirm(`Vil du slette kompetencen "${editingOriginalSkill.shortDesc}" (${editingOriginalSkill.id})?`)) return;
+
+      const { id, lang, cat } = editingOriginalSkill;
+      allSkills = allSkills.filter(s => !((s.lang || 'da') === (lang || 'da') && s.id === id));
+
+      if (supabaseClient) {
+        await supabaseClient.from('skills').delete().match({ id: id, lang: lang || 'da' });
+      }
+
+      // Genberegn niveauer for resterende i kategorien
+      const remaining = allSkills.filter(s => (s.lang || 'da') === (lang || 'da') && s.cat === cat).sort((a, b) => a.level - b.level);
+      const rowsToSync = [];
+      remaining.forEach((item, idx) => {
+        item.level = idx + 1;
+        markSkillModified(item.lang, item.id);
+        rowsToSync.push(toSupabaseSkillRow(item));
+      });
+
+      await syncSkillsListToSupabaseAndLocal(rowsToSync, false);
+      closeSkillEditorModal();
+      closeEnlargedHexModal();
+    }
+
+    function toSupabaseSkillRow(s) {
+      return {
+        lang: s.lang || 'da',
+        domain: DOMAIN_MAP[s.cat] || '💻 Software',
+        category: s.cat,
+        category_title: s.catTitle || '#',
+        subcategory: s.subCat || '',
+        id: s.id,
+        level: s.level,
+        svg_icon: s.svg || 'folder',
+        short_desc: s.shortDesc || '',
+        full_desc: s.fullDesc || '',
+        guide_url: s.guideUrl || '',
+        guide_text: s.guideText || '',
+        info_text: s.infoText || ''
+      };
+    }
+
+    /* DRAG & DROP REORDERING AF CIRKLER (MED AUTOMATISK NIVEAU-BEREGNING) */
+    async function handleDropSkillOnTarget(dragged, targetCat, targetLevelIndex) {
+      if (!dragged) return;
+      const lang = dragged.lang || currentLang;
+      const sourceCat = dragged.cat;
+
+      // Fjern fra nuværende position
+      const sourceList = allSkills
+        .filter(s => (s.lang || 'da') === lang && s.cat === sourceCat && s.id !== dragged.id)
+        .sort((a, b) => a.level - b.level);
+
+      let targetList = (sourceCat === targetCat)
+        ? sourceList
+        : allSkills.filter(s => (s.lang || 'da') === lang && s.cat === targetCat).sort((a, b) => a.level - b.level);
+
+      dragged.cat = targetCat;
+      const boundedIdx = Math.max(0, Math.min(targetList.length, targetLevelIndex));
+      targetList.splice(boundedIdx, 0, dragged);
+
+      const rowsToSync = [];
+      targetList.forEach((item, idx) => {
+        item.level = idx + 1;
+        markSkillModified(item.lang, item.id);
+        rowsToSync.push(toSupabaseSkillRow(item));
+      });
+
+      if (sourceCat !== targetCat) {
+        sourceList.forEach((item, idx) => {
+          item.level = idx + 1;
+          markSkillModified(item.lang, item.id);
+          rowsToSync.push(toSupabaseSkillRow(item));
+        });
+      }
+
+      await syncSkillsListToSupabaseAndLocal(rowsToSync, false);
+    }
+
+    function toggleSubCatFold(key) {
+      manualSubCatExpanded[key] = !manualSubCatExpanded[key];
+      renderApp();
+    }
+
+    function createSkillCircle(s, progressMap, isReadOnly = false) {
+      const achieved = isSkillAchieved(progressMap, s.id);
+      const inProg = isSkillInProgress(progressMap, s.id);
+
+      const circle = document.createElement('div');
+      circle.className = `circle-container skill-node ${achieved ? 'achieved' : (inProg ? 'in-progress' : '')}`;
+      circle.onclick = (e) => openSkillEnlargedModal(s, e, isReadOnly, progressMap);
+
+      if (adminEditMode && !isReadOnly) {
+        circle.draggable = true;
+        circle.addEventListener('dragstart', (e) => {
+          draggedSkill = s;
+          circle.classList.add('dragging');
+          e.dataTransfer.effectAllowed = 'move';
+        });
+        circle.addEventListener('dragend', () => {
+          circle.classList.remove('dragging');
+          document.querySelectorAll('.drag-over-target').forEach(el => el.classList.remove('drag-over-target'));
+        });
+        circle.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          circle.classList.add('drag-over-target');
+        });
+        circle.addEventListener('dragleave', () => {
+          circle.classList.remove('drag-over-target');
+        });
+        circle.addEventListener('drop', async (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          circle.classList.remove('drag-over-target');
+          if (draggedSkill && draggedSkill.id !== s.id) {
+            await handleDropSkillOnTarget(draggedSkill, s.cat, s.level - 1);
+          }
+        });
+      }
+
+      circle.innerHTML = `
+        <svg class="circle-svg" viewBox="0 0 100 100">
+          <circle class="circle-outer-ring" cx="50" cy="50" r="46" />
+          <circle class="circle-inner-ring" cx="50" cy="50" r="40" />
+        </svg>
+        <div class="circle-content">
+          <i data-lucide="${s.svg}" class="circle-icon"></i>
+          <div class="circle-text">${s.shortDesc}</div>
+          <div class="circle-level">${s.level}</div>
+        </div>
+        ${adminEditMode && !isReadOnly ? `<div class="edit-badge-overlay" title="Rediger kompetence" onclick="event.stopPropagation(); openSkillEditorModal(allSkills.find(x => x.id === '${s.id}' && (x.lang||'da') === '${s.lang||'da'}'))">✎</div>` : ''}
+      `;
+      return circle;
+    }
+
+    function renderHoneycombIntoContainer(container, skillsList, progressMap, isReadOnly = false) {
+      container.innerHTML = '';
+      const activeDomains = [...new Set(skillsList.map(s => DOMAIN_MAP[s.cat] || '💻 Software'))];
+      const orderedDomains = DOMAIN_ORDER.filter(d => activeDomains.includes(d));
+      if (orderedDomains.length === 0 && activeDomains.length > 0) orderedDomains.push(...activeDomains);
+
+      orderedDomains.forEach(domainName => {
+        const domainSkills = skillsList.filter(s => (DOMAIN_MAP[s.cat] || '💻 Software') === domainName);
+        if (domainSkills.length === 0) return;
+
+        const domainSection = document.createElement('div');
+        domainSection.className = 'domain-section';
+
+        const domainHeader = document.createElement('div');
+        domainHeader.className = 'domain-header';
+        domainHeader.innerText = domainName;
+        domainSection.appendChild(domainHeader);
+
+        const domainColumns = document.createElement('div');
+        domainColumns.className = 'domain-columns';
+
+        const domainCategories = [...new Set(domainSkills.map(s => s.cat))];
+
+        domainCategories.forEach(catName => {
+          const catSkills = domainSkills.filter(s => s.cat === catName).sort((a,b) => a.level - b.level);
+          const col = document.createElement('div');
+          col.className = 'column';
+
+          const catIcon = catSkills[0]?.svg || 'folder';
+          const activeBadgeTitle = getLatestCategoryTitle(catName, allSkills.filter(s => (s.lang || 'da') === currentLang), progressMap);
+          const hasBadge = !!activeBadgeTitle;
+
+          const catCircle = document.createElement('div');
+          catCircle.className = `circle-container cat-circle-container ${hasBadge ? 'completed' : ''}`;
+          catCircle.title = catName;
+
+          if (adminEditMode && !isReadOnly) {
+            catCircle.addEventListener('dragover', (e) => {
+              e.preventDefault();
+              catCircle.classList.add('drag-over-target');
+            });
+            catCircle.addEventListener('dragleave', () => {
+              catCircle.classList.remove('drag-over-target');
+            });
+            catCircle.addEventListener('drop', async (e) => {
+              e.preventDefault();
+              catCircle.classList.remove('drag-over-target');
+              if (draggedSkill) {
+                await handleDropSkillOnTarget(draggedSkill, catName, 0);
+              }
+            });
+          }
+
+          catCircle.innerHTML = `
+            <svg class="circle-svg" viewBox="0 0 100 100">
+              <circle class="circle-outer-ring" cx="50" cy="50" r="46" />
+              <circle class="circle-inner-ring" cx="50" cy="50" r="40" />
+            </svg>
+            <div class="cat-circle-content">
+              <i data-lucide="${catIcon}" class="cat-big-icon"></i>
+              ${hasBadge ? `<div class="cat-badge-label">${activeBadgeTitle}</div>` : `<div class="circle-text" style="font-size:0.48rem; color:var(--text-muted);">${catName}</div>`}
+            </div>
+          `;
+          col.appendChild(catCircle);
+
+          const subCatNames = [...new Set(catSkills.map(s => s.subCat).filter(sc => sc !== ''))];
+
+          if (adminEditMode || subCatNames.length === 0) {
+            const firstFourSkills = catSkills.filter(s => s.level <= 4);
+            const firstFourCompleted = firstFourSkills.filter(s => isSkillAchieved(progressMap, s.id)).length;
+            const isFirstFourDone = adminEditMode || (firstFourCompleted === firstFourSkills.length && firstFourSkills.length > 0);
+
+            const visibleSkills = isFirstFourDone ? catSkills : catSkills.filter(s => s.level <= 4);
+
+            visibleSkills.forEach(s => {
+              col.appendChild(createSkillCircle(s, progressMap, isReadOnly));
+            });
+          } else {
+            let allPrevCompleted = true;
+
+            subCatNames.forEach((scName) => {
+              if (!allPrevCompleted) return;
+
+              const scSkills = catSkills.filter(s => s.subCat === scName).sort((a,b) => a.level - b.level);
+              const scCompletedCount = scSkills.filter(s => isSkillAchieved(progressMap, s.id)).length;
+              const isScCompleted = (scCompletedCount === scSkills.length && scSkills.length > 0);
+
+              const subCatKey = `${catName}_${scName}`;
+              let isExpanded = !isScCompleted;
+              if (manualSubCatExpanded[subCatKey] !== undefined) {
+                isExpanded = manualSubCatExpanded[subCatKey];
+              }
+
+              if (isScCompleted || manualSubCatExpanded[subCatKey] !== undefined) {
+                const scCircle = document.createElement('div');
+                scCircle.className = `circle-container subcat-circle ${isScCompleted ? 'completed' : ''}`;
+                if (!isReadOnly) {
+                  scCircle.onclick = () => toggleSubCatFold(subCatKey);
+                }
+
+                const scIcon = scSkills[0]?.svg || 'folder';
+                const foldLabel = isExpanded ? t('fold_hide') : t('fold_show');
+
+                scCircle.innerHTML = `
+                  <svg class="circle-svg" viewBox="0 0 100 100">
+                    <circle class="circle-outer-ring dashed-frame" cx="50" cy="50" r="46" />
+                    <circle class="circle-inner-ring" cx="50" cy="50" r="40" />
+                  </svg>
+                  <div class="circle-content">
+                    <i data-lucide="${scIcon}" class="circle-icon"></i>
+                    <div class="circle-text" style="font-size:0.50rem; color:var(--text-main);">${scName}</div>
+                    <div class="circle-level" style="font-size:0.55rem; color:var(--accent-primary);">${foldLabel}</div>
+                  </div>
+                `;
+                col.appendChild(scCircle);
+              }
+
+              if (isExpanded) {
+                scSkills.forEach(s => {
+                  col.appendChild(createSkillCircle(s, progressMap, isReadOnly));
+                });
+              }
+
+              allPrevCompleted = isScCompleted;
+            });
+          }
+
+          domainColumns.appendChild(col);
+        });
+
+        domainSection.appendChild(domainColumns);
+        container.appendChild(domainSection);
+      });
+    }
+
+    function renderApp() {
+      const honeycombGrid = document.getElementById('honeycombGrid');
+      const emptyState = document.getElementById('emptyState');
+
+      let langSkills = allSkills.filter(s => (s.lang || 'da') === currentLang);
+      if (langSkills.length === 0) {
+        langSkills = allSkills.filter(s => (s.lang || 'da') === 'da');
+      }
+
+      if (langSkills.length === 0) {
+        emptyState.style.display = 'block';
+        honeycombGrid.innerHTML = '';
+        document.getElementById('footerScore').innerText = '0 / 0';
+        return;
+      }
+      emptyState.style.display = 'none';
+
+      let availableSkills = langSkills.filter(s => !hiddenCats.includes(s.cat));
+
+      if (selectedViewFilter === 'MAKER_DEFAULT') {
+        availableSkills = availableSkills.filter(s => MAKER_DEFAULT_DOMAINS.includes(DOMAIN_MAP[s.cat] || '💻 Software'));
+      } else if (selectedViewFilter.startsWith('DOMAIN:')) {
+        const domTarget = selectedViewFilter.replace('DOMAIN:', '');
+        availableSkills = availableSkills.filter(s => (DOMAIN_MAP[s.cat] || '💻 Software') === domTarget);
+      } else if (selectedViewFilter !== 'ALL') {
+        const selectedClass = userEnrolledClasses.find(c => c.id === selectedViewFilter);
+        if (selectedClass && selectedClass.categories && selectedClass.categories.length > 0) {
+          const allowedSkillIds = new Set(
+            allSkills
+              .filter(s => selectedClass.categories.includes(s.cat))
+              .map(s => s.id)
+          );
+          availableSkills = availableSkills.filter(s => allowedSkillIds.has(s.id));
+        }
+      }
+
+      const totalSkillsCount = availableSkills.length;
+      const activeSkillsCount = availableSkills.filter(s => isSkillAchieved(userProgress, s.id)).length;
+
+      document.getElementById('footerUserTitle').innerText = calculateGlobalTitle(langSkills, userProgress);
+      document.getElementById('footerScore').innerText = `${activeSkillsCount} / ${totalSkillsCount}`;
+
+      renderHoneycombIntoContainer(honeycombGrid, availableSkills, userProgress, false);
+      lucide.createIcons();
+    }
+
+    function clearAllData() {
+      if (confirm('Er du sikker på, at du vil rydde lokal browser-cache?')) {
+        localStorage.clear();
+        location.reload();
+      }
+    }
+
+    let tutStep = 0;
+    function getTutSteps() {
+      return [
+        {
+          targetId: 'authBtn',
+          title: t('tut_1_title'),
+          text: t('tut_1_text'),
+          pos: { top: '70px', right: '20px' }
+        },
+        {
+          targetId: 'teamBtn',
+          title: t('tut_2_title'),
+          text: t('tut_2_text'),
+          pos: { top: '70px', right: '110px' }
+        },
+        {
+          targetId: 'adminBtn',
+          title: t('tut_3_title'),
+          text: t('tut_3_text'),
+          pos: { top: '70px', right: '210px' }
+        },
+        {
+          targetClass: 'circle-container',
+          title: t('tut_4_title'),
+          text: t('tut_4_text'),
+          pos: { top: '40%', left: '50%', transform: 'translate(-50%, -50%)' }
+        },
+        {
+          targetId: 'targetUser',
+          title: t('tut_5_title'),
+          text: t('tut_5_text'),
+          pos: { bottom: '60px', left: '20px' }
+        }
+      ];
+    }
+
+    function startTutorial() {
+      tutStep = 0;
+      document.getElementById('tutorialOverlay').style.display = 'block';
+      document.getElementById('tutorialBox').style.display = 'block';
+      showTutStep();
+    }
+
+    function showTutStep() {
+      document.querySelectorAll('.highlight-target').forEach(el => el.classList.remove('highlight-target'));
+
+      const steps = getTutSteps();
+      const step = steps[tutStep];
+      document.getElementById('tutTitle').innerText = step.title;
+      document.getElementById('tutText').innerText = step.text;
+      document.getElementById('tutStepCount').innerText = `${t('tut_step')} ${tutStep + 1} / ${steps.length}`;
+
+      const box = document.getElementById('tutorialBox');
+      box.style.top = step.pos.top || 'auto';
+      box.style.bottom = step.pos.bottom || 'auto';
+      box.style.left = step.pos.left || 'auto';
+      box.style.right = step.pos.right || 'auto';
+      box.style.transform = step.pos.transform || 'none';
+
+      let targetEl = null;
+      if (step.targetId) targetEl = document.getElementById(step.targetId);
+      if (step.targetClass) targetEl = document.querySelector('.' + step.targetClass);
+
+      if (targetEl) targetEl.classList.add('highlight-target');
+
+      document.getElementById('tutNextBtn').innerText = (tutStep === steps.length - 1) ? t('tut_finish') : t('tut_next');
+    }
+
+    function nextTutorialStep() {
+      const steps = getTutSteps();
+      if (tutStep < steps.length - 1) {
+        tutStep++;
+        showTutStep();
+      } else {
+        closeTutorial();
+      }
+    }
+
+    function closeTutorial() {
+      document.querySelectorAll('.highlight-target').forEach(el => el.classList.remove('highlight-target'));
+      document.getElementById('tutorialOverlay').style.display = 'none';
+      document.getElementById('tutorialBox').style.display = 'none';
+      localStorage.setItem('ms_hasSeenTutorial', 'true');
+    }
+
+    window.onload = function() {
+      initData();
+      const hasSeen = localStorage.getItem('ms_hasSeenTutorial');
+      if (!hasSeen) setTimeout(startTutorial, 500);
+    };
+  </script>
+</body>
+</html>
