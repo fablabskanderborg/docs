@@ -387,7 +387,7 @@
     .floating-emoji {
       position: fixed;
       pointer-events: none;
-      z-index: 15000;
+      z-index: 21000;
       font-size: 1.4rem;
       animation: floatEmoji 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
     }
@@ -396,14 +396,43 @@
       100% { transform: translate(var(--tx), -70px) scale(1.3); opacity: 0; }
     }
 
-    /* FORSTØRRET FOKUSERET CIRKEL POPUP */
+    /* ELEV SKILLTREE OVERLAY (Lag 12000 - så kompetence-popup på 18000 altid ligger FORAN) */
+    .student-tree-modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: var(--modal-backdrop);
+      backdrop-filter: blur(8px);
+      z-index: 12000;
+      flex-direction: column;
+    }
+
+    .student-tree-header {
+      background: var(--header-bg);
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--inactive-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .student-tree-viewport {
+      flex: 1;
+      overflow: auto;
+      padding: 20px;
+      display: flex;
+    }
+
+    /* FORSTØRRET FOKUSERET CIRKEL POPUP (Lag 18000 - altid foran både hovedtræ og elev-træ) */
     .enlarged-hex-modal {
       display: none;
       position: fixed;
       top: 0; left: 0; width: 100%; height: 100%;
       background: var(--modal-backdrop);
       backdrop-filter: blur(7px);
-      z-index: 15000;
+      z-index: 18000;
       justify-content: center;
       align-items: center;
       padding: 15px;
@@ -601,6 +630,11 @@
       transition: all 0.2s;
     }
 
+    .btn-state:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
     .btn-state.in-progress-btn.active {
       background: var(--in-progress-color);
       border-color: var(--in-progress-color);
@@ -620,6 +654,18 @@
       border-color: var(--active-achieved);
       color: #052e16;
       box-shadow: 0 0 12px rgba(34, 197, 94, 0.4);
+    }
+
+    .locked-validation-notice {
+      background: var(--achieved-fill);
+      border: 1px solid var(--active-achieved);
+      color: var(--active-achieved);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      font-weight: bold;
+      text-align: center;
+      display: none;
     }
 
     /* DOKUMENTATIONS-UPLOAD KNAP & FORHÅNDSVISNING */
@@ -675,35 +721,6 @@
     }
     .next-skill-circle:hover { transform: scale(1.06); }
 
-    /* ELEV SKILLTREE OVERLAY */
-    .student-tree-modal {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: var(--modal-backdrop);
-      backdrop-filter: blur(8px);
-      z-index: 16000;
-      flex-direction: column;
-    }
-
-    .student-tree-header {
-      background: var(--header-bg);
-      padding: 12px 20px;
-      border-bottom: 1px solid var(--inactive-border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-
-    .student-tree-viewport {
-      flex: 1;
-      overflow: auto;
-      padding: 20px;
-      display: flex;
-    }
-
     .splash-modal {
       display: none;
       position: fixed;
@@ -748,6 +765,7 @@
     .footer-label { color: var(--text-muted); margin-right: 4px; }
     .footer-val { color: var(--text-main); font-weight: bold; }
 
+    /* MODALS & DIALOGS */
     .modal {
       display: none;
       position: fixed;
@@ -757,6 +775,11 @@
       justify-content: center;
       align-items: center;
       padding: 12px;
+    }
+
+    /* Skill Editor Modal skal altid ligge FORAN fokuseret cirkel (18000) og admin (10000) */
+    #skillEditorModal {
+      z-index: 19000;
     }
 
     .modal-box {
@@ -769,6 +792,63 @@
       max-height: 90vh;
       overflow-y: auto;
       color: var(--text-main);
+      position: relative;
+    }
+
+    /* BREDT OG OVERSKUELIGT ADMIN PANEL */
+    .admin-modal-wide {
+      width: 94vw;
+      max-width: 1220px;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      max-height: 90vh;
+      overflow: hidden;
+    }
+
+    .admin-sticky-header {
+      position: sticky;
+      top: 0;
+      background: var(--header-bg);
+      padding: 14px 24px;
+      border-bottom: 1px solid var(--inactive-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 20;
+    }
+
+    .admin-body-grid {
+      padding: 20px 24px;
+      overflow-y: auto;
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    @media (max-width: 960px) {
+      .admin-body-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .admin-card {
+      background: var(--inner-bg);
+      border: 1px solid var(--inactive-border);
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 18px;
+    }
+
+    .admin-card h3 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      font-size: 0.95rem;
+      color: var(--accent-primary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
     .admin-section { margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid var(--inactive-border); }
@@ -809,7 +889,7 @@
     .toolbar-btns { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
 
     .domain-group-box {
-      background: var(--inner-bg);
+      background: var(--card-bg);
       border: 1px solid var(--inactive-border);
       border-radius: 6px;
       margin-bottom: 10px;
@@ -836,7 +916,7 @@
     }
 
     .class-tag {
-      background: var(--inner-bg);
+      background: var(--card-bg);
       border: 1px solid var(--inactive-border);
       padding: 10px 12px;
       border-radius: 6px;
@@ -958,11 +1038,12 @@
   </header>
 
   <div class="admin-edit-banner" id="adminEditBanner">
-    <span>🛠️ <strong>Redigeringstilstand aktiv:</strong> Træk og slip cirkler for at ændre niveau eller flytte mellem kategorier. Klik på en cirkel for at redigere tekst, vejledning og info.</span>
-    <div style="display:flex; gap:8px;">
+    <span>🛠️ <strong>Redigeringstilstand aktiv:</strong> Træk og slip cirkler for at ændre niveau eller flytte mellem kategorier. Klik på ✎ eller selve cirklen for at redigere.</span>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
       <button class="btn" style="background:#04130e; color:#fff; padding:5px 10px;" onclick="openSkillEditorModal(null)">➕ Opret Ny Kompetence</button>
-      <button class="btn" style="background:#04130e; color:#fff; padding:5px 10px;" onclick="exportSkillsCSV(true)">📥 Eksporter Ændringer (<span id="modifiedCountLabel">0</span>)</button>
+      <button class="btn" style="background:#04130e; color:#fff; padding:5px 10px;" onclick="exportSkillsCSV(true)">📥 Eksporter Ændringer (<span class="modified-count-badge">0</span>)</button>
       <button class="btn" style="background:#04130e; color:#fff; padding:5px 10px;" onclick="exportSkillsCSV(false)">📥 Eksporter Hele CSV</button>
+      <button class="btn btn-secondary" style="padding:5px 10px;" onclick="toggleAdminEditMode(false)">✕ Afslut Redigering</button>
     </div>
   </div>
 
@@ -998,7 +1079,7 @@
     </div>
   </footer>
 
-  <!-- FORSTØRRET FOKUSERET CIRKEL POPUP -->
+  <!-- FORSTØRRET FOKUSERET CIRKEL POPUP (z-index: 18000) -->
   <div class="enlarged-hex-modal" id="enlargedHexModal" onclick="handleHexModalBackdrop(event)">
     <div class="enlarged-popup-layout" onclick="event.stopPropagation();">
       <div class="enlarged-popup-wrapper">
@@ -1051,6 +1132,11 @@
             </label>
           </div>
 
+          <!-- Besked når kompetencen er låst efter lærer-godkendelse -->
+          <div class="locked-validation-notice" id="lockedValidationNotice" data-i18n="locked_by_teacher">
+            🔒 Godkendt af underviser (Kun underviser kan annullere)
+          </div>
+
           <!-- Elev knapper: Kan næsten & Kan / Anmod om godkendelse -->
           <div class="state-buttons-row" id="studentStateButtonsRow">
             <button class="btn-state in-progress-btn" id="btnStateInProgress" onclick="setSkillState('in_progress', event)">
@@ -1066,10 +1152,13 @@
           <!-- Lærer Validerings-knapper (vises når lærer inspicerer en elev) -->
           <div class="state-buttons-row" id="teacherVerifyButtonsRow" style="display:none;">
             <button class="btn" style="flex:1; background:var(--active-achieved); color:#052e16;" onclick="teacherVerifySkill('achieved')">
-              ✓ <span data-i18n="btn_approve_skill">Godkend kompetence</span>
+              ✓ <span data-i18n="btn_approve_skill">Godkend</span>
             </button>
-            <button class="btn btn-danger" style="flex:1;" onclick="teacherVerifySkill('in_progress')">
-              ✕ <span data-i18n="btn_reject_skill">Afvis (Tilbage til øver)</span>
+            <button class="btn btn-warning" style="flex:1;" onclick="teacherVerifySkill('in_progress')">
+              ⏳ <span data-i18n="btn_reject_skill">Tilbage til øver</span>
+            </button>
+            <button class="btn btn-danger" style="padding:8px 10px;" title="Fjern helt" onclick="teacherVerifySkill(null)">
+              🗑️
             </button>
           </div>
 
@@ -1099,7 +1188,10 @@
   <!-- INDSTILLINGER & TEMA MODAL -->
   <div class="modal" id="settingsModal">
     <div class="modal-box" style="width: 440px;">
-      <h2 style="margin-top:0;" data-i18n="settings_title">Brugerindstillinger & Tema</h2>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h2 style="margin:0;" data-i18n="settings_title">Brugerindstillinger & Tema</h2>
+        <button class="btn btn-secondary" onclick="closeSettingsModal()">✕</button>
+      </div>
       <div class="admin-section">
         <h3 data-i18n="choose_theme">Vælg farvetema</h3>
         <div class="theme-cards">
@@ -1140,10 +1232,13 @@
     </div>
   </div>
 
-  <!-- ADMIN OPRET / REDIGER KOMPETENCE MODAL -->
+  <!-- ADMIN OPRET / REDIGER KOMPETENCE MODAL (z-index: 19000 - altid øverst) -->
   <div class="modal" id="skillEditorModal">
-    <div class="modal-box">
-      <h2 id="skillEditorModalTitle" style="margin-top:0;">Rediger Kompetence</h2>
+    <div class="modal-box" style="width: 680px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <h2 id="skillEditorModalTitle" style="margin:0;">Rediger Kompetence</h2>
+        <button class="btn btn-secondary" onclick="closeSkillEditorModal()">✕ Luk</button>
+      </div>
       <div class="input-group">
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
           <div>
@@ -1175,7 +1270,8 @@
         <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;">
           <div>
             <label style="font-size:0.78rem; color:var(--text-muted);">Underkategori (valgfri):</label>
-            <input type="text" id="editSkillSubCat" placeholder="F.eks. Sikkerhed">
+            <input type="text" id="editSkillSubCat" list="existingSubCategoriesList" placeholder="F.eks. Sikkerhed">
+            <datalist id="existingSubCategoriesList"></datalist>
           </div>
           <div>
             <label style="font-size:0.78rem; color:var(--text-muted);">Kategori-titel belønning (# = ingen):</label>
@@ -1219,7 +1315,7 @@
     </div>
   </div>
 
-  <!-- ELEV SKILLTREE OVERLAY -->
+  <!-- ELEV SKILLTREE OVERLAY (z-index: 12000) -->
   <div class="student-tree-modal" id="studentTreeModal">
     <div class="student-tree-header">
       <div>
@@ -1309,7 +1405,10 @@
   <!-- ELEV HOLD MODAL -->
   <div class="modal" id="teamModal">
     <div class="modal-box">
-      <h2 style="margin-top:0;" data-i18n="my_team_header">Mit Hold</h2>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h2 style="margin:0;" data-i18n="my_team_header">Mit Hold</h2>
+        <button class="btn btn-secondary" onclick="closeTeamModal()">✕</button>
+      </div>
       <div class="admin-section">
         <h3 data-i18n="join_team_sub">Tilmeld dig et hold</h3>
         <p style="font-size: 0.8rem; color: var(--text-muted); margin:0 0 10px 0;" data-i18n="join_code_desc">Indtast den 5-bogstavs holdkode du har fået:</p>
@@ -1328,87 +1427,106 @@
     </div>
   </div>
 
-  <!-- SUPERBRUGER ADMIN MODAL -->
+  <!-- SUPERBRUGER ADMIN MODAL (Bred 2-kolonne layout med fast Luk-knap øverst) -->
   <div class="modal" id="adminModal">
-    <div class="modal-box">
-      <h2 style="margin-top:0;">Superbruger Admin</h2>
-
-      <div class="admin-section">
-        <h3>1. Opret nyt Hold</h3>
-        <div style="display:flex; gap:8px; margin-bottom:8px;">
-          <input type="text" id="newClassNameInput" placeholder="Holdnavn (f.eks. Eindhoven 2026)">
-          <button class="btn" onclick="handleCreateClass()">Opret Hold</button>
+    <div class="modal-box admin-modal-wide">
+      <div class="admin-sticky-header">
+        <div>
+          <h2 style="margin:0; font-size:1.25rem;">⚙️ Superbruger & Lærer Admin</h2>
+          <span style="font-size:0.78rem; color:var(--text-muted);">Administrer hold, elev-godkendelser, kompetencer og CSV-synkronisering</span>
         </div>
-        <label style="font-size:0.8rem; color:var(--text-main); display:flex; align-items:center; gap:8px; cursor:pointer;">
-          <input type="checkbox" id="newClassRequireValidation">
-          <span data-i18n="lbl_require_validation">Kræv lærer-validering før kompetencer registreres som opnået (Pending)</span>
-        </label>
+        <button class="btn btn-secondary" style="padding:8px 16px; font-size:0.9rem;" onclick="closeAdmin()">✕ Luk Admin</button>
       </div>
 
-      <div class="admin-section">
-        <h3>2. Administrer Hold & Lærer-Validering</h3>
-        <div id="adminClassList"></div>
-        
-        <div id="adminStudentProgressView" style="display:none; margin-top:15px; background:var(--inner-bg); padding:12px; border-radius:6px; border:1px solid var(--inactive-border);">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-            <strong id="progressClassTitle" style="color:var(--accent-primary);">Elever på holdet</strong>
-            <button class="btn btn-secondary" style="padding:2px 8px; font-size:0.75rem;" onclick="closeClassProgressView()">✕ Luk oversigt</button>
-          </div>
-          <div id="studentProgressList"></div>
-        </div>
-
-        <div id="adminClassCategoriesView" style="display:none; margin-top:15px; background:var(--inner-bg); padding:12px; border-radius:6px; border:1px solid var(--inactive-border);">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-            <strong id="classCategoriesTitle" style="color:var(--accent-primary);">Vælg aktive kategorier</strong>
-            <button class="btn btn-secondary" style="padding:2px 8px; font-size:0.75rem;" onclick="closeClassCategoriesView()">✕ Luk</button>
-          </div>
-          <p style="font-size:0.75rem; color:var(--text-muted); margin:0 0 10px 0;">Vælg hvilke kategorier dette hold skal arbejde med:</p>
-          
-          <div class="toolbar-btns">
-            <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="setAllClassCategories(true)">✓ Vælg alle</button>
-            <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="setAllClassCategories(false)">✕ Fjern alle</button>
+      <div class="admin-body-grid">
+        <!-- VENSTRE KOLONNE: HOLD, ELEVER & VALIDERING -->
+        <div>
+          <div class="admin-card">
+            <h3>1. Opret nyt Hold</h3>
+            <div style="display:flex; gap:8px; margin-bottom:10px;">
+              <input type="text" id="newClassNameInput" placeholder="Holdnavn (f.eks. Eindhoven 2026)">
+              <button class="btn" style="white-space:nowrap;" onclick="handleCreateClass()">➕ Opret Hold</button>
+            </div>
+            <label style="font-size:0.8rem; color:var(--text-main); display:flex; align-items:center; gap:8px; cursor:pointer;">
+              <input type="checkbox" id="newClassRequireValidation">
+              <span data-i18n="lbl_require_validation">Kræv lærer-validering før kompetencer registreres som opnået (Afventer godkendelse)</span>
+            </label>
           </div>
 
-          <div id="classCategoriesCheckboxes" style="max-height:240px; overflow-y:auto; margin-bottom:12px;"></div>
-          <button class="btn" style="width:100%;" onclick="saveClassCategories()">💾 Gem Hold-Kategorier</button>
-        </div>
-      </div>
+          <div class="admin-card">
+            <h3>2. Administrer Hold, Kategorier & Elever</h3>
+            <div id="adminClassList"></div>
+            
+            <div id="adminStudentProgressView" style="display:none; margin-top:15px; background:var(--card-bg); padding:14px; border-radius:8px; border:2px solid var(--accent-primary);">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <strong id="progressClassTitle" style="color:var(--accent-primary);">Elever på holdet</strong>
+                <button class="btn btn-secondary" style="padding:4px 10px; font-size:0.75rem;" onclick="closeClassProgressView()">✕ Luk elevliste</button>
+              </div>
+              <div id="studentProgressList"></div>
+            </div>
 
-      <div class="admin-section">
-        <h3>3. Kompetence-redigering & CSV Import/Eksport</h3>
-        <p style="font-size: 0.78rem; color: var(--text-muted); margin:0 0 10px 0;">
-          Format: Sprog, Kategori, Kategori_Titel, Underkategori, ID, Niveau, SVG_Ikon, Kort_Beskrivelse, Kompetence, Vejledning_URL, Vejledning_Tekst, Info_Tekst
-        </p>
-        <div class="toolbar-btns">
-          <button class="btn btn-warning" onclick="closeAdmin(); toggleAdminEditMode(true);">✏️ Slå Drag & Drop Redigering til på siden</button>
-          <button class="btn" onclick="openSkillEditorModal(null)">➕ Opret Ny Kompetence</button>
-        </div>
-        <div style="display:flex; gap:10px; margin-bottom:10px;">
-          <input type="file" id="csvFileInput" accept=".csv">
-          <button class="btn" onclick="handleFileUpload()">📤 Upload CSV</button>
-        </div>
-        <div class="toolbar-btns">
-          <button class="btn btn-secondary" onclick="exportSkillsCSV(true)">📥 Eksporter kun ændringer (CSV)</button>
-          <button class="btn btn-secondary" onclick="exportSkillsCSV(false)">📥 Eksporter hele Skill Tree (CSV)</button>
-        </div>
-      </div>
+            <div id="adminClassCategoriesView" style="display:none; margin-top:15px; background:var(--card-bg); padding:14px; border-radius:8px; border:2px solid var(--accent-primary);">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <strong id="classCategoriesTitle" style="color:var(--accent-primary);">Vælg aktive kategorier</strong>
+                <button class="btn btn-secondary" style="padding:4px 10px; font-size:0.75rem;" onclick="closeClassCategoriesView()">✕ Luk</button>
+              </div>
+              <p style="font-size:0.75rem; color:var(--text-muted); margin:0 0 10px 0;">Vælg hvilke kategorier dette hold skal arbejde med:</p>
+              
+              <div class="toolbar-btns">
+                <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="setAllClassCategories(true)">✓ Vælg alle</button>
+                <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="setAllClassCategories(false)">✕ Fjern alle</button>
+              </div>
 
-      <div class="admin-section">
-        <h3>4. Generelt Synlige Kategorier (Global)</h3>
-        <div class="toolbar-btns">
-          <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="setAllGlobalCategories(true)">✓ Vis alle</button>
-          <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="setAllGlobalCategories(false)">✕ Skjul alle</button>
+              <div id="classCategoriesCheckboxes" style="max-height:260px; overflow-y:auto; margin-bottom:12px;"></div>
+              <button class="btn" style="width:100%;" onclick="saveClassCategories()">💾 Gem Hold-Kategorier</button>
+            </div>
+          </div>
         </div>
-        <div id="adminCategoryList" style="max-height:240px; overflow-y:auto;"></div>
-      </div>
 
-      <div class="admin-section" style="border-bottom:none;">
-        <h3>5. Data-styring</h3>
-        <button class="btn btn-danger" onclick="clearAllData()">Ryd Lokal Cache</button>
-      </div>
+        <!-- HØJRE KOLONNE: KOMPETENCE-EDITOR, CSV & GLOBALE KATEGORIER -->
+        <div>
+          <div class="admin-card">
+            <h3>3. Kompetence-redigering & CSV Import/Eksport</h3>
+            <p style="font-size: 0.78rem; color: var(--text-muted); margin:0 0 10px 0;">
+              Slå visuel redigering til for at flytte cirkler rundt eller redigere mål direkte på træet.
+            </p>
+            <div class="toolbar-btns">
+              <button class="btn btn-warning" onclick="closeAdmin(); toggleAdminEditMode(true);">✏️ Slå Drag & Drop Redigering til på siden</button>
+              <button class="btn" onclick="openSkillEditorModal(null)">➕ Opret Ny Kompetence</button>
+            </div>
 
-      <div style="text-align: right;">
-        <button class="btn" onclick="closeAdmin()">Luk</button>
+            <div style="background:var(--card-bg); padding:10px; border-radius:6px; border:1px solid var(--inactive-border); margin:12px 0;">
+              <label style="font-size:0.78rem; font-weight:bold; color:var(--accent-primary); display:block; margin-bottom:6px;">📤 Upload CSV til Supabase (Nulstiller ændrings-tæller):</label>
+              <div style="display:flex; gap:8px;">
+                <input type="file" id="csvFileInput" accept=".csv">
+                <button class="btn" style="white-space:nowrap;" onclick="handleFileUpload()">Upload CSV</button>
+              </div>
+            </div>
+
+            <div class="toolbar-btns" style="margin-top:10px;">
+              <button class="btn btn-secondary" onclick="exportSkillsCSV(true)">📥 Eksporter kun ændringer (<span class="modified-count-badge">0</span>)</button>
+              <button class="btn btn-secondary" onclick="exportSkillsCSV(false)">📥 Eksporter hele Skill Tree (CSV)</button>
+              <button class="btn btn-secondary" style="font-size:0.75rem;" onclick="clearModifiedCounter(true)" title="Nulstil tælleren for lokale ændringer">↺ Nulstil tæller</button>
+            </div>
+          </div>
+
+          <div class="admin-card">
+            <h3>4. Generelt Synlige Kategorier (Global)</h3>
+            <div class="toolbar-btns">
+              <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="setAllGlobalCategories(true)">✓ Vis alle</button>
+              <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="setAllGlobalCategories(false)">✕ Skjul alle</button>
+            </div>
+            <div id="adminCategoryList" style="max-height:240px; overflow-y:auto;"></div>
+          </div>
+
+          <div class="admin-card" style="margin-bottom:0;">
+            <h3>5. Data-styring & Synkronisering</h3>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+              <button class="btn btn-secondary" onclick="reloadFreshFromSupabase()">🔄 Hent friske data fra Supabase</button>
+              <button class="btn btn-danger" onclick="clearAllData()">🗑️ Ryd Lokal Cache</button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -1482,8 +1600,9 @@
         state_achieved: "Kan",
         state_pending: "Afventer godkendelse",
         state_request_approval: "Anmod om godkendelse",
-        btn_approve_skill: "Godkend kompetence",
-        btn_reject_skill: "Afvis (Øver)",
+        locked_by_teacher: "🔒 Godkendt af underviser (Kun underviser kan annullere)",
+        btn_approve_skill: "Godkend",
+        btn_reject_skill: "Tilbage til øver",
         lbl_require_validation: "Kræv lærer-validering før kompetencer registreres som opnået (Afventer godkendelse)",
         validation_required_badge: "🔒 Lærer-validering",
         validation_free_badge: "🔓 Fri afkrydsning",
@@ -1573,8 +1692,9 @@
         state_achieved: "Achieved",
         state_pending: "Pending approval",
         state_request_approval: "Request approval",
-        btn_approve_skill: "Approve skill",
-        btn_reject_skill: "Reject (In progress)",
+        locked_by_teacher: "🔒 Verified by instructor (Only instructor can revoke)",
+        btn_approve_skill: "Approve",
+        btn_reject_skill: "Return to practice",
         lbl_require_validation: "Require teacher validation before skills count as achieved (Pending approval)",
         validation_required_badge: "🔒 Teacher validation",
         validation_free_badge: "🔓 Self-check",
@@ -1664,8 +1784,9 @@
         state_achieved: "Вмію",
         state_pending: "Очікує підтвердження",
         state_request_approval: "Надіслати на перевірку",
-        btn_approve_skill: "Підтвердити навичку",
-        btn_reject_skill: "Відхилити (В процесі)",
+        locked_by_teacher: "🔒 Підтверджено викладачем (Лише викладач може скасувати)",
+        btn_approve_skill: "Підтвердити",
+        btn_reject_skill: "Повернути на доопрацювання",
         lbl_require_validation: "Вимагати підтвердження викладачем перед зарахуванням навички",
         validation_required_badge: "🔒 Перевірка викладачем",
         validation_free_badge: "🔓 Вільна позначка",
@@ -1860,12 +1981,11 @@
 
     // Tjekker om elevens aktuelt valgte hold (eller et af elevens tilmeldte hold) kræver lærer-validering
     function doesCurrentContextRequireValidation(skillCategory) {
-      if (currentUserIsAdmin) return false; // Lærere/admins validerer sig selv direkte
+      if (currentUserIsAdmin) return false;
       const selectedClass = userEnrolledClasses.find(c => c.id === selectedViewFilter);
       if (selectedClass) {
         return !!selectedClass.requireValidation;
       }
-      // Hvis eleven er i standard-visning, men tilmeldt et hold der kræver validering for denne kategori
       return userEnrolledClasses.some(c => {
         if (!c.requireValidation) return false;
         if (!c.categories || c.categories.length === 0) return true;
@@ -1930,6 +2050,7 @@
     let modifiedSkillKeys = new Set(JSON.parse(localStorage.getItem('ms_modifiedSkills') || '[]'));
     let hiddenCats = JSON.parse(localStorage.getItem('ms_hiddenCats')) || [];
     let userProgress = {};
+    let userVerifiedByMap = {};
     let userProofImages = {};
     let currentUser = null;
     let currentUserIsAdmin = false;
@@ -1947,17 +2068,30 @@
     let activeEnlargedProofMap = null;
     let activeInspectedStudentId = null;
     let activeInspectedStudentName = null;
+    let activeInspectionClassName = null;
     let activeNextSuggestedSkill = null;
     let activeSkillTab = 'desc';
     let activeInspectionClassCategories = null;
     let activeInspectionClassId = null;
     let draggedSkill = null;
 
+    function updateModifiedBadges() {
+      document.querySelectorAll('.modified-count-badge').forEach(el => {
+        el.innerText = modifiedSkillKeys.size;
+      });
+    }
+
     function markSkillModified(lang, id) {
       modifiedSkillKeys.add(`${lang || 'da'}_${id}`);
       localStorage.setItem('ms_modifiedSkills', JSON.stringify(Array.from(modifiedSkillKeys)));
-      const lbl = document.getElementById('modifiedCountLabel');
-      if (lbl) lbl.innerText = modifiedSkillKeys.size;
+      updateModifiedBadges();
+    }
+
+    function clearModifiedCounter(showNotice = false) {
+      modifiedSkillKeys.clear();
+      localStorage.removeItem('ms_modifiedSkills');
+      updateModifiedBadges();
+      if (showNotice) alert('Ændrings-tælleren er nulstillet til 0.');
     }
 
     function generate5LetterCode() {
@@ -2056,6 +2190,8 @@
       }
 
       await syncSkillsListToSupabaseAndLocal(rowsToUpsert, showAlert);
+      // Nulstil tæller efter CSV upload, da alt nu er synkroniseret med Supabase
+      clearModifiedCounter(false);
     }
 
     async function syncSkillsListToSupabaseAndLocal(rowsToUpsert, showAlert = false) {
@@ -2108,7 +2244,7 @@
       allSkills = Array.from(existingMap.values());
       localStorage.setItem('ms_allSkills', JSON.stringify(allSkills));
 
-      if (showAlert) alert(`Succes: ${rowsToUpsert.length} kompetencer opdateret!`);
+      if (showAlert) alert(`Succes: ${rowsToUpsert.length} kompetencer opdateret og synkroniseret!`);
       updateViewFilterOptions();
       renderApp();
       if (document.getElementById('adminModal').style.display === 'flex') renderAdmin();
@@ -2172,6 +2308,11 @@
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+
+      // Når brugeren har eksporteret ændringerne (og de allerede er synkroniseret til Supabase), nulstilles tælleren
+      if (onlyChanges) {
+        clearModifiedCounter(false);
+      }
     }
 
     function handleFileUpload() {
@@ -2190,6 +2331,13 @@
       reader.readAsText(file);
     }
 
+    async function reloadFreshFromSupabase() {
+      clearModifiedCounter(false);
+      localStorage.removeItem('ms_allSkills');
+      await initData();
+      alert('Friske kompetencedata hentet fra Supabase, og ændringstælleren er nulstillet.');
+    }
+
     async function checkUserRole(userId) {
       if (!supabaseClient || !userId) return false;
       try {
@@ -2206,9 +2354,14 @@
       }
     }
 
-    async function ensureUserProfile(user, preferredLanguage = 'da', preferredTheme = 'green-dark') {
+    async function ensureUserProfile(user, preferredLanguage = 'da', preferredTheme = 'green-dark', explicitFullName = '') {
       if (!supabaseClient || !user) return;
       try {
+        const fallbackName = explicitFullName || user.user_metadata?.full_name || localStorage.getItem(`ms_name_${user.id}`) || user.email?.split('@')[0] || 'Elev';
+        if (fallbackName) {
+          localStorage.setItem(`ms_name_${user.id}`, fallbackName);
+        }
+
         const { data } = await supabaseClient
           .from('profiles')
           .select('*')
@@ -2216,16 +2369,27 @@
           .maybeSingle();
 
         if (!data) {
-          const fallbackName = user.user_metadata?.full_name || user.email.split('@')[0];
-          await supabaseClient.from('profiles').insert({
+          const { error } = await supabaseClient.from('profiles').upsert({
             id: user.id,
-            username: user.email.split('@')[0],
+            username: user.email ? user.email.split('@')[0] : fallbackName,
             full_name: fallbackName,
             role: 'student',
             preferred_language: preferredLanguage,
             theme: preferredTheme
           });
+          if (error) {
+            await supabaseClient.from('profiles').upsert({
+              id: user.id,
+              username: user.email ? user.email.split('@')[0] : fallbackName,
+              full_name: fallbackName,
+              role: 'student'
+            });
+          }
         } else {
+          // Hvis profilen fandtes men manglede full_name, opdateres den
+          if (!data.full_name && fallbackName) {
+            await supabaseClient.from('profiles').update({ full_name: fallbackName }).eq('id', user.id);
+          }
           if (data.preferred_language) {
             currentLang = data.preferred_language;
             localStorage.setItem('ms_language', currentLang);
@@ -2242,14 +2406,12 @@
     async function initData() {
       applyTheme(currentTheme);
       applyTranslations();
+      updateModifiedBadges();
 
       const localCachedSkills = JSON.parse(localStorage.getItem('ms_allSkills'));
       if (localCachedSkills && localCachedSkills.length > 0) {
         allSkills = localCachedSkills;
       }
-
-      const lbl = document.getElementById('modifiedCountLabel');
-      if (lbl) lbl.innerText = modifiedSkillKeys.size;
 
       if (!supabaseClient) {
         userProgress = JSON.parse(localStorage.getItem('ms_local_progress')) || {};
@@ -2271,7 +2433,7 @@
             .eq('id', currentUser.id)
             .maybeSingle();
 
-          currentUserName = prof?.full_name || currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
+          currentUserName = prof?.full_name || currentUser.user_metadata?.full_name || localStorage.getItem(`ms_name_${currentUser.id}`) || currentUser.email.split('@')[0];
           if (prof?.preferred_language) {
             currentLang = prof.preferred_language;
             localStorage.setItem('ms_language', currentLang);
@@ -2365,6 +2527,8 @@
         return;
       }
 
+      await ensureUserProfile(currentUser, currentLang, currentTheme, currentUserName);
+
       const { error: joinError } = await supabaseClient
         .from('class_members')
         .insert({ class_id: classData.id, user_id: currentUser.id });
@@ -2392,9 +2556,13 @@
           const localProofs = JSON.parse(localStorage.getItem(`ms_proof_${currentUser.id}`)) || {};
           userProgress = { ...localStatuses };
           userProofImages = { ...localProofs };
+          userVerifiedByMap = {};
 
           data.forEach(row => {
             userProgress[row.skill_id] = row.status || localStatuses[row.skill_id] || 'achieved';
+            if (row.verified_by) {
+              userVerifiedByMap[row.skill_id] = row.verified_by;
+            }
             if (row.proof_image_url) {
               userProofImages[row.skill_id] = row.proof_image_url;
             }
@@ -2525,6 +2693,7 @@
       adminEditMode = forceState !== undefined ? forceState : !adminEditMode;
       document.body.classList.toggle('admin-edit-active', adminEditMode);
       document.getElementById('adminEditBanner').style.display = adminEditMode ? 'flex' : 'none';
+      updateModifiedBadges();
       renderApp();
     }
 
@@ -2532,7 +2701,7 @@
     function closeAuthModal() { document.getElementById('authModal').style.display = 'none'; }
     function openTeamModal() { renderTeamModal(); document.getElementById('teamModal').style.display = 'flex'; }
     function closeTeamModal() { document.getElementById('teamModal').style.display = 'none'; }
-    function openAdmin() { renderAdmin(); document.getElementById('adminModal').style.display = 'flex'; }
+    function openAdmin() { updateModifiedBadges(); renderAdmin(); document.getElementById('adminModal').style.display = 'flex'; }
     function closeAdmin() { document.getElementById('adminModal').style.display = 'none'; renderApp(); }
 
     function toggleAuthMode() {
@@ -2569,14 +2738,8 @@
           if (error) throw error;
           
           if (data.user) {
-            await supabaseClient.from('profiles').upsert({
-              id: data.user.id,
-              username: email.split('@')[0],
-              full_name: fullName,
-              role: 'student',
-              preferred_language: chosenLang,
-              theme: chosenTheme
-            });
+            localStorage.setItem(`ms_name_${data.user.id}`, fullName);
+            await ensureUserProfile(data.user, chosenLang, chosenTheme, fullName);
           }
 
           alert('Bruger oprettet!');
@@ -2596,7 +2759,7 @@
             .eq('id', currentUser.id)
             .maybeSingle();
 
-          currentUserName = prof?.full_name || currentUser.user_metadata?.full_name || email.split('@')[0];
+          currentUserName = prof?.full_name || currentUser.user_metadata?.full_name || localStorage.getItem(`ms_name_${currentUser.id}`) || email.split('@')[0];
           if (prof?.theme) applyTheme(prof.theme);
           if (prof?.preferred_language) {
             await handleLanguageChange(prof.preferred_language);
@@ -2656,7 +2819,6 @@
         .maybeSingle();
 
       if (error) {
-        // Fallback hvis kolonnen require_validation ikke er oprettet endnu i Supabase
         const res2 = await supabaseClient
           .from('classes')
           .insert({
@@ -2724,6 +2886,9 @@
         alert('Fandt intet hold med koden: ' + code);
         return;
       }
+
+      // Sikr at elevens profil og navn er gemt i profiles, før eleven tilmeldes holdet
+      await ensureUserProfile(currentUser, currentLang, currentTheme, currentUserName);
 
       const { error: joinError } = await supabaseClient
         .from('class_members')
@@ -2895,7 +3060,7 @@
           <div class="class-tag">
             <div>
               <strong>${c.name}</strong>
-              <span style="margin-left:6px; font-size:0.7rem; padding:2px 6px; border-radius:10px; background:${reqVal ? 'var(--pending-fill)' : 'var(--card-bg)'}; color:${reqVal ? 'var(--pending-color)' : 'var(--text-muted)'}; border:1px solid ${reqVal ? 'var(--pending-color)' : 'var(--inactive-border)'};">
+              <span style="margin-left:6px; font-size:0.7rem; padding:2px 6px; border-radius:10px; background:${reqVal ? 'var(--pending-fill)' : 'var(--inner-bg)'}; color:${reqVal ? 'var(--pending-color)' : 'var(--text-muted)'}; border:1px solid ${reqVal ? 'var(--pending-color)' : 'var(--inactive-border)'};">
                 ${reqVal ? t('validation_required_badge') : t('validation_free_badge')}
               </span><br>
               <span style="font-size:0.75rem; color:var(--text-muted);">Kode: <strong style="color:var(--accent-primary); font-size:0.85rem; letter-spacing:1px;">${c.invite_code}</strong> | Elever: ${c.class_members[0]?.count || 0}</span>
@@ -2959,6 +3124,7 @@
 
     async function viewClassProgress(classId, className, classCategories) {
       activeInspectionClassId = classId;
+      activeInspectionClassName = className;
       activeInspectionClassCategories = classCategories || null;
       document.getElementById('adminClassCategoriesView').style.display = 'none';
       const panel = document.getElementById('adminStudentProgressView');
@@ -2980,7 +3146,7 @@
         }
 
         const userIds = members.map(m => m.user_id);
-        const { data: profiles } = await supabaseClient.from('profiles').select('id, full_name, username').in('id', userIds);
+        const { data: profiles } = await supabaseClient.from('profiles').select('*').in('id', userIds);
         const { data: skills } = await supabaseClient.from('user_skills').select('*').in('user_id', userIds);
 
         let classSpecificSkills = allSkills.filter(s => (s.lang || 'da') === currentLang);
@@ -2996,7 +3162,8 @@
 
         list.innerHTML = members.map(m => {
           const profile = profiles?.find(p => p.id === m.user_id);
-          const studentName = profile?.full_name || profile?.username || 'Ukendt elev';
+          const cachedName = localStorage.getItem(`ms_name_${m.user_id}`);
+          const studentName = profile?.full_name || profile?.username || cachedName || `Elev (${m.user_id.slice(0, 5)})`;
           
           const studentProg = {};
           const studentProofs = {};
@@ -3081,27 +3248,66 @@
       for (const skillId of pendingSkillIds) {
         activeEnlargedProgressMap[skillId] = 'achieved';
         if (supabaseClient) {
-          await supabaseClient
+          const { error } = await supabaseClient
             .from('user_skills')
-            .update({ status: 'achieved', verified_by: currentUser?.id })
-            .match({ user_id: activeInspectedStudentId, skill_id: skillId });
+            .upsert({
+              user_id: activeInspectedStudentId,
+              skill_id: skillId,
+              status: 'achieved',
+              verified_by: currentUser?.id
+            }, { onConflict: 'user_id, skill_id' });
+          if (error) {
+            await supabaseClient
+              .from('user_skills')
+              .update({ status: 'achieved' })
+              .match({ user_id: activeInspectedStudentId, skill_id: skillId });
+          }
         }
       }
 
       openStudentTreeModal(activeInspectedStudentId, activeInspectedStudentName, activeEnlargedProgressMap, activeEnlargedProofMap);
+      if (activeInspectionClassId) {
+        viewClassProgress(activeInspectionClassId, activeInspectionClassName, activeInspectionClassCategories);
+      }
     }
 
     async function teacherVerifySkill(newStatus) {
       if (!activeEnlargedSkill || !activeInspectedStudentId || !activeEnlargedProgressMap) return;
       const skillId = activeEnlargedSkill.id;
-      activeEnlargedProgressMap[skillId] = newStatus;
+
+      if (newStatus) {
+        activeEnlargedProgressMap[skillId] = newStatus;
+      } else {
+        delete activeEnlargedProgressMap[skillId];
+      }
 
       if (supabaseClient) {
         try {
-          await supabaseClient
-            .from('user_skills')
-            .update({ status: newStatus, verified_by: currentUser?.id })
-            .match({ user_id: activeInspectedStudentId, skill_id: skillId });
+          if (newStatus) {
+            let { error } = await supabaseClient
+              .from('user_skills')
+              .upsert({
+                user_id: activeInspectedStudentId,
+                skill_id: skillId,
+                status: newStatus,
+                verified_by: newStatus === 'achieved' ? currentUser?.id : null
+              }, { onConflict: 'user_id, skill_id' });
+
+            if (error) {
+              const res2 = await supabaseClient
+                .from('user_skills')
+                .update({ status: newStatus })
+                .match({ user_id: activeInspectedStudentId, skill_id: skillId });
+              if (res2.error) {
+                alert('Kunne ikke opdatere elevens kompetence i Supabase. Tjek at du har kørt RLS SQL-scriptet i Supabase SQL Editor.');
+              }
+            }
+          } else {
+            await supabaseClient
+              .from('user_skills')
+              .delete()
+              .match({ user_id: activeInspectedStudentId, skill_id: skillId });
+          }
         } catch (e) {
           console.error('Fejl ved validering:', e);
         }
@@ -3109,6 +3315,9 @@
 
       closeEnlargedHexModal();
       openStudentTreeModal(activeInspectedStudentId, activeInspectedStudentName, activeEnlargedProgressMap, activeEnlargedProofMap);
+      if (activeInspectionClassId) {
+        viewClassProgress(activeInspectionClassId, activeInspectionClassName, activeInspectionClassCategories);
+      }
     }
 
     function closeStudentTreeModal() {
@@ -3197,7 +3406,6 @@
         const skillId = activeEnlargedSkill.id;
         userProofImages[skillId] = compressedDataUrl;
 
-        // Hvis eleven uploader billede og endnu ikke har en status på målet, sættes den til in_progress
         if (!userProgress[skillId]) {
           userProgress[skillId] = 'in_progress';
         }
@@ -3355,6 +3563,14 @@
       }
     }
 
+    // Tjekker om kompetencen er låst for eleven, fordi en lærer har godkendt den
+    function isSkillLockedByTeacherValidation(skill, achieved) {
+      if (currentUserIsAdmin) return false;
+      if (!achieved) return false;
+      if (userVerifiedByMap[skill.id]) return true;
+      return doesCurrentContextRequireValidation(skill.cat);
+    }
+
     function openSkillEnlargedModal(skill, event, isReadOnly = false, currentProg = null, currentProofs = null) {
       activeEnlargedSkill = skill;
       activeEnlargedIsReadOnly = isReadOnly;
@@ -3367,6 +3583,7 @@
       const pending = isSkillPending(prog, skill.id);
       const inProg = isSkillInProgress(prog, skill.id);
       const requiresVal = doesCurrentContextRequireValidation(skill.cat);
+      const lockedForStudent = !isReadOnly && isSkillLockedByTeacherValidation(skill, achieved);
 
       const modal = document.getElementById('enlargedHexModal');
       const hexWrap = document.getElementById('enlargedHexWrap');
@@ -3377,6 +3594,7 @@
       const rewardText = document.getElementById('enlargedRewardText');
       const studentRow = document.getElementById('studentStateButtonsRow');
       const teacherRow = document.getElementById('teacherVerifyButtonsRow');
+      const lockedNotice = document.getElementById('lockedValidationNotice');
       const btnInProg = document.getElementById('btnStateInProgress');
       const btnAchieved = document.getElementById('btnStateAchieved');
       const btnAchievedText = document.getElementById('btnStateAchievedText');
@@ -3389,7 +3607,7 @@
       adminEditBtn.style.display = currentUserIsAdmin ? 'inline-flex' : 'none';
 
       switchSkillTab('desc');
-      updateProofUIInModal(skill.id, isReadOnly, proofs);
+      updateProofUIInModal(skill.id, isReadOnly || lockedForStudent, proofs);
 
       if (skill.catTitle && skill.catTitle !== '#' && skill.catTitle !== '-') {
         rewardWrap.style.display = 'flex';
@@ -3405,7 +3623,6 @@
 
       btnInProg.classList.toggle('active', inProg);
 
-      // Tilpas primær knap efter om holdet kræver validering
       btnAchieved.classList.remove('achieved-btn', 'pending-btn', 'active');
       if (achieved) {
         btnAchieved.classList.add('achieved-btn', 'active');
@@ -3422,9 +3639,16 @@
       }
 
       if (isReadOnly) {
+        lockedNotice.style.display = 'none';
         studentRow.style.display = 'none';
         teacherRow.style.display = (currentUserIsAdmin && activeInspectedStudentId) ? 'flex' : 'none';
+      } else if (lockedForStudent) {
+        // Eleven kan IKKE fjerne eller genstarte en kompetence, når en lærer har godkendt den
+        lockedNotice.style.display = 'block';
+        studentRow.style.display = 'none';
+        teacherRow.style.display = 'none';
       } else {
+        lockedNotice.style.display = 'none';
         studentRow.style.display = 'flex';
         teacherRow.style.display = 'none';
       }
@@ -3469,6 +3693,9 @@
     async function handlePrimaryCompleteClick(event) {
       if (!activeEnlargedSkill) return;
       const s = activeEnlargedSkill;
+      if (isSkillLockedByTeacherValidation(s, isSkillAchieved(userProgress, s.id))) {
+        return;
+      }
       const requiresVal = doesCurrentContextRequireValidation(s.cat);
       const targetState = requiresVal ? 'pending' : 'achieved';
       await setSkillState(targetState, event);
@@ -3477,8 +3704,14 @@
     async function setSkillState(targetStatus, event) {
       if (!activeEnlargedSkill) return;
       const s = activeEnlargedSkill;
+
+      // Ekstra sikkerhedstjek: Eleven må aldrig kunne ændre en lærer-valideret kompetence
+      if (isSkillLockedByTeacherValidation(s, isSkillAchieved(userProgress, s.id))) {
+        return;
+      }
+
       const currentStatus = userProgress[s.id];
-      const newStatus = (currentStatus === targetStatus || (targetStatus === 'pending' && currentStatus === 'achieved')) ? null : targetStatus;
+      const newStatus = (currentStatus === targetStatus) ? null : targetStatus;
 
       await updateSkillStatus(s.id, newStatus, event, s.cat);
       if (activeEnlargedSkill) {
@@ -3527,8 +3760,11 @@
       editingOriginalSkill = skillObj;
       const modal = document.getElementById('skillEditorModal');
       const datalist = document.getElementById('existingCategoriesList');
+      const subDatalist = document.getElementById('existingSubCategoriesList');
       const allCats = [...new Set(allSkills.map(s => s.cat))];
+      const allSubCats = [...new Set(allSkills.map(s => s.subCat).filter(Boolean))];
       datalist.innerHTML = allCats.map(c => `<option value="${c}">`).join('');
+      subDatalist.innerHTML = allSubCats.map(sc => `<option value="${sc}">`).join('');
 
       if (skillObj) {
         document.getElementById('skillEditorModalTitle').innerText = `Rediger: ${skillObj.shortDesc}`;
@@ -3596,7 +3832,6 @@
       const catList = allSkills.filter(s => (s.lang || 'da') === lang && s.cat === cat).sort((a, b) => a.level - b.level);
       const insertIndex = Math.max(0, Math.min(catList.length, desiredLevel - 1));
 
-      // Hvis kategorien bruger underkategorier, og feltet er tomt, arves nærmeste underkategori
       let resolvedSubCat = subCat;
       if (!resolvedSubCat && catList.length > 0) {
         const neighbor = catList[Math.min(insertIndex, catList.length - 1)] || catList[catList.length - 1];
@@ -3637,7 +3872,7 @@
 
     async function deleteCurrentEditedSkill() {
       if (!editingOriginalSkill) return;
-      if (!confirm(`Vil du slette kompetencen "${editingOriginalSkill.shortDesc}" (${editingOriginalSkill.id})?`)) return;
+      if (!confirm(`Er du sikker på, at du vil fjerne dette unikke ID: ${editingOriginalSkill.id} ("${editingOriginalSkill.shortDesc}")?`)) return;
 
       const { id, lang, cat } = editingOriginalSkill;
       allSkills = allSkills.filter(s => !((s.lang || 'da') === (lang || 'da') && s.id === id));
