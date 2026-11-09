@@ -59,7 +59,7 @@
       --in-progress-fill: #fef3c7;
       --pending-color: #9333ea;
       --pending-fill: #f3e8ff;
-      --inactive-border: #cbd5e1;
+      --inactive-border: #94a3b8;
       --text-main: #1e293b;
       --text-muted: #64748b;
       --modal-backdrop: rgba(30, 41, 59, 0.65);
@@ -124,7 +124,7 @@
 
     .viewport {
       flex: 1;
-      padding: 15px;
+      padding: 20px;
       overflow-x: auto;
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
@@ -143,80 +143,380 @@
       padding: 0 15px;
     }
 
-    /* CIRKEL SKILL TREE GRID */
-    .honeycomb-grid {
+    /* =====================================================================
+       ORGANISK BOBBEL- & KNOP-DESIGN (METABALL CELLE-STRUKTUR)
+       ===================================================================== */
+    .organic-universe {
       display: flex;
-      gap: 38px;
-      padding: 30px 45px 100px 45px;
-      align-items: flex-end;
-      min-width: max-content;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: min-content;
       margin: auto;
+      padding: 30px 20px 90px 20px;
+      gap: 35px;
+      width: 100%;
+      max-width: 1300px;
     }
 
-    .domain-section { display: flex; flex-direction: column; align-items: center; position: relative; }
+    .organic-breadcrumb-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      z-index: 40;
+      margin-bottom: 5px;
+    }
 
-    .domain-header {
-      font-size: 0.8rem;
+    .organic-domains-stage {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 75px;
+      padding: 35px;
+    }
+
+    /* HOVEDBOBBEL MED SMÅ KNOPPER PÅ KANTEN (NIVEAU 1) */
+    .domain-blob-cluster {
+      position: relative;
+      width: 240px;
+      height: 240px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.35s ease;
+    }
+
+    .domain-blob-cluster.dimmed {
+      transform: scale(0.78);
+      opacity: 0.55;
+    }
+    .domain-blob-cluster.dimmed:hover {
+      transform: scale(0.86);
+      opacity: 0.9;
+    }
+
+    /* Baggrundslag med Gooey Metaball filter så cirkel + knopper smelter sammen */
+    .gooey-layer {
+      position: absolute;
+      top: -60px; left: -60px; right: -60px; bottom: -60px;
+      filter: url('#organic-goo');
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .blob-core-shape {
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 156px; height: 156px;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      background: var(--card-bg);
+      border: 4px solid var(--inactive-border);
+      transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .domain-blob-cluster:hover .blob-core-shape,
+    .domain-blob-cluster.active-domain .blob-core-shape {
+      border-color: var(--accent-primary);
+      width: 164px; height: 164px;
+      box-shadow: 0 0 28px rgba(16, 185, 129, 0.3);
+    }
+
+    .domain-blob-cluster.completed-domain .blob-core-shape {
+      border-color: var(--active-achieved);
+      background: var(--achieved-fill);
+    }
+
+    /* Små knopper langs hovedboblens kant, der vokser glidende ud ved hover */
+    .blob-bud-shape {
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: var(--card-bg);
+      border: 3.5px solid var(--inactive-border);
+      transform: translate(calc(-50% + var(--bx)), calc(-50% + var(--by))) scale(0.85);
+      transition: transform 0.42s cubic-bezier(0.175, 0.885, 0.32, 1.275), width 0.35s, height 0.35s, border-color 0.3s, background 0.3s;
+    }
+
+    .blob-bud-shape.achieved {
+      border-color: var(--active-achieved);
+      background: var(--achieved-fill);
+    }
+    .blob-bud-shape.in-progress {
+      border-color: var(--in-progress-color);
+      background: var(--in-progress-fill);
+    }
+
+    .domain-blob-cluster:hover .blob-bud-shape,
+    .domain-blob-cluster.active-domain .blob-bud-shape {
+      transform: translate(calc(-50% + var(--bx-hover)), calc(-50% + var(--by-hover))) scale(1.22);
+      border-color: var(--accent-primary);
+    }
+
+    /* Klikbare etiketter ovenpå knopperne (uden sløring fra goo-filteret) */
+    .blob-core-content {
+      position: relative;
+      z-index: 5;
+      width: 145px;
+      height: 145px;
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 12px;
+      pointer-events: none;
+    }
+
+    .blob-core-title {
+      font-size: 0.92rem;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-top: 6px;
+      line-height: 1.2;
+    }
+
+    .blob-core-sub {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      margin-top: 3px;
       font-weight: bold;
-      color: var(--accent-primary);
+    }
+
+    .blob-bud-interactive {
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 58px; height: 58px;
+      border-radius: 50%;
+      transform: translate(calc(-50% + var(--bx)), calc(-50% + var(--by))) scale(0.85);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 6;
+      cursor: pointer;
+      transition: transform 0.42s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
+      text-align: center;
+      padding: 4px;
+    }
+
+    .domain-blob-cluster:hover .blob-bud-interactive,
+    .domain-blob-cluster.active-domain .blob-bud-interactive {
+      transform: translate(calc(-50% + var(--bx-hover)), calc(-50% + var(--by-hover))) scale(1.12);
+    }
+
+    .blob-bud-interactive:hover {
+      transform: translate(calc(-50% + var(--bx-hover)), calc(-50% + var(--by-hover))) scale(1.42) !important;
+      z-index: 15;
+    }
+
+    .bud-mini-label {
+      font-size: 0.50rem;
+      font-weight: 800;
+      color: var(--text-main);
+      line-height: 1.05;
+      max-width: 54px;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+      pointer-events: none;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .domain-blob-cluster:hover .bud-mini-label,
+    .domain-blob-cluster.active-domain .bud-mini-label {
+      opacity: 1;
+    }
+
+    /* =====================================================================
+       NIVEAU 2 & 3: UDFOLDET ORGANISK BUE FOR VALGT DOMÆNE / KATEGORI
+       (Som højre side af din skitse: Overlappende/sammensmeltede bobler i bue)
+       ===================================================================== */
+    .expanded-organic-arena {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 28px;
+      animation: expandOrganic 0.38s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    @keyframes expandOrganic {
+      from { opacity: 0; transform: translateY(15px) scale(0.92); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* Kategori-vælger-bue (Overlappende bobler i en blød bue over hovedboblen) */
+    .category-arch-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 0px;
+      padding: 20px 15px;
+      position: relative;
+    }
+
+    .category-arch-bubble {
+      width: 118px;
+      height: 118px;
+      border-radius: 50%;
+      background: var(--card-bg);
+      border: 3.5px solid var(--inactive-border);
+      margin: 0 -8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 12px;
+      cursor: pointer;
+      position: relative;
+      z-index: 2;
+      transition: transform 0.32s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.3s, background 0.3s, box-shadow 0.3s;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.28);
+    }
+
+    /* Organisk bue-forskydning som på skitsen til højre */
+    .category-arch-bubble:nth-child(odd) { transform: translateY(-14px); }
+    .category-arch-bubble:nth-child(even) { transform: translateY(10px); }
+
+    .category-arch-bubble:hover {
+      transform: translateY(-6px) scale(1.16) !important;
+      border-color: var(--accent-primary);
+      z-index: 20;
+    }
+
+    .category-arch-bubble.active-cat {
+      width: 132px;
+      height: 132px;
+      border-color: var(--accent-primary);
+      border-width: 4px;
+      background: var(--inner-bg);
+      box-shadow: 0 0 25px rgba(16, 185, 129, 0.38);
+      z-index: 15;
+    }
+
+    .category-arch-bubble.completed-cat {
+      border-color: var(--active-achieved);
+      background: var(--achieved-fill);
+    }
+
+    /* =====================================================================
+       KOMPETENCE-KLYNGE: Sammensmeltede bobler for lave niveauer + knopper for næste
+       ===================================================================== */
+    .skills-caterpillar-stage {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 26px;
+      width: 100%;
+      padding: 15px 10px 30px 10px;
+    }
+
+    .subcat-organic-pod {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 18px 24px;
+      border-radius: 40px;
+      transition: all 0.35s ease;
+    }
+
+    .subcat-pod-header {
+      font-size: 0.76rem;
+      font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 1px;
-      margin-bottom: 12px;
-      padding: 6px 16px;
+      color: var(--accent-primary);
       background: var(--card-bg);
       border: 1px solid var(--inactive-border);
+      padding: 4px 14px;
       border-radius: 20px;
-      white-space: nowrap;
-      z-index: 10;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
-
-    .domain-columns { display: flex; padding-top: 55px; }
-
-    .column {
+      margin-bottom: 18px;
       display: flex;
-      flex-direction: column-reverse;
-      gap: 12px;
-      margin-right: -12px;
-      position: relative;
-      z-index: 1;
       align-items: center;
-      width: 102px;
-      flex-shrink: 0;
-      transition: transform 0.2s;
+      gap: 8px;
+      cursor: pointer;
+      z-index: 10;
     }
 
-    .column:hover { z-index: 100; }
-    .column:nth-child(even) { transform: translateY(-48px); }
+    /* Organisk sammenhængende kæde af kompetence-cirkler (som bue-skitsen nederst til højre) */
+    .organic-skill-chain {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      padding: 18px 10px;
+    }
 
-    /* CIRKEL ELEMENTER */
     .circle-container {
-      width: 94px;
-      height: 94px;
+      width: 104px;
+      height: 104px;
       border-radius: 50%;
       position: relative;
       cursor: pointer;
-      z-index: 1;
-      transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s ease;
+      margin: 0 -9px;
+      z-index: 2;
+      transition: transform 0.32s cubic-bezier(0.175, 0.885, 0.32, 1.275), margin 0.3s ease, filter 0.3s ease;
       touch-action: manipulation;
       user-select: none;
     }
 
-    .circle-container:hover { transform: scale(1.06); z-index: 30; }
-    .circle-container:active { transform: scale(0.95); }
+    /* Organisk bølge-kurve så cirklerne ligger i en blød bue i stedet for en stiv linje */
+    .circle-container:nth-child(4n+1) { transform: translateY(8px); }
+    .circle-container:nth-child(4n+2) { transform: translateY(-14px); }
+    .circle-container:nth-child(4n+3) { transform: translateY(-18px); }
+    .circle-container:nth-child(4n+4) { transform: translateY(6px); }
+
+    .circle-container:hover {
+      transform: translateY(-4px) scale(1.22) !important;
+      margin: 0 6px;
+      z-index: 40;
+    }
+
+    /* Låste / højere niveauer vises som små knopper på kanten, der vokser ud ved hover! */
+    .circle-container.bud-mode {
+      width: 56px;
+      height: 56px;
+      margin: 0 -6px;
+      opacity: 0.82;
+    }
+    .circle-container.bud-mode .circle-text {
+      opacity: 0;
+      font-size: 0.45rem;
+      transition: opacity 0.2s;
+    }
+    .circle-container.bud-mode:hover {
+      width: 104px;
+      height: 104px;
+      opacity: 1;
+      margin: 0 6px;
+      transform: translateY(-4px) scale(1.15) !important;
+    }
+    .circle-container.bud-mode:hover .circle-text {
+      opacity: 1;
+      font-size: 0.55rem;
+    }
 
     .circle-svg { width: 100%; height: 100%; position: absolute; top: 0; left: 0; overflow: visible; }
 
     .circle-outer-ring {
       fill: var(--card-bg);
       stroke: var(--inactive-border);
-      stroke-width: 3.2;
+      stroke-width: 3.5;
       transition: stroke 0.3s, fill 0.3s, filter 0.3s;
-    }
-
-    .circle-outer-ring.dashed-frame {
-      stroke-dasharray: 6 4;
-      stroke: var(--accent-primary);
     }
 
     .circle-inner-ring {
@@ -225,8 +525,6 @@
       stroke-width: 1.5;
       transition: stroke 0.3s, fill 0.3s;
     }
-
-    .cat-circle-container { order: -1; margin-top: 14px; }
 
     /* TILSTAND: KAN NÆSTEN (IN PROGRESS) */
     .circle-container.in-progress .circle-outer-ring,
@@ -258,8 +556,6 @@
 
     /* TILSTAND: KAN (ACHIEVED) */
     .circle-container.achieved .circle-outer-ring,
-    .cat-circle-container.completed .circle-outer-ring,
-    .subcat-circle.completed .circle-outer-ring,
     .enlarged-circle-svg-wrap.achieved .circle-outer-ring {
       stroke: var(--active-achieved);
       fill: var(--achieved-fill);
@@ -267,8 +563,6 @@
     }
 
     .circle-container.achieved .circle-inner-ring,
-    .cat-circle-container.completed .circle-inner-ring,
-    .subcat-circle.completed .circle-inner-ring,
     .enlarged-circle-svg-wrap.achieved .circle-inner-ring {
       stroke: var(--active-achieved);
     }
@@ -290,13 +584,13 @@
     .circle-container.achieved .circle-icon { color: var(--active-achieved); }
 
     .circle-text {
-      font-size: 0.54rem;
+      font-size: 0.56rem;
       font-weight: 700;
       text-align: center;
       line-height: 1.12;
       color: var(--text-main);
       padding: 0 2px;
-      max-width: 68px;
+      max-width: 74px;
       overflow-wrap: break-word;
       word-break: break-word;
       hyphens: auto;
@@ -307,6 +601,59 @@
     }
 
     .circle-level { font-size: 0.58rem; font-weight: bold; color: var(--text-muted); line-height: 1; flex-shrink: 0; }
+
+    /* Sammenfoldet underkategori-bobbel med små knopper på kanten */
+    .subcat-bud-cluster {
+      position: relative;
+      width: 125px;
+      height: 125px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      margin: 10px 18px;
+      transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .subcat-bud-cluster:hover {
+      transform: scale(1.14);
+    }
+    .subcat-bud-main {
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      background: var(--card-bg);
+      border: 3px dashed var(--accent-primary);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 10px;
+      z-index: 3;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+    }
+    .subcat-bud-knob {
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: var(--inner-bg);
+      border: 2.5px solid var(--inactive-border);
+      transform: translate(calc(-50% + var(--kx)), calc(-50% + var(--ky))) scale(0.85);
+      transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.3s;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.55rem;
+      font-weight: bold;
+      color: var(--text-muted);
+    }
+    .subcat-bud-cluster:hover .subcat-bud-knob {
+      transform: translate(calc(-50% + var(--kx-hover)), calc(-50% + var(--ky-hover))) scale(1.18);
+      border-color: var(--accent-primary);
+      color: var(--text-main);
+    }
 
     .proof-mini-badge {
       position: absolute;
@@ -323,36 +670,6 @@
       justify-content: center;
       z-index: 4;
       box-shadow: 0 2px 4px rgba(0,0,0,0.4);
-    }
-
-    .cat-circle-content {
-      position: absolute;
-      top: 0; left: 0; width: 100%; height: 100%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      pointer-events: none;
-      padding: 10px;
-      box-sizing: border-box;
-      gap: 2px;
-    }
-
-    .cat-big-icon { width: 25px; height: 25px; color: var(--accent-primary); transition: color 0.3s; flex-shrink: 0; }
-    .cat-circle-container.completed .cat-big-icon { color: var(--active-achieved); }
-
-    .cat-badge-label {
-      font-size: 0.46rem;
-      font-weight: 800;
-      color: var(--active-achieved);
-      text-align: center;
-      line-height: 1.05;
-      max-width: 70px;
-      overflow-wrap: break-word;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
     }
 
     /* ADMIN DRAG & DROP STYLING */
@@ -396,7 +713,7 @@
       100% { transform: translate(var(--tx), -70px) scale(1.3); opacity: 0; }
     }
 
-    /* ELEV SKILLTREE OVERLAY (Lag 12000 - så kompetence-popup på 18000 altid ligger FORAN) */
+    /* ELEV SKILLTREE OVERLAY (Lag 12000) */
     .student-tree-modal {
       display: none;
       position: fixed;
@@ -425,7 +742,7 @@
       display: flex;
     }
 
-    /* FORSTØRRET FOKUSERET CIRKEL POPUP (Lag 18000 - altid foran både hovedtræ og elev-træ) */
+    /* FORSTØRRET FOKUSERET CIRKEL POPUP (Lag 18000) */
     .enlarged-hex-modal {
       display: none;
       position: fixed;
@@ -542,7 +859,6 @@
       max-width: 220px;
     }
 
-    /* TABS INDE I FOKUSERET KOMPETENCE */
     .skill-tabs {
       display: flex;
       gap: 3px;
@@ -630,11 +946,6 @@
       transition: all 0.2s;
     }
 
-    .btn-state:disabled {
-      opacity: 0.55;
-      cursor: not-allowed;
-    }
-
     .btn-state.in-progress-btn.active {
       background: var(--in-progress-color);
       border-color: var(--in-progress-color);
@@ -668,7 +979,6 @@
       display: none;
     }
 
-    /* DOKUMENTATIONS-UPLOAD KNAP & FORHÅNDSVISNING */
     .proof-upload-box {
       background: var(--card-bg);
       border: 1px dashed var(--inactive-border);
@@ -689,7 +999,6 @@
       cursor: pointer;
     }
 
-    /* NÆSTE RELEVANTE KOMPETENCE CIRKEL */
     .next-skill-panel {
       display: flex;
       flex-direction: column;
@@ -765,7 +1074,6 @@
     .footer-label { color: var(--text-muted); margin-right: 4px; }
     .footer-val { color: var(--text-main); font-weight: bold; }
 
-    /* MODALS & DIALOGS */
     .modal {
       display: none;
       position: fixed;
@@ -777,10 +1085,7 @@
       padding: 12px;
     }
 
-    /* Skill Editor Modal skal altid ligge FORAN fokuseret cirkel (18000) og admin (10000) */
-    #skillEditorModal {
-      z-index: 19000;
-    }
+    #skillEditorModal { z-index: 19000; }
 
     .modal-box {
       background: var(--card-bg);
@@ -795,7 +1100,6 @@
       position: relative;
     }
 
-    /* BREDT OG OVERSKUELIGT ADMIN PANEL */
     .admin-modal-wide {
       width: 94vw;
       max-width: 1220px;
@@ -828,9 +1132,7 @@
     }
 
     @media (max-width: 960px) {
-      .admin-body-grid {
-        grid-template-columns: 1fr;
-      }
+      .admin-body-grid { grid-template-columns: 1fr; }
     }
 
     .admin-card {
@@ -1002,19 +1304,24 @@
       box-shadow: 0 0 0 4px var(--accent-primary), 0 0 20px var(--accent-primary) !important;
       border-radius: 6px;
     }
-
-    @media (max-width: 768px) {
-      header { padding: 10px 15px; }
-      h1 { font-size: 1.1rem; width: 100%; text-align: center; justify-content: center; }
-      .header-btns { width: 100%; justify-content: center; }
-      .btn { padding: 6px 10px; font-size: 0.78rem; }
-      footer { padding: 8px 12px; font-size: 0.78rem; justify-content: center; }
-      .footer-info { gap: 10px; justify-content: center; }
-      .honeycomb-grid { gap: 25px; padding-bottom: 90px; }
-    }
   </style>
 </head>
 <body>
+
+  <!-- SVG GOOEY METABALL FILTER (Får cirkler og knopper til at flyde organisk sammen som på skitsen) -->
+  <svg style="position:absolute; width:0; height:0; pointer-events:none;" aria-hidden="true">
+    <defs>
+      <filter id="organic-goo">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="9" result="blur" />
+        <feColorMatrix in="blur" mode="matrix" values="
+          1 0 0 0 0
+          0 1 0 0 0
+          0 0 1 0 0
+          0 0 0 21 -9" result="goo" />
+        <feComposite in="SourceGraphic" in2="goo" operator="atop" />
+      </filter>
+    </defs>
+  </svg>
 
   <header>
     <h1>MAKER SKILL TREE</h1>
@@ -1038,7 +1345,7 @@
   </header>
 
   <div class="admin-edit-banner" id="adminEditBanner">
-    <span>🛠️ <strong>Redigeringstilstand aktiv:</strong> Træk og slip cirkler for at ændre niveau eller flytte mellem kategorier. Klik på ✎ eller selve cirklen for at redigere.</span>
+    <span>🛠️ <strong>Redigeringstilstand aktiv:</strong> Klik ind på en kategori-bobbel for at trække og slippe kompetence-cirkler eller klik ✎ for at redigere.</span>
     <div style="display:flex; gap:8px; flex-wrap:wrap;">
       <button class="btn" style="background:#04130e; color:#fff; padding:5px 10px;" onclick="openSkillEditorModal(null)">➕ Opret Ny Kompetence</button>
       <button class="btn" style="background:#04130e; color:#fff; padding:5px 10px;" onclick="exportSkillsCSV(true)">📥 Eksporter Ændringer (<span class="modified-count-badge">0</span>)</button>
@@ -1054,7 +1361,7 @@
         <strong id="emptyTitle">Indlæser...</strong><br>
         <span id="emptyDesc">Vælg eller opdater kompetencer under Superbruger Admin.</span>
       </div>
-      <div class="honeycomb-grid" id="honeycombGrid"></div>
+      <div class="organic-universe" id="honeycombGrid"></div>
     </div>
   </div>
 
@@ -1100,7 +1407,6 @@
             </div>
             <div class="enlarged-title" id="enlargedTitle">Kompetence Titel</div>
 
-            <!-- Faneblade: Beskrivelse | Vejledning | Info | Dokumentation -->
             <div class="skill-tabs">
               <button class="skill-tab-btn active" id="tabBtnDesc" onclick="switchSkillTab('desc')" data-i18n="tab_desc">Mål</button>
               <button class="skill-tab-btn" id="tabBtnGuide" onclick="switchSkillTab('guide')" data-i18n="tab_guide">Vejledning</button>
@@ -1117,7 +1423,6 @@
         </div>
 
         <div class="enlarged-actions" id="enlargedActionsWrap">
-          <!-- Dokumentationsbillede hurtig-bar -->
           <div class="proof-upload-box" id="proofUploadBox">
             <div id="proofPreviewContainer" style="display:none; width:100%; text-align:center;">
               <img id="proofPreviewImg" class="proof-preview-img" src="" alt="Dokumentation" onclick="window.open(this.src, '_blank')">
@@ -1132,12 +1437,10 @@
             </label>
           </div>
 
-          <!-- Besked når kompetencen er låst efter lærer-godkendelse -->
           <div class="locked-validation-notice" id="lockedValidationNotice" data-i18n="locked_by_teacher">
             🔒 Godkendt af underviser (Kun underviser kan annullere)
           </div>
 
-          <!-- Elev knapper: Kan næsten & Kan / Anmod om godkendelse -->
           <div class="state-buttons-row" id="studentStateButtonsRow">
             <button class="btn-state in-progress-btn" id="btnStateInProgress" onclick="setSkillState('in_progress', event)">
               <i data-lucide="clock" style="width: 17px; height: 17px;"></i>
@@ -1149,7 +1452,6 @@
             </button>
           </div>
 
-          <!-- Lærer Validerings-knapper (vises når lærer inspicerer en elev) -->
           <div class="state-buttons-row" id="teacherVerifyButtonsRow" style="display:none;">
             <button class="btn" style="flex:1; background:var(--active-achieved); color:#052e16;" onclick="teacherVerifySkill('achieved')">
               ✓ <span data-i18n="btn_approve_skill">Godkend</span>
@@ -1232,7 +1534,7 @@
     </div>
   </div>
 
-  <!-- ADMIN OPRET / REDIGER KOMPETENCE MODAL (z-index: 19000 - altid øverst) -->
+  <!-- ADMIN OPRET / REDIGER KOMPETENCE MODAL (z-index: 19000) -->
   <div class="modal" id="skillEditorModal">
     <div class="modal-box" style="width: 680px;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
@@ -1338,7 +1640,7 @@
       </div>
     </div>
     <div class="student-tree-viewport">
-      <div class="honeycomb-grid" id="studentHoneycombGrid"></div>
+      <div class="organic-universe" id="studentHoneycombGrid"></div>
     </div>
   </div>
 
@@ -1427,7 +1729,7 @@
     </div>
   </div>
 
-  <!-- SUPERBRUGER ADMIN MODAL (Bred 2-kolonne layout med fast Luk-knap øverst) -->
+  <!-- SUPERBRUGER ADMIN MODAL -->
   <div class="modal" id="adminModal">
     <div class="modal-box admin-modal-wide">
       <div class="admin-sticky-header">
@@ -1439,7 +1741,6 @@
       </div>
 
       <div class="admin-body-grid">
-        <!-- VENSTRE KOLONNE: HOLD, ELEVER & VALIDERING -->
         <div>
           <div class="admin-card">
             <h3>1. Opret nyt Hold</h3>
@@ -1483,7 +1784,6 @@
           </div>
         </div>
 
-        <!-- HØJRE KOLONNE: KOMPETENCE-EDITOR, CSV & GLOBALE KATEGORIER -->
         <div>
           <div class="admin-card">
             <h3>3. Kompetence-redigering & CSV Import/Eksport</h3>
@@ -1506,7 +1806,7 @@
             <div class="toolbar-btns" style="margin-top:10px;">
               <button class="btn btn-secondary" onclick="exportSkillsCSV(true)">📥 Eksporter kun ændringer (<span class="modified-count-badge">0</span>)</button>
               <button class="btn btn-secondary" onclick="exportSkillsCSV(false)">📥 Eksporter hele Skill Tree (CSV)</button>
-              <button class="btn btn-secondary" style="font-size:0.75rem;" onclick="clearModifiedCounter(true)" title="Nulstil tælleren for lokale ændringer">↺ Nulstil tæller</button>
+              <button class="btn btn-secondary" style="font-size:0.75rem;" onclick="clearModifiedCounter(true)">↺ Nulstil tæller</button>
             </div>
           </div>
 
@@ -1646,6 +1946,8 @@
         titles_count: "opnåede titler",
         fold_hide: "▲ Skjul",
         fold_show: "▼ Vis",
+        back_to_bubbles: "⬅ Tilbage til hovedbobler",
+        click_bubble_hint: "Hold musen over eller klik på en bobbel for at folde dens kompetencer ud",
         tut_skip: "Spring over",
         tut_next: "Næste ➔",
         tut_finish: "Afslut",
@@ -1656,8 +1958,8 @@
         tut_2_text: "Tilmeld dig et hold med en 5-bogstavs kode, eller skift mellem dine tilmeldte hold i menuen.",
         tut_3_title: "⚙️ 3. Superbruger & Validering",
         tut_3_text: "Som admin kan du slå lærer-validering til pr. hold, godkende elevers mål og redigere træet.",
-        tut_4_title: "🟢 4. Cirkler, Foto & Status",
-        tut_4_text: "Klik på en cirkel for at læse vejledning, uploade dokumentationsbillede og markere din status!",
+        tut_4_title: "🫧 4. Organiske Bobler & Knopper",
+        tut_4_text: "Klik på en af de store bobler (f.eks. Maskiner eller Software) for at folde kategorier og kompetencer ud!",
         tut_5_title: "👤 5. Status & Tæller",
         tut_5_text: "Nederst kan du se dit navn, aktivt hold, opnåede titler og tælleren."
       },
@@ -1738,6 +2040,8 @@
         titles_count: "titles unlocked",
         fold_hide: "▲ Hide",
         fold_show: "▼ Show",
+        back_to_bubbles: "⬅ Back to main bubbles",
+        click_bubble_hint: "Hover or click a main bubble to unfold its categories and skills",
         tut_skip: "Skip",
         tut_next: "Next ➔",
         tut_finish: "Finish",
@@ -1748,8 +2052,8 @@
         tut_2_text: "Join a class with a 5-letter code or switch between active classes in the menu.",
         tut_3_title: "⚙️ 3. Superuser Admin",
         tut_3_text: "Enable teacher validation per class, approve student skills, or reorder circles.",
-        tut_4_title: "🟢 4. Open, Document & Achieve",
-        tut_4_text: "Click a circle to read guides, upload a photo proof, and mark it as 'In progress' or 'Achieved'!",
+        tut_4_title: "🫧 4. Organic Bubbles & Buds",
+        tut_4_text: "Click a large domain bubble to unfold its categories and low-level skills!",
         tut_5_title: "👤 5. Status & Progress",
         tut_5_text: "At the bottom you can see your name, class, unlocked titles and counter."
       },
@@ -1830,6 +2134,8 @@
         titles_count: "отриманих титулів",
         fold_hide: "▲ Приховати",
         fold_show: "▼ Показати",
+        back_to_bubbles: "⬅ Назад до головних бульбашок",
+        click_bubble_hint: "Наведіть або натисніть на бульбашку, щоб відкрити категорії та навички",
         tut_skip: "Пропустити",
         tut_next: "Далі ➔",
         tut_finish: "Завершити",
@@ -1840,8 +2146,8 @@
         tut_2_text: "Приєднуйтесь до групи за 5-значним кодом або перемикайтеся між своїми групами в меню.",
         tut_3_title: "⚙️ 3. Адміністрування",
         tut_3_text: "Налаштуйте перевірку викладачем, редагуйте навички або завантажуйте CSV.",
-        tut_4_title: "🟢 4. Відкривайте навички та фото",
-        tut_4_text: "Натисніть на коло, щоб прочитати опис, завантажити фото та позначити прогрес!",
+        tut_4_title: "🫧 4. Органічні бульбашки",
+        tut_4_text: "Натисніть на велику бульбашку, щоб розгорнути категорії та початкові навички!",
         tut_5_title: "👤 5. Статус і лічильник",
         tut_5_text: "Знизу відображаються ваше ім'я, активна група, титули та лічильник прогресу."
       }
@@ -1925,27 +2231,38 @@
     }
 
     const DOMAIN_MAP = {
-      'Filhåndtering': '💻 Software',
-      'Vektorgrafik': '💻 Software',
-      'Rastergrafik': '💻 Software',
-      '3D-Modellering': '💻 Software',
+      'Filhåndtering': '💻 Software', 'File Management': '💻 Software',
+      'Vektorgrafik': '💻 Software', 'Vector Graphics': '💻 Software',
+      'Rastergrafik': '💻 Software', 'Raster Graphics': '💻 Software',
+      '3D-Modellering': '💻 Software', '3D Modeling': '💻 Software',
 
-      'CO2 Laserskæring': '⚙️ Maskiner',
-      'Laserskæring': '⚙️ Maskiner',
-      '3D-Printning': '⚙️ Maskiner',
-      'Folieskæring': '⚙️ Maskiner',
-      'Digitalt Broderi': '⚙️ Maskiner',
-      'Materialekendskab': '⚙️ Maskiner',
+      'CO2 Laserskæring': '⚙️ Maskiner', 'CO2 Laser Cutting': '⚙️ Maskiner',
+      'Laserskæring': '⚙️ Maskiner', 'Laser Cutting': '⚙️ Maskiner',
+      '3D-Printning': '⚙️ Maskiner', '3D Printing': '⚙️ Maskiner',
+      'Folieskæring': '⚙️ Maskiner', 'Vinyl Cutting': '⚙️ Maskiner',
+      'Digitalt Broderi': '⚙️ Maskiner', 'Digital Embroidery': '⚙️ Maskiner',
+      'Materialekendskab': '⚙️ Maskiner', 'Materials Knowledge': '⚙️ Maskiner',
 
-      'Elektronik': '🔌 Hardware og Elektronik',
-      'Microcontroller': '🔌 Hardware og Elektronik',
+      'Elektronik': '🔌 Hardware og Elektronik', 'Electronics': '🔌 Hardware og Elektronik',
+      'Microcontroller': '🔌 Hardware og Elektronik', 'Microcontrollers': '🔌 Hardware og Elektronik',
 
-      'Værkstedskultur': '🤝 Værkstedskultur',
+      'Værkstedskultur': '🤝 Værkstedskultur', 'Shop Culture': '🤝 Værkstedskultur',
 
-      'Netværk & Fællesskab': '👥 Fællesskab & Netværk',
-      'Pædagogik & Praksis': '🎓 Didaktik & Facilitering',
-      'Entreprenørskab': '💼 Forretning & Værksted',
-      'Kultur & Oplevelse': '✨ Maker Faire & Kultur'
+      'Netværk & Fællesskab': '👥 Fællesskab & Netværk', 'Network & Community': '👥 Fællesskab & Netværk',
+      'Pædagogik & Praksis': '🎓 Didaktik & Facilitering', 'Pedagogy & Practice': '🎓 Didaktik & Facilitering',
+      'Entreprenørskab': '💼 Forretning & Værksted', 'Entrepreneurship': '💼 Forretning & Værksted',
+      'Kultur & Oplevelse': '✨ Maker Faire & Kultur', 'Culture & Experience': '✨ Maker Faire & Kultur'
+    };
+
+    const DOMAIN_ICONS = {
+      '💻 Software': 'monitor',
+      '⚙️ Maskiner': 'cog',
+      '🔌 Hardware og Elektronik': 'cpu',
+      '🤝 Værkstedskultur': 'shield-check',
+      '👥 Fællesskab & Netværk': 'users',
+      '🎓 Didaktik & Facilitering': 'book-open',
+      '💼 Forretning & Værksted': 'briefcase',
+      '✨ Maker Faire & Kultur': 'sparkles'
     };
 
     const DOMAIN_ORDER = [
@@ -1979,7 +2296,6 @@
       return progressMap[skillId] === 'in_progress';
     }
 
-    // Tjekker om elevens aktuelt valgte hold (eller et af elevens tilmeldte hold) kræver lærer-validering
     function doesCurrentContextRequireValidation(skillCategory) {
       if (currentUserIsAdmin) return false;
       const selectedClass = userEnrolledClasses.find(c => c.id === selectedViewFilter);
@@ -2074,6 +2390,12 @@
     let activeInspectionClassCategories = null;
     let activeInspectionClassId = null;
     let draggedSkill = null;
+
+    // ORGANISK BOBBEL-NAVIGATION TILSTAND
+    let activeOrganicDomain = null;
+    let activeOrganicCategory = null;
+    let studentViewActiveDomain = null;
+    let studentViewActiveCategory = null;
 
     function updateModifiedBadges() {
       document.querySelectorAll('.modified-count-badge').forEach(el => {
@@ -2190,7 +2512,6 @@
       }
 
       await syncSkillsListToSupabaseAndLocal(rowsToUpsert, showAlert);
-      // Nulstil tæller efter CSV upload, da alt nu er synkroniseret med Supabase
       clearModifiedCounter(false);
     }
 
@@ -2309,7 +2630,6 @@
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      // Når brugeren har eksporteret ændringerne (og de allerede er synkroniseret til Supabase), nulstilles tælleren
       if (onlyChanges) {
         clearModifiedCounter(false);
       }
@@ -2386,7 +2706,6 @@
             });
           }
         } else {
-          // Hvis profilen fandtes men manglede full_name, opdateres den
           if (!data.full_name && fallbackName) {
             await supabaseClient.from('profiles').update({ full_name: fallbackName }).eq('id', user.id);
           }
@@ -2654,6 +2973,8 @@
     function handleViewFilterChange(val) {
       selectedViewFilter = val;
       localStorage.setItem('ms_selectedViewFilter', val);
+      activeOrganicDomain = null;
+      activeOrganicCategory = null;
       renderApp();
     }
 
@@ -2887,7 +3208,6 @@
         return;
       }
 
-      // Sikr at elevens profil og navn er gemt i profiles, før eleven tilmeldes holdet
       await ensureUserProfile(currentUser, currentLang, currentTheme, currentUserName);
 
       const { error: joinError } = await supabaseClient
@@ -3066,7 +3386,7 @@
               <span style="font-size:0.75rem; color:var(--text-muted);">Kode: <strong style="color:var(--accent-primary); font-size:0.85rem; letter-spacing:1px;">${c.invite_code}</strong> | Elever: ${c.class_members[0]?.count || 0}</span>
             </div>
             <div style="display:flex; gap:6px; flex-wrap:wrap;">
-              <button class="btn ${reqVal ? 'btn-pending' : 'btn-secondary'}" style="padding:4px 8px; font-size:0.73rem;" onclick="toggleClassValidationSetting('${c.id}', ${reqVal})" title="Slå lærer-validering til eller fra for dette hold">
+              <button class="btn ${reqVal ? 'btn-pending' : 'btn-secondary'}" style="padding:4px 8px; font-size:0.73rem;" onclick="toggleClassValidationSetting('${c.id}', ${reqVal})">
                 ${reqVal ? '🔒 Validering: TIL' : '🔓 Validering: FRA'}
               </button>
               <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="openClassCategoriesView('${c.id}', '${c.name}', ${JSON.stringify(c.active_categories || []).replace(/"/g, '&quot;')})">⚙️ Kategorier</button>
@@ -3235,7 +3555,7 @@
         btnApproveAll.style.display = 'none';
       }
 
-      renderHoneycombIntoContainer(grid, inspectSkills, studentProgress, true, studentProofs);
+      renderOrganicIntoContainer(grid, inspectSkills, studentProgress, true, studentProofs);
       modal.style.display = 'flex';
       lucide.createIcons();
     }
@@ -3294,13 +3614,10 @@
               }, { onConflict: 'user_id, skill_id' });
 
             if (error) {
-              const res2 = await supabaseClient
+              await supabaseClient
                 .from('user_skills')
                 .update({ status: newStatus })
                 .match({ user_id: activeInspectedStudentId, skill_id: skillId });
-              if (res2.error) {
-                alert('Kunne ikke opdatere elevens kompetence i Supabase. Tjek at du har kørt RLS SQL-scriptet i Supabase SQL Editor.');
-              }
             }
           } else {
             await supabaseClient
@@ -3324,6 +3641,8 @@
       document.getElementById('studentTreeModal').style.display = 'none';
       document.getElementById('studentHoneycombGrid').innerHTML = '';
       activeInspectedStudentId = null;
+      studentViewActiveDomain = null;
+      studentViewActiveCategory = null;
     }
 
     async function deleteClass(classId) {
@@ -3369,7 +3688,6 @@
 
     function closeTitleSplash() { document.getElementById('titleSplash').style.display = 'none'; }
 
-    /* DOKUMENTATIONS-BILLEDE KOMPRIMERING & UPLOAD */
     function compressImageFile(file, maxWidth = 800, quality = 0.78) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -3563,7 +3881,6 @@
       }
     }
 
-    // Tjekker om kompetencen er låst for eleven, fordi en lærer har godkendt den
     function isSkillLockedByTeacherValidation(skill, achieved) {
       if (currentUserIsAdmin) return false;
       if (!achieved) return false;
@@ -3643,7 +3960,6 @@
         studentRow.style.display = 'none';
         teacherRow.style.display = (currentUserIsAdmin && activeInspectedStudentId) ? 'flex' : 'none';
       } else if (lockedForStudent) {
-        // Eleven kan IKKE fjerne eller genstarte en kompetence, når en lærer har godkendt den
         lockedNotice.style.display = 'block';
         studentRow.style.display = 'none';
         teacherRow.style.display = 'none';
@@ -3705,7 +4021,6 @@
       if (!activeEnlargedSkill) return;
       const s = activeEnlargedSkill;
 
-      // Ekstra sikkerhedstjek: Eleven må aldrig kunne ændre en lærer-valideret kompetence
       if (isSkillLockedByTeacherValidation(s, isSkillAchieved(userProgress, s.id))) {
         return;
       }
@@ -3753,7 +4068,7 @@
       renderApp();
     }
 
-    /* ADMIN MODAL: OPRET ELLER REDIGER KOMPETENCE + GENBEREGN NIVEAUER */
+    /* ADMIN MODAL: OPRET ELLER REDIGER KOMPETENCE */
     let editingOriginalSkill = null;
 
     function openSkillEditorModal(skillObj = null) {
@@ -3785,7 +4100,7 @@
         document.getElementById('skillEditorModalTitle').innerText = 'Opret Ny Kompetence';
         document.getElementById('editSkillId').value = 'NY_SKILL_' + Math.floor(100 + Math.random() * 900);
         document.getElementById('editSkillLang').value = currentLang;
-        document.getElementById('editSkillCat').value = allCats[0] || 'Vektorgrafik';
+        document.getElementById('editSkillCat').value = activeOrganicCategory || allCats[0] || 'Vektorgrafik';
         document.getElementById('editSkillLevel').value = 1;
         document.getElementById('editSkillSubCat').value = '';
         document.getElementById('editSkillCatTitle').value = '#';
@@ -3912,7 +4227,6 @@
       };
     }
 
-    /* DRAG & DROP REORDERING AF CIRKLER */
     async function handleDropSkillOnTarget(dragged, targetCat, targetLevelIndex) {
       if (!dragged) return;
       const lang = dragged.lang || currentLang;
@@ -3948,12 +4262,16 @@
       await syncSkillsListToSupabaseAndLocal(rowsToSync, false);
     }
 
-    function toggleSubCatFold(key) {
+    function toggleSubCatFold(key, isReadOnly = false) {
       manualSubCatExpanded[key] = !manualSubCatExpanded[key];
-      renderApp();
+      if (isReadOnly && activeInspectedStudentId) {
+        openStudentTreeModal(activeInspectedStudentId, activeInspectedStudentName, activeEnlargedProgressMap, activeEnlargedProofMap);
+      } else {
+        renderApp();
+      }
     }
 
-    function createSkillCircle(s, progressMap, isReadOnly = false, proofMap = null) {
+    function createSkillCircle(s, progressMap, isReadOnly = false, proofMap = null, isBudMode = false) {
       const achieved = isSkillAchieved(progressMap, s.id);
       const pending = isSkillPending(progressMap, s.id);
       const inProg = isSkillInProgress(progressMap, s.id);
@@ -3965,7 +4283,7 @@
       else if (inProg) statusClass = 'in-progress';
 
       const circle = document.createElement('div');
-      circle.className = `circle-container skill-node ${statusClass}`;
+      circle.className = `circle-container skill-node ${statusClass} ${isBudMode ? 'bud-mode' : ''}`;
       circle.onclick = (e) => openSkillEnlargedModal(s, e, isReadOnly, progressMap, proofMap);
 
       if (adminEditMode && !isReadOnly) {
@@ -4012,140 +4330,337 @@
       return circle;
     }
 
-    function renderHoneycombIntoContainer(container, skillsList, progressMap, isReadOnly = false, proofMap = null) {
+    /* =====================================================================
+       ORGANISK BOBBEL- & KNOP-RENDERING (Som på path1.svg skitsen)
+       ===================================================================== */
+    function renderOrganicIntoContainer(container, skillsList, progressMap, isReadOnly = false, proofMap = null) {
       container.innerHTML = '';
       const activeProofs = proofMap || userProofImages;
       const activeDomains = [...new Set(skillsList.map(s => DOMAIN_MAP[s.cat] || '💻 Software'))];
       const orderedDomains = DOMAIN_ORDER.filter(d => activeDomains.includes(d));
       if (orderedDomains.length === 0 && activeDomains.length > 0) orderedDomains.push(...activeDomains);
 
-      orderedDomains.forEach(domainName => {
+      let curDomain = isReadOnly ? studentViewActiveDomain : activeOrganicDomain;
+      let curCategory = isReadOnly ? studentViewActiveCategory : activeOrganicCategory;
+
+      // Hvis der kun er 1 domæne i filteret, åbnes det automatisk
+      if (orderedDomains.length === 1 && !curDomain) {
+        curDomain = orderedDomains[0];
+      }
+      if (curDomain && !orderedDomains.includes(curDomain)) {
+        curDomain = null;
+        curCategory = null;
+      }
+
+      // Top-hjælpelinje / Tilbage-knap når en hovedbobbel er aktiveret
+      const topBar = document.createElement('div');
+      topBar.className = 'organic-breadcrumb-bar';
+      if (curDomain) {
+        const backBtn = document.createElement('button');
+        backBtn.className = 'btn btn-secondary';
+        backBtn.innerHTML = `${t('back_to_bubbles')}`;
+        backBtn.onclick = () => {
+          if (isReadOnly) {
+            studentViewActiveDomain = null;
+            studentViewActiveCategory = null;
+            openStudentTreeModal(activeInspectedStudentId, activeInspectedStudentName, progressMap, activeProofs);
+          } else {
+            activeOrganicDomain = null;
+            activeOrganicCategory = null;
+            renderApp();
+          }
+        };
+        topBar.appendChild(backBtn);
+      } else {
+        topBar.innerHTML = `<span style="font-size:0.84rem; color:var(--text-muted); font-style:italic;">🫧 ${t('click_bubble_hint')}</span>`;
+      }
+      container.appendChild(topBar);
+
+      // 1. DE STORE HOVEDBOBLER MED KNOPPER LANGS KANTEN (Maskiner, Software, Hardware, Værkstedskultur)
+      const domainsStage = document.createElement('div');
+      domainsStage.className = 'organic-domains-stage';
+
+      orderedDomains.forEach((domainName) => {
         const domainSkills = skillsList.filter(s => (DOMAIN_MAP[s.cat] || '💻 Software') === domainName);
         if (domainSkills.length === 0) return;
 
-        const domainSection = document.createElement('div');
-        domainSection.className = 'domain-section';
-
-        const domainHeader = document.createElement('div');
-        domainHeader.className = 'domain-header';
-        domainHeader.innerText = domainName;
-        domainSection.appendChild(domainHeader);
-
-        const domainColumns = document.createElement('div');
-        domainColumns.className = 'domain-columns';
-
         const domainCategories = [...new Set(domainSkills.map(s => s.cat))];
+        const domAchieved = domainSkills.filter(s => isSkillAchieved(progressMap, s.id)).length;
+        const isAllDomDone = domAchieved === domainSkills.length && domainSkills.length > 0;
+        const isSelectedDom = curDomain === domainName;
 
-        domainCategories.forEach(catName => {
-          const catSkills = domainSkills.filter(s => s.cat === catName).sort((a,b) => a.level - b.level);
-          const col = document.createElement('div');
-          col.className = 'column';
+        const cluster = document.createElement('div');
+        cluster.className = `domain-blob-cluster ${isSelectedDom ? 'active-domain' : (curDomain ? 'dimmed' : '')} ${isAllDomDone ? 'completed-domain' : ''}`;
+
+        // Gooey Metaball baggrundslag (stor cirkel + små knopper der smelter sammen)
+        const gooeyLayer = document.createElement('div');
+        gooeyLayer.className = 'gooey-layer';
+
+        const coreShape = document.createElement('div');
+        coreShape.className = 'blob-core-shape';
+        gooeyLayer.appendChild(coreShape);
+
+        // Placer knopperne i en organisk vifte på kanten (som på skitsens venstre figur: fra kl. 10 til kl. 3)
+        const count = domainCategories.length;
+        const startAngleDeg = -135;
+        const endAngleDeg = 25;
+
+        domainCategories.forEach((catName, idx) => {
+          const angleDeg = count === 1 ? -55 : startAngleDeg + (idx * ((endAngleDeg - startAngleDeg) / Math.max(1, count - 1)));
+          const rad = (angleDeg * Math.PI) / 180;
+
+          // I hvile sidder knoppen tæt på randen (radius 76px) så den smelter sammen med hovedboblen. Ved hover vokser den ud til 104px!
+          const bx = Math.round(Math.cos(rad) * 76);
+          const by = Math.round(Math.sin(rad) * 76);
+          const bxHover = Math.round(Math.cos(rad) * 106);
+          const byHover = Math.round(Math.sin(rad) * 106);
+
+          const catSkills = domainSkills.filter(s => s.cat === catName);
+          const catDoneCount = catSkills.filter(s => isSkillAchieved(progressMap, s.id)).length;
+          const isCatCompleted = catDoneCount === catSkills.length && catSkills.length > 0;
+          const isCatStarted = catDoneCount > 0 || catSkills.some(s => isSkillInProgress(progressMap, s.id) || isSkillPending(progressMap, s.id));
+
+          const budShape = document.createElement('div');
+          budShape.className = `blob-bud-shape ${isCatCompleted ? 'achieved' : (isCatStarted ? 'in-progress' : '')}`;
+          budShape.style.setProperty('--bx', `${bx}px`);
+          budShape.style.setProperty('--by', `${by}px`);
+          budShape.style.setProperty('--bx-hover', `${bxHover}px`);
+          budShape.style.setProperty('--by-hover', `${byHover}px`);
+          gooeyLayer.appendChild(budShape);
+
+          // Klikbar knop-etiket ovenpå
+          const budBtn = document.createElement('div');
+          budBtn.className = 'blob-bud-interactive';
+          budBtn.style.setProperty('--bx', `${bx}px`);
+          budBtn.style.setProperty('--by', `${by}px`);
+          budBtn.style.setProperty('--bx-hover', `${bxHover}px`);
+          budBtn.style.setProperty('--by-hover', `${byHover}px`);
+          budBtn.title = `${catName} (${catDoneCount}/${catSkills.length})`;
 
           const catIcon = catSkills[0]?.svg || 'folder';
-          const activeBadgeTitle = getLatestCategoryTitle(catName, allSkills.filter(s => (s.lang || 'da') === currentLang), progressMap);
-          const hasBadge = !!activeBadgeTitle;
+          budBtn.innerHTML = `
+            <i data-lucide="${catIcon}" style="width:15px; height:15px; color:var(--accent-primary);"></i>
+            <span class="bud-mini-label">${catName}</span>
+          `;
 
-          const catCircle = document.createElement('div');
-          catCircle.className = `circle-container cat-circle-container ${hasBadge ? 'completed' : ''}`;
-          catCircle.title = catName;
+          budBtn.onclick = (e) => {
+            e.stopPropagation();
+            if (isReadOnly) {
+              studentViewActiveDomain = domainName;
+              studentViewActiveCategory = catName;
+              openStudentTreeModal(activeInspectedStudentId, activeInspectedStudentName, progressMap, activeProofs);
+            } else {
+              activeOrganicDomain = domainName;
+              activeOrganicCategory = catName;
+              renderApp();
+            }
+          };
+
+          cluster.appendChild(budBtn);
+        });
+
+        cluster.appendChild(gooeyLayer);
+
+        // Midter-indhold i den store hovedbobbel
+        const cleanDomTitle = domainName.replace(/^[^\w\sА-Яа-яÆØÅæøå]+\s*/, '');
+        const domIcon = DOMAIN_ICONS[domainName] || 'circle-dot';
+
+        const coreContent = document.createElement('div');
+        coreContent.className = 'blob-core-content';
+        coreContent.innerHTML = `
+          <i data-lucide="${domIcon}" style="width:32px; height:32px; color:var(--accent-primary);"></i>
+          <div class="blob-core-title">${cleanDomTitle}</div>
+          <div class="blob-core-sub">${domAchieved} / ${domainSkills.length}</div>
+        `;
+        cluster.appendChild(coreContent);
+
+        cluster.onclick = () => {
+          const targetDom = (curDomain === domainName) ? null : domainName;
+          const firstCat = targetDom ? domainCategories[0] : null;
+          if (isReadOnly) {
+            studentViewActiveDomain = targetDom;
+            studentViewActiveCategory = firstCat;
+            openStudentTreeModal(activeInspectedStudentId, activeInspectedStudentName, progressMap, activeProofs);
+          } else {
+            activeOrganicDomain = targetDom;
+            activeOrganicCategory = firstCat;
+            renderApp();
+          }
+        };
+
+        domainsStage.appendChild(cluster);
+      });
+
+      container.appendChild(domainsStage);
+
+      // 2. HVIS EN HOVEDBOBBEL ER AKTIVERET -> VIS DENS KATEGORI-BUE OG DE LAVE NIVEAUER AF KOMPETENCER
+      if (curDomain) {
+        const domainSkills = skillsList.filter(s => (DOMAIN_MAP[s.cat] || '💻 Software') === curDomain);
+        const domainCategories = [...new Set(domainSkills.map(s => s.cat))];
+        if (!curCategory || !domainCategories.includes(curCategory)) {
+          curCategory = domainCategories[0];
+        }
+
+        const arena = document.createElement('div');
+        arena.className = 'expanded-organic-arena';
+
+        // Bue af kategori-bobler der rører hinanden (som højre side af din skitse)
+        const catArch = document.createElement('div');
+        catArch.className = 'category-arch-row';
+
+        domainCategories.forEach((catName) => {
+          const catSkills = domainSkills.filter(s => s.cat === catName).sort((a, b) => a.level - b.level);
+          const catDone = catSkills.filter(s => isSkillAchieved(progressMap, s.id)).length;
+          const activeBadgeTitle = getLatestCategoryTitle(catName, allSkills.filter(s => (s.lang || 'da') === currentLang), progressMap);
+          const isSelectedCat = curCategory === catName;
+
+          const catBubble = document.createElement('div');
+          catBubble.className = `category-arch-bubble ${isSelectedCat ? 'active-cat' : ''} ${activeBadgeTitle ? 'completed-cat' : ''}`;
 
           if (adminEditMode && !isReadOnly) {
-            catCircle.addEventListener('dragover', (e) => {
+            catBubble.addEventListener('dragover', (e) => {
               e.preventDefault();
-              catCircle.classList.add('drag-over-target');
+              catBubble.classList.add('drag-over-target');
             });
-            catCircle.addEventListener('dragleave', () => {
-              catCircle.classList.remove('drag-over-target');
+            catBubble.addEventListener('dragleave', () => {
+              catBubble.classList.remove('drag-over-target');
             });
-            catCircle.addEventListener('drop', async (e) => {
+            catBubble.addEventListener('drop', async (e) => {
               e.preventDefault();
-              catCircle.classList.remove('drag-over-target');
+              catBubble.classList.remove('drag-over-target');
               if (draggedSkill) {
                 await handleDropSkillOnTarget(draggedSkill, catName, 0);
               }
             });
           }
 
-          catCircle.innerHTML = `
-            <svg class="circle-svg" viewBox="0 0 100 100">
-              <circle class="circle-outer-ring" cx="50" cy="50" r="46" />
-              <circle class="circle-inner-ring" cx="50" cy="50" r="40" />
-            </svg>
-            <div class="cat-circle-content">
-              <i data-lucide="${catIcon}" class="cat-big-icon"></i>
-              ${hasBadge ? `<div class="cat-badge-label">${activeBadgeTitle}</div>` : `<div class="circle-text" style="font-size:0.48rem; color:var(--text-muted);">${catName}</div>`}
-            </div>
+          const catIcon = catSkills[0]?.svg || 'folder';
+          catBubble.innerHTML = `
+            <i data-lucide="${catIcon}" style="width:24px; height:24px; color:var(--accent-primary); margin-bottom:4px;"></i>
+            <div style="font-size:0.74rem; font-weight:800; color:var(--text-main); line-height:1.15;">${catName}</div>
+            <div style="font-size:0.64rem; color:var(--text-muted); margin-top:2px;">${catDone} / ${catSkills.length}</div>
+            ${activeBadgeTitle ? `<div class="cat-badge-label" style="margin-top:3px;">🎖️ ${activeBadgeTitle}</div>` : ''}
           `;
-          col.appendChild(catCircle);
+
+          catBubble.onclick = () => {
+            if (isReadOnly) {
+              studentViewActiveCategory = catName;
+              openStudentTreeModal(activeInspectedStudentId, activeInspectedStudentName, progressMap, activeProofs);
+            } else {
+              activeOrganicCategory = catName;
+              renderApp();
+            }
+          };
+
+          catArch.appendChild(catBubble);
+        });
+
+        arena.appendChild(catArch);
+
+        // 3. KOMPETENCE-BOBLER FOR DEN AKTIVE KATEGORI (Kun lave niveauer udfyldt fra start; højere niveauer ligger som knopper)
+        if (curCategory) {
+          const catSkills = domainSkills.filter(s => s.cat === curCategory).sort((a, b) => a.level - b.level);
+          const skillsStage = document.createElement('div');
+          skillsStage.className = 'skills-caterpillar-stage';
 
           const subCatNames = [...new Set(catSkills.map(s => s.subCat).filter(sc => sc !== ''))];
 
-          if (adminEditMode || subCatNames.length === 0) {
-            const firstFourSkills = catSkills.filter(s => s.level <= 4);
-            const firstFourCompleted = firstFourSkills.filter(s => isSkillAchieved(progressMap, s.id)).length;
-            const isFirstFourDone = adminEditMode || isReadOnly || (firstFourCompleted === firstFourSkills.length && firstFourSkills.length > 0);
+          if (subCatNames.length <= 1) {
+            // Ingen underkategorier: Vis lave niveauer (1-4) som fulde sammenhængende bobler og resten som små knopper på kanten, indtil niveau 1-4 er nået
+            const lowSkills = catSkills.filter(s => s.level <= 4);
+            const lowDone = lowSkills.every(s => isSkillAchieved(progressMap, s.id));
+            const chain = document.createElement('div');
+            chain.className = 'organic-skill-chain';
 
-            const visibleSkills = isFirstFourDone ? catSkills : catSkills.filter(s => s.level <= 4);
-
-            visibleSkills.forEach(s => {
-              col.appendChild(createSkillCircle(s, progressMap, isReadOnly, activeProofs));
+            catSkills.forEach(s => {
+              const isHigherLocked = !adminEditMode && !isReadOnly && !lowDone && s.level > 4;
+              chain.appendChild(createSkillCircle(s, progressMap, isReadOnly, activeProofs, isHigherLocked));
             });
+
+            skillsStage.appendChild(chain);
           } else {
-            let allPrevCompleted = true;
+            // Opdelt i underkategorier: Første (lave) underkategori er foldet ud som en bue af bobler.
+            // Efterfølgende underkategorier vises som en kompakt bobbel med små knopper på kanten (som venstre skitse), der folder sig ud ved klik eller når forrige er klaret!
+            let prevSubCatDone = true;
 
-            subCatNames.forEach((scName) => {
-              if (!allPrevCompleted && !isReadOnly) return;
+            subCatNames.forEach((scName, scIdx) => {
+              const scSkills = catSkills.filter(s => s.subCat === scName).sort((a, b) => a.level - b.level);
+              const scDoneCount = scSkills.filter(s => isSkillAchieved(progressMap, s.id)).length;
+              const isScCompleted = scDoneCount === scSkills.length && scSkills.length > 0;
+              const subCatKey = `${curCategory}_${scName}`;
 
-              const scSkills = catSkills.filter(s => s.subCat === scName).sort((a,b) => a.level - b.level);
-              const scCompletedCount = scSkills.filter(s => isSkillAchieved(progressMap, s.id)).length;
-              const isScCompleted = (scCompletedCount === scSkills.length && scSkills.length > 0);
-
-              const subCatKey = `${catName}_${scName}`;
-              let isExpanded = !isScCompleted || isReadOnly;
+              // Som udgangspunkt er KUN den første (lave) underkategori eller den aktuelt oplåste åben
+              let isExpanded = (scIdx === 0) || prevSubCatDone || adminEditMode || isReadOnly;
               if (manualSubCatExpanded[subCatKey] !== undefined) {
                 isExpanded = manualSubCatExpanded[subCatKey];
               }
 
-              if (isScCompleted || manualSubCatExpanded[subCatKey] !== undefined) {
-                const scCircle = document.createElement('div');
-                scCircle.className = `circle-container subcat-circle ${isScCompleted ? 'completed' : ''}`;
-                if (!isReadOnly) {
-                  scCircle.onclick = () => toggleSubCatFold(subCatKey);
-                }
-
-                const scIcon = scSkills[0]?.svg || 'folder';
-                const foldLabel = isExpanded ? t('fold_hide') : t('fold_show');
-
-                scCircle.innerHTML = `
-                  <svg class="circle-svg" viewBox="0 0 100 100">
-                    <circle class="circle-outer-ring dashed-frame" cx="50" cy="50" r="46" />
-                    <circle class="circle-inner-ring" cx="50" cy="50" r="40" />
-                  </svg>
-                  <div class="circle-content">
-                    <i data-lucide="${scIcon}" class="circle-icon"></i>
-                    <div class="circle-text" style="font-size:0.50rem; color:var(--text-main);">${scName}</div>
-                    <div class="circle-level" style="font-size:0.55rem; color:var(--accent-primary);">${foldLabel}</div>
-                  </div>
-                `;
-                col.appendChild(scCircle);
-              }
-
               if (isExpanded) {
+                const pod = document.createElement('div');
+                pod.className = 'subcat-organic-pod';
+
+                const header = document.createElement('div');
+                header.className = 'subcat-pod-header';
+                header.innerHTML = `
+                  <span>${scName} (${scDoneCount}/${scSkills.length})</span>
+                  <span style="font-size:0.68rem; color:var(--text-muted);">${t('fold_hide')}</span>
+                `;
+                header.onclick = () => toggleSubCatFold(subCatKey, isReadOnly);
+                pod.appendChild(header);
+
+                const chain = document.createElement('div');
+                chain.className = 'organic-skill-chain';
                 scSkills.forEach(s => {
-                  col.appendChild(createSkillCircle(s, progressMap, isReadOnly, activeProofs));
+                  chain.appendChild(createSkillCircle(s, progressMap, isReadOnly, activeProofs, false));
                 });
+                pod.appendChild(chain);
+                skillsStage.appendChild(pod);
+              } else {
+                // Kompakt Underkategori-bobbel med små knopper på kanten (som venstre del af din skitse)
+                const budCluster = document.createElement('div');
+                budCluster.className = 'subcat-bud-cluster';
+                budCluster.title = `Klik for at folde "${scName}" ud`;
+                budCluster.onclick = () => toggleSubCatFold(subCatKey, isReadOnly);
+
+                scSkills.forEach((s, kIdx) => {
+                  const totalK = scSkills.length;
+                  const ang = -140 + (kIdx * (170 / Math.max(1, totalK - 1)));
+                  const rad = (ang * Math.PI) / 180;
+                  const kx = Math.round(Math.cos(rad) * 48);
+                  const ky = Math.round(Math.sin(rad) * 48);
+                  const kxHover = Math.round(Math.cos(rad) * 64);
+                  const kyHover = Math.round(Math.sin(rad) * 64);
+
+                  const knob = document.createElement('div');
+                  knob.className = 'subcat-bud-knob';
+                  knob.style.setProperty('--kx', `${kx}px`);
+                  knob.style.setProperty('--ky', `${ky}px`);
+                  knob.style.setProperty('--kx-hover', `${kxHover}px`);
+                  knob.style.setProperty('--ky-hover', `${kyHover}px`);
+                  knob.innerText = s.level;
+                  budCluster.appendChild(knob);
+                });
+
+                const mainBubble = document.createElement('div');
+                mainBubble.className = 'subcat-bud-main';
+                mainBubble.innerHTML = `
+                  <i data-lucide="${scSkills[0]?.svg || 'folder'}" style="width:18px; height:18px; color:var(--accent-primary); margin-bottom:2px;"></i>
+                  <div style="font-size:0.62rem; font-weight:800; color:var(--text-main); line-height:1.1;">${scName}</div>
+                  <div style="font-size:0.55rem; color:var(--accent-primary); margin-top:2px;">${t('fold_show')}</div>
+                `;
+                budCluster.appendChild(mainBubble);
+                skillsStage.appendChild(budCluster);
               }
 
-              allPrevCompleted = isScCompleted;
+              prevSubCatDone = isScCompleted;
             });
           }
 
-          domainColumns.appendChild(col);
-        });
+          arena.appendChild(skillsStage);
+        }
 
-        domainSection.appendChild(domainColumns);
-        container.appendChild(domainSection);
-      });
+        container.appendChild(arena);
+      }
     }
 
     function renderApp() {
@@ -4190,7 +4705,7 @@
       document.getElementById('footerUserTitle').innerText = calculateGlobalTitle(langSkills, userProgress);
       document.getElementById('footerScore').innerText = `${activeSkillsCount} / ${totalSkillsCount}`;
 
-      renderHoneycombIntoContainer(honeycombGrid, availableSkills, userProgress, false, userProofImages);
+      renderOrganicIntoContainer(honeycombGrid, availableSkills, userProgress, false, userProofImages);
       lucide.createIcons();
     }
 
@@ -4223,7 +4738,7 @@
           pos: { top: '70px', right: '210px' }
         },
         {
-          targetClass: 'circle-container',
+          targetClass: 'domain-blob-cluster',
           title: t('tut_4_title'),
           text: t('tut_4_text'),
           pos: { top: '40%', left: '50%', transform: 'translate(-50%, -50%)' }
