@@ -146,7 +146,7 @@
     }
 
     /* =====================================================================
-       MOLEKYLÆRT ORGANISK LÆRRED (FYSISK PLADS-TILPASNING UDEN OVERLAP)
+       MOLEKYLÆRT ORGANISK LÆRRED (ALLE HOVEDBOBLER SYNLIGE & NUL KRYDS)
        ===================================================================== */
     .molecular-stage-wrapper {
       display: flex;
@@ -163,7 +163,7 @@
       flex-wrap: wrap;
       justify-content: center;
       z-index: 40;
-      margin: 6px 0 10px 0;
+      margin: 4px 0 8px 0;
     }
 
     .molecular-canvas {
@@ -186,12 +186,12 @@
       stroke: var(--bond-color);
       stroke-width: 6;
       stroke-linecap: round;
-      transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+      transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
     .mol-bond-line.active-bond {
       stroke: var(--accent-primary);
-      stroke-width: 9;
+      stroke-width: 8.5;
       filter: drop-shadow(0 0 8px var(--bond-color));
     }
 
@@ -200,7 +200,7 @@
       stroke-width: 8;
     }
 
-    /* MOLEKYLE-BOBLER (DOMÆNE, KATEGORI, KOLLAPSET TRIN & KOMPETENCE) */
+    /* MOLEKYLE-BOBLER */
     .mol-node {
       position: absolute;
       border-radius: 50%;
@@ -213,11 +213,11 @@
       cursor: pointer;
       user-select: none;
       z-index: 5;
-      transition: left 0.45s cubic-bezier(0.22, 1, 0.36, 1),
-                  top 0.45s cubic-bezier(0.22, 1, 0.36, 1),
-                  width 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275),
-                  height 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275),
-                  transform 0.25s ease,
+      transition: left 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+                  top 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+                  width 0.38s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+                  height 0.38s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+                  transform 0.22s ease,
                   box-shadow 0.3s ease;
     }
 
@@ -254,7 +254,6 @@
       transition: stroke 0.3s, fill 0.3s;
     }
 
-    /* HOVEDBOBBEL (DOMÆNE) */
     .mol-node.domain-node .circle-outer-ring {
       stroke-width: 3.8;
       stroke: var(--accent-primary);
@@ -264,14 +263,12 @@
       filter: drop-shadow(0 0 16px var(--bond-color));
     }
 
-    /* KATEGORI-BOBBEL (VOKSER 25% NÅR AKTIV SOM UNDER-HOVEDBOBBEL) */
     .mol-node.category-node.active-cat .circle-outer-ring {
       stroke: var(--accent-primary);
       stroke-width: 4.2;
       filter: drop-shadow(0 0 14px var(--bond-color));
     }
 
-    /* KOLLAPSET "MESTRET TRIN" BOBBEL (Større end de 3 enkelte kompetencebobler) */
     .mol-node.collapsed-tier-node .circle-outer-ring {
       stroke: var(--active-achieved);
       stroke-width: 4;
@@ -283,7 +280,7 @@
       stroke-dasharray: 4 2;
     }
 
-    /* SMÅ KNOPPER PÅ HOVEDBOBLER I OVERBLIKKET */
+    /* SMÅ KNOPPER PÅ UÅBNEDE HOVEDBOBLER */
     .mol-bud-Orbit {
       position: absolute;
       border-radius: 50%;
@@ -1675,8 +1672,8 @@
         titles_count: "opnåede titler",
         fold_hide: "▲ Skjul",
         fold_show: "▼ Vis",
-        back_to_bubbles: "⬅ Tilbage til alle hovedbobler",
-        click_bubble_hint: "Klik på en hovedbobbel (f.eks. Maskiner) og vælg en kategori for at lade kompetencerne gro frem",
+        collapse_all_bubbles: "🔄 Fold alle hovedbobler sammen",
+        click_bubble_hint: "Klik på en eller flere hovedbobler for at folde deres kategorier og kompetencer ud",
         mastered_tier: "Mestret Niv.",
         tut_skip: "Spring over",
         tut_next: "Næste ➔",
@@ -1770,8 +1767,8 @@
         titles_count: "titles unlocked",
         fold_hide: "▲ Hide",
         fold_show: "▼ Show",
-        back_to_bubbles: "⬅ Back to all main bubbles",
-        click_bubble_hint: "Click a main bubble and select a category to grow its skill bubbles",
+        collapse_all_bubbles: "🔄 Collapse all main bubbles",
+        click_bubble_hint: "Click one or more main bubbles to unfold their categories and skills",
         mastered_tier: "Mastered Lvl",
         tut_skip: "Skip",
         tut_next: "Next ➔",
@@ -1865,8 +1862,8 @@
         titles_count: "отриманих титулів",
         fold_hide: "▲ Приховати",
         fold_show: "▼ Показати",
-        back_to_bubbles: "⬅ Назад до всіх бульбашок",
-        click_bubble_hint: "Натисніть на головну бульбашку та оберіть категорію",
+        collapse_all_bubbles: "🔄 Згорнути всі головні бульбашки",
+        click_bubble_hint: "Натисніть на одну або кілька головних бульбашок, щоб розгорнути категорії",
         mastered_tier: "Опановано рів.",
         tut_skip: "Пропустити",
         tut_next: "Далі ➔",
@@ -1973,18 +1970,41 @@
       '3D-Printning': '⚙️ Maskiner', '3D Printing': '⚙️ Maskiner',
       'Folieskæring': '⚙️ Maskiner', 'Vinyl Cutting': '⚙️ Maskiner',
       'Digitalt Broderi': '⚙️ Maskiner', 'Digital Embroidery': '⚙️ Maskiner',
-      'Materialekendskab': '⚙️ Maskiner', 'Materials Knowledge': '⚙️ Maskiner',
+      'Materialekendskab': '⚙️ Maskiner', 'Materials Knowledge': '⚙️ Maskiner', 'Materials': '⚙️ Maskiner',
 
       'Elektronik': '🔌 Hardware og Elektronik', 'Electronics': '🔌 Hardware og Elektronik',
       'Microcontroller': '🔌 Hardware og Elektronik', 'Microcontrollers': '🔌 Hardware og Elektronik',
 
-      'Værkstedskultur': '🤝 Værkstedskultur', 'Shop Culture': '🤝 Værkstedskultur',
+      'Værkstedskultur': '🤝 Værkstedskultur', 'Shop Culture': '🤝 Værkstedskultur', 'Makerspace Culture': '🤝 Værkstedskultur',
 
       'Netværk & Fællesskab': '👥 Fællesskab & Netværk', 'Network & Community': '👥 Fællesskab & Netværk',
       'Pædagogik & Praksis': '🎓 Didaktik & Facilitering', 'Pedagogy & Practice': '🎓 Didaktik & Facilitering',
       'Entreprenørskab': '💼 Forretning & Værksted', 'Entrepreneurship': '💼 Forretning & Værksted',
       'Kultur & Oplevelse': '✨ Maker Faire & Kultur', 'Culture & Experience': '✨ Maker Faire & Kultur'
     };
+
+    const CATEGORY_ORDER = [
+      'Filhåndtering', 'File Management',
+      'Vektorgrafik', 'Vector Graphics',
+      'Rastergrafik', 'Raster Graphics',
+      '3D-Modellering', '3D Modeling',
+
+      'Digitalt Broderi', 'Digital Embroidery',
+      'Materialekendskab', 'Materials Knowledge', 'Materials',
+      'Folieskæring', 'Vinyl Cutting',
+      '3D-Printning', '3D Printing',
+      'CO2 Laserskæring', 'CO2 Laser Cutting',
+      'Laserskæring', 'Laser Cutting',
+
+      'Elektronik', 'Electronics',
+      'Microcontroller', 'Microcontrollers',
+
+      'Værkstedskultur', 'Shop Culture', 'Makerspace Culture',
+      'Netværk & Fællesskab', 'Network & Community',
+      'Pædagogik & Praksis', 'Pedagogy & Practice',
+      'Entreprenørskab', 'Entrepreneurship',
+      'Kultur & Oplevelse', 'Culture & Experience'
+    ];
 
     const DOMAIN_ICONS = {
       '💻 Software': 'monitor',
@@ -2014,6 +2034,17 @@
       '🔌 Hardware og Elektronik', 
       '🤝 Værkstedskultur'
     ];
+
+    function sortCategoriesConsistently(catArray) {
+      return [...catArray].sort((a, b) => {
+        const idxA = CATEGORY_ORDER.indexOf(a);
+        const idxB = CATEGORY_ORDER.indexOf(b);
+        if (idxA === -1 && idxB === -1) return a.localeCompare(b);
+        if (idxA === -1) return 1;
+        if (idxB === -1) return -1;
+        return idxA - idxB;
+      });
+    }
 
     function isSkillAchieved(progressMap, skillId) {
       const val = progressMap[skillId];
@@ -2123,10 +2154,10 @@
     let activeInspectionClassId = null;
     let draggedSkill = null;
 
-    // MOLEKYLÆR NAVIGATION TILSTAND (Understøtter flere åbne kategorier samtidigt!)
-    let activeOrganicDomain = null;
+    // MOLEKYLÆR NAVIGATION TILSTAND (Alle hovedbobler bliver liggende på skærmen, og flere kan åbnes samtidigt)
+    let expandedDomainsSet = new Set();
     let expandedCategoriesSet = new Set();
-    let studentViewActiveDomain = null;
+    let studentViewExpandedDomains = new Set();
     let studentViewExpandedCategories = new Set();
 
     function updateModifiedBadges() {
@@ -2705,7 +2736,7 @@
     function handleViewFilterChange(val) {
       selectedViewFilter = val;
       localStorage.setItem('ms_selectedViewFilter', val);
-      activeOrganicDomain = null;
+      expandedDomainsSet.clear();
       expandedCategoriesSet.clear();
       renderApp();
     }
@@ -2996,7 +3027,7 @@
       container.innerHTML = '';
 
       const relevantSkills = allSkills.filter(s => (s.lang || 'da') === currentLang);
-      const allCats = [...new Set(relevantSkills.map(s => s.cat))];
+      const allCats = sortCategoriesConsistently([...new Set(relevantSkills.map(s => s.cat))]);
 
       if (allCats.length === 0) {
         container.innerHTML = '<span style="font-size:0.8rem; color:var(--text-muted);">Ingen kategorier fundet.</span>';
@@ -3373,7 +3404,7 @@
       document.getElementById('studentTreeModal').style.display = 'none';
       document.getElementById('studentHoneycombGrid').innerHTML = '';
       activeInspectedStudentId = null;
-      studentViewActiveDomain = null;
+      studentViewExpandedDomains.clear();
       studentViewExpandedCategories.clear();
     }
 
@@ -3997,13 +4028,60 @@
     }
 
     /* =====================================================================
-       FYSISK MOLEKYLE-KOLLISIONSMOTOR (GARANTERER NUL OVERLAP MELLEM BOBLER)
+       GEOMETRISK & FYSISK MOTOR MED SEKTOR-LÅS OG LINJE-KRYDS-FORHINDRING
+       Garanterer at:
+       1) Ingen cirkler overlapper hinanden
+       2) Kompetencer og kategorier bliver i deres egen vinkelsektor (ingen "Basic Materials" over i "Vinyl Cutting")
+       3) Ingen cirkel kan ligge oven på en forbindelseslinje (bond)
+       4) To forbindelseslinjer aldrig kan krydse hinanden
        ===================================================================== */
-    function resolveMolecularCollisions(nodes, bonds, iterations = 130) {
-      const minPadding = 12; // Minimum luft i pixels mellem enhver bobbel
+    function normalizeAngleDiff(angle, refAngle) {
+      let diff = angle - refAngle;
+      while (diff > Math.PI) diff -= 2 * Math.PI;
+      while (diff < -Math.PI) diff += 2 * Math.PI;
+      return diff;
+    }
+
+    function ccw(ax, ay, bx, by, cx, cy) {
+      return (cy - ay) * (bx - ax) > (by - ay) * (cx - ax);
+    }
+
+    function segmentsStrictlyIntersect(a, b, c, d) {
+      if (a === c || a === d || b === c || b === d) return false;
+      return (ccw(a.x, a.y, c.x, c.y, d.x, d.y) !== ccw(b.x, b.y, c.x, c.y, d.x, d.y)) &&
+             (ccw(a.x, a.y, b.x, b.y, c.x, c.y) !== ccw(a.x, a.y, b.x, b.y, d.x, d.y));
+    }
+
+    function resolveMolecularCollisions(nodes, bonds, iterations = 160) {
+      const minPadding = 14;
 
       for (let iter = 0; iter < iterations; iter++) {
-        // 1. Frastødning mellem alle par af bobler hvis de overlapper
+        // 1. SEKTOR- & VINKEL-STYRING: Tving hver gren til at blive på sit eget vinkelspor ud fra sin forældre-bobbel,
+        // så kompetencer i én kategori ALDRIG kan skubbes ind i nabo-kategoriens vinkelområde!
+        nodes.forEach(n => {
+          if (n.parentAnchor && n.idealAngle !== undefined) {
+            const dx = n.x - n.parentAnchor.x;
+            const dy = n.y - n.parentAnchor.y;
+            let dist = Math.hypot(dx, dy) || 1;
+            const minDist = n.parentAnchor.r + n.r + (n.idealGap || 24);
+            if (dist < minDist) dist = minDist;
+
+            let curAngle = Math.atan2(dy, dx);
+            let diff = normalizeAngleDiff(curAngle, n.idealAngle);
+            const maxDev = n.maxAngleDeviation !== undefined ? n.maxAngleDeviation : 0.28;
+
+            // Klip vinklen skarpt inden for kategoriens egen sektor
+            if (diff > maxDev) diff = maxDev;
+            if (diff < -maxDev) diff = -maxDev;
+
+            // Blød fjeder tilbage mod idealvinklen
+            const correctedAngle = n.idealAngle + diff * 0.82;
+            n.x = n.parentAnchor.x + Math.cos(correctedAngle) * dist;
+            n.y = n.parentAnchor.y + Math.sin(correctedAngle) * dist;
+          }
+        });
+
+        // 2. CIRKEL-MOD-CIRKEL FRASTØDNING (Ingen bobler må røre/overlappe hinanden)
         for (let i = 0; i < nodes.length; i++) {
           for (let j = i + 1; j < nodes.length; j++) {
             const a = nodes[i];
@@ -4015,7 +4093,7 @@
 
             if (dist < minDist) {
               if (dist < 0.1) {
-                dx = (Math.random() - 0.5) * 2;
+                dx = (i % 2 === 0 ? 1 : -1);
                 dy = -1;
                 dist = Math.hypot(dx, dy);
               }
@@ -4023,27 +4101,66 @@
               const nx = dx / dist;
               const ny = dy / dist;
 
-              if (a.pinned && !b.pinned) {
-                b.x += nx * overlap;
-                b.y += ny * overlap;
-              } else if (b.pinned && !a.pinned) {
-                a.x -= nx * overlap;
-                a.y -= ny * overlap;
-              } else if (!a.pinned && !b.pinned) {
-                // Tungere/større bobler flytter sig mindre end små kompetencebobler
-                const totalR = a.r + b.r;
-                const weightA = b.r / totalR;
-                const weightB = a.r / totalR;
-                a.x -= nx * overlap * weightA;
-                a.y -= ny * overlap * weightA;
-                b.x += nx * overlap * weightB;
-                b.y += ny * overlap * weightB;
-              }
+              // Hovedbobler (domain-root) er tungere, men kan stadig flytte sig så flere åbne hovedbobler tilpasser sig hinanden
+              const weightA = a.isHeavyDomain ? 0.15 : (b.r / (a.r + b.r));
+              const weightB = b.isHeavyDomain ? 0.15 : (a.r / (a.r + b.r));
+              const sumW = weightA + weightB || 1;
+
+              a.x -= nx * overlap * (weightA / sumW);
+              a.y -= ny * overlap * (weightA / sumW);
+              b.x += nx * overlap * (weightB / sumW);
+              b.y += ny * overlap * (weightB / sumW);
             }
           }
         }
 
-        // 2. Blød elastisk fjeder-kraft langs molekyle-forbindelser, så strukturen forbliver sammenhængende og organisk
+        // 3. LINJE-MOD-CIRKEL FRASTØDNING: Ingen bobbel må ligge hen over en forbindelseslinje mellem to andre bobler!
+        bonds.forEach(bond => {
+          const A = bond.source;
+          const B = bond.target;
+          const abx = B.x - A.x;
+          const aby = B.y - A.y;
+          const abLenSq = abx * abx + aby * aby;
+          if (abLenSq < 1) return;
+
+          for (let i = 0; i < nodes.length; i++) {
+            const C = nodes[i];
+            if (C === A || C === B) continue;
+
+            // Projektion af cirkel C's centrum ind på linjestykket A-B
+            let tProj = ((C.x - A.x) * abx + (C.y - A.y) * aby) / abLenSq;
+            if (tProj <= 0.08 || tProj >= 0.92) continue;
+
+            const px = A.x + tProj * abx;
+            const py = A.y + tProj * aby;
+            let dx = C.x - px;
+            let dy = C.y - py;
+            let dist = Math.hypot(dx, dy);
+            const minClearance = C.r + 16;
+
+            if (dist < minClearance) {
+              if (dist < 0.1) {
+                dx = -aby;
+                dy = abx;
+                dist = Math.hypot(dx, dy) || 1;
+              }
+              const push = (minClearance - dist) * 0.85;
+              const nx = dx / dist;
+              const ny = dy / dist;
+
+              if (!C.isHeavyDomain) {
+                C.x += nx * push;
+                C.y += ny * push;
+              }
+              if (!B.isHeavyDomain) {
+                B.x -= nx * push * 0.35;
+                B.y -= ny * push * 0.35;
+              }
+            }
+          }
+        });
+
+        // 4. ELASTISK FJEDERKRAFT LANGS FORBINDELSESLINJER
         bonds.forEach(bond => {
           const source = bond.source;
           const target = bond.target;
@@ -4051,24 +4168,42 @@
           const dy = target.y - source.y;
           const dist = Math.hypot(dx, dy) || 1;
           const idealDist = source.r + target.r + (bond.idealGap || 24);
-          const diff = (dist - idealDist) * 0.08;
+          const diff = (dist - idealDist) * 0.14;
           const nx = dx / dist;
           const ny = dy / dist;
 
-          if (!target.pinned) {
-            target.x -= nx * diff;
-            target.y -= ny * diff;
-          }
-          if (!source.pinned) {
-            source.x += nx * diff * 0.3;
-            source.y += ny * diff * 0.3;
+          target.x -= nx * diff * 0.8;
+          target.y -= ny * diff * 0.8;
+          if (!source.isHeavyDomain) {
+            source.x += nx * diff * 0.2;
+            source.y += ny * diff * 0.2;
           }
         });
+
+        // 5. ANTI-LINJEKRYDSNING: Hvis to forbindelseslinjer på trods af alt skulle krydse hinanden, byttes/skubbes deres endepunkter fri
+        if (iter % 15 === 0) {
+          for (let i = 0; i < bonds.length; i++) {
+            for (let j = i + 1; j < bonds.length; j++) {
+              const b1 = bonds[i];
+              const b2 = bonds[j];
+              if (segmentsStrictlyIntersect(b1.source, b1.target, b2.source, b2.target)) {
+                // Skub de to target-noder tilbage mod deres respektive idealvinkler
+                [b1.target, b2.target].forEach(tNode => {
+                  if (tNode.parentAnchor && tNode.idealAngle !== undefined) {
+                    const d = tNode.parentAnchor.r + tNode.r + (tNode.idealGap || 26);
+                    tNode.x = tNode.parentAnchor.x + Math.cos(tNode.idealAngle) * d;
+                    tNode.y = tNode.parentAnchor.y + Math.sin(tNode.idealAngle) * d;
+                  }
+                });
+              }
+            }
+          }
+        }
       }
     }
 
     /* =====================================================================
-       RENDER MOLEKYLÆRT BOBBEL-TRÆ (MED 25% VÆKST & 3-AD-GANGEN KOLLAPS)
+       RENDER MOLEKYLÆRT BOBBEL-TRÆ (ALLE HOVEDBOBLER LIGGER PÅ SKÆRMEN SAMTIDIGT)
        ===================================================================== */
     function renderMolecularIntoContainer(container, skillsList, progressMap, isReadOnly = false, proofMap = null) {
       container.innerHTML = '';
@@ -4077,36 +4212,32 @@
       const orderedDomains = DOMAIN_ORDER.filter(d => activeDomains.includes(d));
       if (orderedDomains.length === 0 && activeDomains.length > 0) orderedDomains.push(...activeDomains);
 
-      let curDomain = isReadOnly ? studentViewActiveDomain : activeOrganicDomain;
+      const curExpandedDomains = isReadOnly ? studentViewExpandedDomains : expandedDomainsSet;
       const curExpandedCats = isReadOnly ? studentViewExpandedCategories : expandedCategoriesSet;
 
-      if (orderedDomains.length === 1 && !curDomain) {
-        curDomain = orderedDomains[0];
-      }
-      if (curDomain && !orderedDomains.includes(curDomain)) {
-        curDomain = null;
-        curExpandedCats.clear();
+      if (orderedDomains.length === 1) {
+        curExpandedDomains.add(orderedDomains[0]);
       }
 
       // Top-bjælke
       const topBar = document.createElement('div');
       topBar.className = 'organic-breadcrumb-bar';
-      if (curDomain) {
-        const backBtn = document.createElement('button');
-        backBtn.className = 'btn btn-secondary';
-        backBtn.innerHTML = `${t('back_to_bubbles')}`;
-        backBtn.onclick = () => {
+      if (curExpandedDomains.size > 0) {
+        const collapseBtn = document.createElement('button');
+        collapseBtn.className = 'btn btn-secondary';
+        collapseBtn.innerHTML = `${t('collapse_all_bubbles')}`;
+        collapseBtn.onclick = () => {
           if (isReadOnly) {
-            studentViewActiveDomain = null;
+            studentViewExpandedDomains.clear();
             studentViewExpandedCategories.clear();
             openStudentTreeModal(activeInspectedStudentId, activeInspectedStudentName, progressMap, activeProofs);
           } else {
-            activeOrganicDomain = null;
+            expandedDomainsSet.clear();
             expandedCategoriesSet.clear();
             renderApp();
           }
         };
-        topBar.appendChild(backBtn);
+        topBar.appendChild(collapseBtn);
       } else {
         topBar.innerHTML = `<span style="font-size:0.84rem; color:var(--text-muted); font-style:italic;">🫧 ${t('click_bubble_hint')}</span>`;
       }
@@ -4115,207 +4246,228 @@
       const nodes = [];
       const bonds = [];
 
-      // TILSTAND A: START-OVERBLIK (Kun de store Hovedbobler med små knopper på kanten)
-      if (!curDomain) {
-        const spacingX = 290;
-        const spacingY = 250;
-        orderedDomains.forEach((domainName, idx) => {
-          const domSkills = skillsList.filter(s => (DOMAIN_MAP[s.cat] || '💻 Software') === domainName);
-          const col = idx % 2;
-          const row = Math.floor(idx / 2);
-          const x = (col - 0.5) * spacingX + (row % 2 === 1 ? 45 : -25);
-          const y = row * spacingY;
+      // Hver hovedbobbel placeres i sit eget kvadrant/udsnit og har sin egen udadvendte vifte,
+      // så når flere hovedbobler er åbne samtidig, vokser deres grene væk fra hinanden!
+      const anyDomExpanded = curExpandedDomains.size > 0;
+      const baseSpreadX = anyDomExpanded ? 460 : 280;
+      const baseSpreadY = anyDomExpanded ? 390 : 230;
 
-          nodes.push({
-            id: `DOM_${domainName}`,
-            type: 'domain-overview',
-            domainName,
-            skills: domSkills,
-            x,
-            y,
-            r: 86, // Diameter 172px
-            pinned: false
-          });
-        });
+      // Kvadrant-startpositioner og udadvendte vinkel-centre for op til 8 hovedbobler
+      const domainLayoutPresets = [
+        { x: -baseSpreadX * 0.55, y: -baseSpreadY * 0.45, centerAngleDeg: -135, spanDeg: 145 }, // Øverst tv (Software: vokser mod NV/Nord)
+        { x:  baseSpreadX * 0.55, y: -baseSpreadY * 0.45, centerAngleDeg: -45,  spanDeg: 155 }, // Øverst th (Maskiner: vokser mod NØ/Nord/Øst)
+        { x: -baseSpreadX * 0.55, y:  baseSpreadY * 0.50, centerAngleDeg: 140,  spanDeg: 130 }, // Nederst tv (Hardware: vokser mod SV/Vest)
+        { x:  baseSpreadX * 0.55, y:  baseSpreadY * 0.50, centerAngleDeg: 40,   spanDeg: 130 }, // Nederst th (Værkstedskultur: vokser mod SØ/Øst)
+        { x: 0,                   y: -baseSpreadY * 0.95, centerAngleDeg: -90,  spanDeg: 140 },
+        { x: 0,                   y:  baseSpreadY * 0.95, centerAngleDeg: 90,   spanDeg: 140 },
+        { x: -baseSpreadX * 1.05, y: 0,                   centerAngleDeg: 180,  spanDeg: 140 },
+        { x:  baseSpreadX * 1.05, y: 0,                   centerAngleDeg: 0,    spanDeg: 140 }
+      ];
 
-        resolveMolecularCollisions(nodes, bonds, 80);
-      } else {
-        // TILSTAND B: EN HOVEDBOBBEL ER VALGT (f.eks. ⚙️ Maskiner)
-        // Hovedboblen ligger nederst i midten, og dens kategorier (3D-Printning, Laserskæring osv.) gror ud i en organisk vifte over den.
-        const domainSkills = skillsList.filter(s => (DOMAIN_MAP[s.cat] || '💻 Software') === curDomain);
-        const domainCategories = [...new Set(domainSkills.map(s => s.cat))];
+      orderedDomains.forEach((domainName, dIdx) => {
+        const domainSkills = skillsList.filter(s => (DOMAIN_MAP[s.cat] || '💻 Software') === domainName);
+        if (domainSkills.length === 0) return;
+
+        const isDomExpanded = curExpandedDomains.has(domainName);
+        const preset = orderedDomains.length === 1
+          ? { x: 0, y: 160, centerAngleDeg: -90, spanDeg: 160 }
+          : (domainLayoutPresets[dIdx] || { x: (dIdx % 2 - 0.5) * baseSpreadX, y: Math.floor(dIdx / 2) * baseSpreadY, centerAngleDeg: -90, spanDeg: 150 });
+
+        // Hvis kun én hovedbobbel er åben, lader vi dens vifte pege flot opad (-90 grader med 165 graders spænd)
+        const centerAngleDeg = (curExpandedDomains.size === 1 && isDomExpanded) ? -90 : preset.centerAngleDeg;
+        const spanDeg = (curExpandedDomains.size === 1 && isDomExpanded) ? 168 : preset.spanDeg;
 
         const domainNode = {
-          id: `DOM_ROOT_${curDomain}`,
-          type: 'domain-root',
-          domainName: curDomain,
+          id: `DOM_${domainName}`,
+          type: isDomExpanded ? 'domain-root' : 'domain-overview',
+          domainName,
           skills: domainSkills,
-          x: 0,
-          y: 180,
+          x: preset.x,
+          y: preset.y,
           r: 84, // Diameter 168px
-          pinned: true
+          isHeavyDomain: true
         };
         nodes.push(domainNode);
 
-        const catCount = domainCategories.length;
-        const startAng = -155;
-        const endAng = -25;
+        if (isDomExpanded) {
+          // Sortér kategorierne i 100% fast sproguafhængig rækkefølge!
+          const domainCategories = sortCategoriesConsistently([...new Set(domainSkills.map(s => s.cat))]);
+          const catCount = domainCategories.length;
+          const startAngDeg = centerAngleDeg - spanDeg / 2;
+          const stepAngDeg = catCount > 1 ? (spanDeg / (catCount - 1)) : 0;
 
-        domainCategories.forEach((catName, cIdx) => {
-          const catSkills = domainSkills.filter(s => s.cat === catName).sort((a, b) => a.level - b.level);
-          const isCatExpanded = curExpandedCats.has(catName);
+          // Hver kategori får sit eget eksklusive vinkel-udsnit (sectorWidthRad), så nabokategorier ALDRIG kan krydse ind over hinanden!
+          const sectorWidthRad = ((catCount > 1 ? stepAngDeg : 60) * Math.PI) / 180;
 
-          // Når man klikker på f.eks. 3D-Printning, vokser den med 25% (fra r=52 / 104px til r=65 / 130px) og bliver en under-hovedbobbel!
-          const baseCatRadius = 52;
-          const catRadius = isCatExpanded ? Math.round(baseCatRadius * 1.25) : baseCatRadius;
+          domainCategories.forEach((catName, cIdx) => {
+            const catSkills = domainSkills.filter(s => s.cat === catName).sort((a, b) => a.level - b.level);
+            const isCatExpanded = curExpandedCats.has(catName);
 
-          const angleDeg = catCount === 1 ? -90 : startAng + (cIdx * ((endAng - startAng) / Math.max(1, catCount - 1)));
-          const angleRad = (angleDeg * Math.PI) / 180;
-          const distFromDomain = isCatExpanded ? 245 : 195;
+            // Når en kategori klikkes (f.eks. 3D-Printning), vokser den med 25% (fra r=50 til r=63)
+            const baseCatRadius = 50;
+            const catRadius = isCatExpanded ? Math.round(baseCatRadius * 1.25) : baseCatRadius;
 
-          const catNode = {
-            id: `CAT_${catName}`,
-            type: 'category',
-            catName,
-            domainName: curDomain,
-            skills: catSkills,
-            isExpanded: isCatExpanded,
-            angleRad,
-            x: domainNode.x + Math.cos(angleRad) * distFromDomain,
-            y: domainNode.y + Math.sin(angleRad) * distFromDomain,
-            r: catRadius,
-            pinned: false
-          };
-          nodes.push(catNode);
-          bonds.push({
-            source: domainNode,
-            target: catNode,
-            idealGap: isCatExpanded ? 42 : 24,
-            isActive: isCatExpanded
-          });
+            const angleDeg = catCount === 1 ? centerAngleDeg : (startAngDeg + cIdx * stepAngDeg);
+            const angleRad = (angleDeg * Math.PI) / 180;
+            const idealGap = isCatExpanded ? 46 : 26;
+            const distFromDomain = domainNode.r + catRadius + idealGap;
 
-          // Hvis denne kategori er aktiveret (f.eks. 3D-Printning), gror kompetencerne ud foroven i sæt af 3!
-          if (isCatExpanded && catSkills.length > 0) {
-            if (adminEditMode && !isReadOnly) {
-              // I admin-redigeringstilstand vises alle kompetencer i en vifte, så de let kan trækkes rundt
-              const totalS = catSkills.length;
-              catSkills.forEach((s, sIdx) => {
-                const fanAngle = -155 + (sIdx * (130 / Math.max(1, totalS - 1)));
-                const fanRad = (fanAngle * Math.PI) / 180;
-                const sNode = {
-                  id: `SKILL_${s.id}`,
-                  type: 'skill',
-                  skill: s,
-                  x: catNode.x + Math.cos(fanRad) * 165,
-                  y: catNode.y + Math.sin(fanRad) * 165,
-                  r: 46,
-                  pinned: false
-                };
-                nodes.push(sNode);
-                bonds.push({ source: catNode, target: sNode, idealGap: 20, isActive: true });
-              });
-            } else {
-              // Opdel kategoriens kompetencer i grupper/batches af 3 (Niv 1-3, Niv 4-6, Niv 7-9...)
-              const batches = [];
-              for (let i = 0; i < catSkills.length; i += 3) {
-                batches.push(catSkills.slice(i, i + 3));
-              }
+            const catNode = {
+              id: `CAT_${catName}`,
+              type: 'category',
+              catName,
+              domainName,
+              skills: catSkills,
+              isExpanded: isCatExpanded,
+              parentAnchor: domainNode,
+              idealAngle: angleRad,
+              idealGap,
+              maxAngleDeviation: sectorWidthRad * 0.34, // Låst stramt til sin egen kategori-stråle
+              x: domainNode.x + Math.cos(angleRad) * distFromDomain,
+              y: domainNode.y + Math.sin(angleRad) * distFromDomain,
+              r: catRadius
+            };
+            nodes.push(catNode);
+            bonds.push({
+              source: domainNode,
+              target: catNode,
+              idealGap,
+              isActive: isCatExpanded
+            });
 
-              let parentAnchor = catNode;
-              // Retning opad (med let hældning ud fra kategoriens vinkel, men primært foroven som ønsket)
-              const growDirX = Math.cos(angleRad) * 0.35;
-              const growDirY = -0.92;
-              const baseGrowAngle = Math.atan2(growDirY, growDirX);
-
-              for (let bIdx = 0; bIdx < batches.length; bIdx++) {
-                const batch = batches[bIdx];
-                const isBatchComplete = batch.every(s => isSkillAchieved(progressMap, s.id));
-                const batchKey = `${catName}_batch_${bIdx}`;
-                const isManuallyUnfolded = !!manuallyExpandedBatches[batchKey];
-
-                if (isBatchComplete && !isManuallyUnfolded) {
-                  // De 3 kompetencer er opnået -> De kollapser til én samlet bobbel, der er STØRRE end de enkelte kompetence-bobler (r=57 / 114px vs r=45 / 90px)!
-                  const minLvl = batch[0].level;
-                  const maxLvl = batch[batch.length - 1].level;
-                  const stepDist = parentAnchor.r + 57 + 26;
-
-                  const collapsedNode = {
-                    id: `COLLAPSED_${catName}_${bIdx}`,
-                    type: 'collapsed-batch',
-                    catName,
-                    batchIndex: bIdx,
-                    batchKey,
-                    batchSkills: batch,
-                    label: `${t('mastered_tier')} ${minLvl}–${maxLvl}`,
-                    subLabel: batch.map(x => x.shortDesc).join(' • '),
-                    x: parentAnchor.x + Math.cos(baseGrowAngle) * stepDist,
-                    y: parentAnchor.y + Math.sin(baseGrowAngle) * stepDist,
-                    r: 57, // 114px diameter (større end de enkelte 90px kompetencebobler)
-                    pinned: false
+            // Hvis kategorien er aktiveret, gror kompetencerne ud i forlængelse af kategoriens egen strålevinkel (angleRad)!
+            if (isCatExpanded && catSkills.length > 0) {
+              if (adminEditMode && !isReadOnly) {
+                const totalS = catSkills.length;
+                const adminSpread = Math.min(0.9, sectorWidthRad * 0.9);
+                catSkills.forEach((s, sIdx) => {
+                  const offsetRad = totalS === 1 ? 0 : (-adminSpread / 2 + (sIdx * (adminSpread / (totalS - 1))));
+                  const leafAngle = angleRad + offsetRad;
+                  const leafGap = 24;
+                  const dist = catNode.r + 44 + leafGap;
+                  const sNode = {
+                    id: `SKILL_${s.id}`,
+                    type: 'skill',
+                    skill: s,
+                    parentAnchor: catNode,
+                    idealAngle: leafAngle,
+                    idealGap: leafGap,
+                    maxAngleDeviation: 0.12,
+                    x: catNode.x + Math.cos(leafAngle) * dist,
+                    y: catNode.y + Math.sin(leafAngle) * dist,
+                    r: 44
                   };
-                  nodes.push(collapsedNode);
-                  bonds.push({
-                    source: parentAnchor,
-                    target: collapsedNode,
-                    idealGap: 22,
-                    isAchieved: true
-                  });
+                  nodes.push(sNode);
+                  bonds.push({ source: catNode, target: sNode, idealGap: leafGap, isActive: true });
+                });
+              } else {
+                const batches = [];
+                for (let i = 0; i < catSkills.length; i += 3) {
+                  batches.push(catSkills.slice(i, i + 3));
+                }
 
-                  // Næste sæt af 3 kompetencer (f.eks. niveau 4, 5 og 6) gror nu ud fra denne kollapsede bobbel!
-                  parentAnchor = collapsedNode;
-                } else {
-                  // Dette sæt på (op til) 3 kompetencer gror ud foroven som 3 individuelle kompetence-bobler!
-                  const fanOffsetsDeg = batch.length === 1
-                    ? [0]
-                    : (batch.length === 2 ? [-28, 28] : [-46, 0, 46]);
+                let parentAnchor = catNode;
+                // Kompetencerne vokser RADIALT udad i præcis samme retning som kategorien (angleRad),
+                // så grene fra to nabokategorier peger VÆK fra hinanden i stedet for ind over hinanden!
+                const baseGrowAngle = angleRad;
 
-                  batch.forEach((s, kIdx) => {
-                    const offsetRad = ((fanOffsetsDeg[kIdx] || 0) * Math.PI) / 180;
-                    const leafAngle = baseGrowAngle + offsetRad;
-                    const leafRadius = 45; // 90px diameter for hver af de 3 kompetencebobler
-                    const leafDist = parentAnchor.r + leafRadius + 26;
+                for (let bIdx = 0; bIdx < batches.length; bIdx++) {
+                  const batch = batches[bIdx];
+                  const isBatchComplete = batch.every(s => isSkillAchieved(progressMap, s.id));
+                  const batchKey = `${catName}_batch_${bIdx}`;
+                  const isManuallyUnfolded = !!manuallyExpandedBatches[batchKey];
 
-                    const skillNode = {
-                      id: `SKILL_${s.id}`,
-                      type: 'skill',
-                      skill: s,
-                      x: parentAnchor.x + Math.cos(leafAngle) * leafDist,
-                      y: parentAnchor.y + Math.sin(leafAngle) * leafDist,
-                      r: leafRadius,
-                      pinned: false
+                  if (isBatchComplete && !isManuallyUnfolded) {
+                    const minLvl = batch[0].level;
+                    const maxLvl = batch[batch.length - 1].level;
+                    const tierRadius = 56; // Større end de enkelte kompetencebobler (43)
+                    const tierGap = 26;
+                    const stepDist = parentAnchor.r + tierRadius + tierGap;
+
+                    const collapsedNode = {
+                      id: `COLLAPSED_${catName}_${bIdx}`,
+                      type: 'collapsed-batch',
+                      catName,
+                      batchIndex: bIdx,
+                      batchKey,
+                      batchSkills: batch,
+                      label: `${t('mastered_tier')} ${minLvl}–${maxLvl}`,
+                      subLabel: batch.map(x => x.shortDesc).join(' • '),
+                      parentAnchor,
+                      idealAngle: baseGrowAngle,
+                      idealGap: tierGap,
+                      maxAngleDeviation: sectorWidthRad * 0.28,
+                      x: parentAnchor.x + Math.cos(baseGrowAngle) * stepDist,
+                      y: parentAnchor.y + Math.sin(baseGrowAngle) * stepDist,
+                      r: tierRadius
                     };
-                    nodes.push(skillNode);
+                    nodes.push(collapsedNode);
                     bonds.push({
                       source: parentAnchor,
-                      target: skillNode,
-                      idealGap: 22,
-                      isActive: true,
-                      isAchieved: isSkillAchieved(progressMap, s.id)
+                      target: collapsedNode,
+                      idealGap: tierGap,
+                      isAchieved: true
                     });
-                  });
 
-                  // Hvis dette trin var manuelt foldet ud, men egentlig er gennemført, fortsætter kæden til næste trin fra den midterste bobbel
-                  if (isBatchComplete && isManuallyUnfolded) {
-                    const midSkillId = `SKILL_${batch[Math.floor(batch.length / 2)].id}`;
-                    parentAnchor = nodes.find(n => n.id === midSkillId) || parentAnchor;
+                    parentAnchor = collapsedNode;
                   } else {
-                    // Stop med at gro højere niveauer for denne kategori, indtil disse 3 kompetencer er opnået!
-                    break;
+                    // De 3 kompetencebobler spredes i en kontrolleret vifte (+/- 34 grader), der aldrig overskrider kategoriens sektor
+                    const maxSpreadRad = Math.min(0.62, sectorWidthRad * 0.78);
+                    const fanOffsetsRad = batch.length === 1
+                      ? [0]
+                      : (batch.length === 2 ? [-maxSpreadRad * 0.55, maxSpreadRad * 0.55] : [-maxSpreadRad, 0, maxSpreadRad]);
+
+                    batch.forEach((s, kIdx) => {
+                      const leafAngle = baseGrowAngle + (fanOffsetsRad[kIdx] || 0);
+                      const leafRadius = 43; // 86px diameter
+                      // Den midterste bobbel (kIdx === 1 ved 3 stk.) skydes lidt længere ud, så de 3 bobler danner en naturlig bue uden at støde sammen
+                      const extraArcOut = (batch.length === 3 && kIdx === 1) ? 18 : 0;
+                      const leafGap = 26 + extraArcOut;
+                      const leafDist = parentAnchor.r + leafRadius + leafGap;
+
+                      const skillNode = {
+                        id: `SKILL_${s.id}`,
+                        type: 'skill',
+                        skill: s,
+                        parentAnchor,
+                        idealAngle: leafAngle,
+                        idealGap: leafGap,
+                        maxAngleDeviation: 0.14, // Stram vinkellås så boblen aldrig kan bytte plads med nabo-kategorien
+                        x: parentAnchor.x + Math.cos(leafAngle) * leafDist,
+                        y: parentAnchor.y + Math.sin(leafAngle) * leafDist,
+                        r: leafRadius
+                      };
+                      nodes.push(skillNode);
+                      bonds.push({
+                        source: parentAnchor,
+                        target: skillNode,
+                        idealGap: leafGap,
+                        isActive: true,
+                        isAchieved: isSkillAchieved(progressMap, s.id)
+                      });
+                    });
+
+                    if (isBatchComplete && isManuallyUnfolded) {
+                      const midSkillId = `SKILL_${batch[Math.floor(batch.length / 2)].id}`;
+                      parentAnchor = nodes.find(n => n.id === midSkillId) || parentAnchor;
+                    } else {
+                      break;
+                    }
                   }
                 }
               }
             }
-          }
-        });
+          });
+        }
+      });
 
-        // Kør molekyle-fysik så alle bobler tilpasser sig hinanden uden overlap
-        resolveMolecularCollisions(nodes, bonds, 150);
-      }
+      // Kør den udvidede kollisions- og anti-krydsningsmotor
+      resolveMolecularCollisions(nodes, bonds, 170);
 
-      // Beregn lærredets dimensioner ud fra alle boblernes endelige positioner
+      // Beregn lærredets dimensioner
       let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
       nodes.forEach(n => {
-        const margin = n.r + 55;
+        const margin = n.r + 58;
         if (n.x - margin < minX) minX = n.x - margin;
         if (n.x + margin > maxX) maxX = n.x + margin;
         if (n.y - margin < minY) minY = n.y - margin;
@@ -4333,7 +4485,7 @@
       canvasEl.style.width = `${canvasW}px`;
       canvasEl.style.height = `${canvasH}px`;
 
-      // Tegn molekylære forbindelseslinjer i SVG bag boblerne
+      // Tegn forbindelseslinjer i SVG bag boblerne
       const svgNS = 'http://www.w3.org/2000/svg';
       const bondsSvg = document.createElementNS(svgNS, 'svg');
       bondsSvg.setAttribute('class', 'molecular-bonds-svg');
@@ -4350,7 +4502,7 @@
       });
       canvasEl.appendChild(bondsSvg);
 
-      // Tegn alle bobler på lærredet
+      // Tegn alle bobler
       nodes.forEach(n => {
         const cx = Math.round(n.x + offsetX);
         const cy = Math.round(n.y + offsetY);
@@ -4370,9 +4522,9 @@
           el.style.left = `${cx}px`;
           el.style.top = `${cy}px`;
 
-          // Hvis vi er i start-overblikket, tegnes små kategori-knopper langs kanten af hovedboblen
+          // Hvis denne hovedbobbel ikke er foldet ud endnu, vises dens kategorier som små knopper på kanten
           if (n.type === 'domain-overview') {
-            const domCats = [...new Set(domSkills.map(s => s.cat))];
+            const domCats = sortCategoriesConsistently([...new Set(domSkills.map(s => s.cat))]);
             domCats.forEach((catName, kIdx) => {
               const ang = -140 + (kIdx * (165 / Math.max(1, domCats.length - 1)));
               const rad = (ang * Math.PI) / 180;
@@ -4393,13 +4545,11 @@
               knob.onclick = (e) => {
                 e.stopPropagation();
                 if (isReadOnly) {
-                  studentViewActiveDomain = n.domainName;
-                  studentViewExpandedCategories.clear();
+                  studentViewExpandedDomains.add(n.domainName);
                   studentViewExpandedCategories.add(catName);
                   openStudentTreeModal(activeInspectedStudentId, activeInspectedStudentName, progressMap, activeProofs);
                 } else {
-                  activeOrganicDomain = n.domainName;
-                  expandedCategoriesSet.clear();
+                  expandedDomainsSet.add(n.domainName);
                   expandedCategoriesSet.add(catName);
                   renderApp();
                 }
@@ -4422,12 +4572,12 @@
 
           el.onclick = () => {
             if (isReadOnly) {
-              studentViewActiveDomain = (n.type === 'domain-root') ? null : n.domainName;
-              studentViewExpandedCategories.clear();
+              if (studentViewExpandedDomains.has(n.domainName)) studentViewExpandedDomains.delete(n.domainName);
+              else studentViewExpandedDomains.add(n.domainName);
               openStudentTreeModal(activeInspectedStudentId, activeInspectedStudentName, progressMap, activeProofs);
             } else {
-              activeOrganicDomain = (n.type === 'domain-root') ? null : n.domainName;
-              expandedCategoriesSet.clear();
+              if (expandedDomainsSet.has(n.domainName)) expandedDomainsSet.delete(n.domainName);
+              else expandedDomainsSet.add(n.domainName);
               renderApp();
             }
           };
@@ -4483,7 +4633,6 @@
 
           canvasEl.appendChild(el);
         } else if (n.type === 'collapsed-batch') {
-          // KOLLAPSET BOBBEL FOR 3 OPNÅEDE KOMPETENCER (Større end de enkelte kompetencebobler)
           const el = document.createElement('div');
           el.className = 'mol-node collapsed-tier-node';
           el.style.width = `${diameter}px`;
