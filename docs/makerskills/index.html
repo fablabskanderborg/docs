@@ -4867,6 +4867,17 @@
 
     window.onload = function() {
       initData();
+      // Åbn specifik kompetence direkte fra QR-kode (?skill=ID)
+const urlParams = new URLSearchParams(window.location.search);
+const targetSkillId = urlParams.get('skill');
+if (targetSkillId) {
+  const foundSkill = allSkills.find(
+    s => s.id.toLowerCase() === targetSkillId.toLowerCase() && (s.lang || 'da') === currentLang
+  );
+  if (foundSkill) {
+    openSkillEnlargedModal(foundSkill);
+  }
+}
       const hasSeen = localStorage.getItem('ms_hasSeenTutorial');
       if (!hasSeen) setTimeout(startTutorial, 500);
     };
