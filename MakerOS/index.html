@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="da" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MakerOS — Competency & FabLab Platform</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap');
+    body { font-family: 'Inter', sans-serif; background-color: #090D16; color: #F1F5F9; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    /* Taktil prikket værksteds-baggrund */
+    .bg-workbench {
+      background-image: radial-gradient(#1E293B 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+    /* Custom scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #090D16; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+  </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden select-none">
+
+  <!-- TOP NAVIGATION / COMMAND BAR -->
+  <header class="h-16 border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-md px-6 flex items-center justify-between z-30">
+    <div class="flex items-center gap-4">
+      <div class="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/40 flex items-center justify-center text-amber-400 shadow-inner">
+        <i data-lucide="cpu" class="w-5 h-5"></i>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="font-bold tracking-tight text-white">MakerOS</span>
+          <span class="text-[11px] mono uppercase px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">v2.0 Graph</span>
+        </div>
+        <p class="text-xs text-slate-400">Skanderborg FabLab • Hold: <span class="text-amber-400 font-medium">Eindhoven 2026</span></p>
+      </div>
+    </div>
+
+    <!-- Søg & View Switcher -->
+    <div class="flex items-center gap-3">
+      <div class="relative hidden md:block">
+        <i data-lucide="search" class="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2"></i>
+        <input id="searchInput" type="text" placeholder="Søg kompetence eller maskine... ( / )" 
+          class="bg-slate-900 border border-slate-800 focus:border-amber-500/60 rounded-lg pl-9 pr-4 py-1.5 text-sm text-slate-200 placeholder-slate-500 outline-none w-72 transition"
+          oninput="render()" />
+      </div>
+
+      <div class="flex bg-slate-900 p-1 rounded-lg border border-slate-800 text-xs font-medium">
+        <button onclick="setFilter('ALL')" id="filter-ALL" class="px-3 py-1 rounded-md transition">Alle</button>
+        <button onclick="setFilter('UNLOCKED')" id="filter-UNLOCKED" class="px-3 py-1 rounded-md transition">Klar til start</button>
+        <button onclick="setFilter('VERIFIED')" id="filter-VERIFIED" class="px-3 py-1 rounded-md transition">Opnåede</button>
+      </div>
+    </div>
+
+    <!-- Bruger / Pas-status -->
+    <div class="flex items-center gap-4">
+      <div class="text-right hidden sm:block">
+        <div class="text-xs text-slate-400">Værkstedspas</div>
+        <div class="text-sm font-semibold text-emerald-400 mono" id="xpCounter">0 XP • 0/0</div>
+      </div>
+      <button onclick="toggleVerifyRole()" id="roleBtn" class="px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-900 hover:bg-slate-800 text-xs font-medium flex items-center gap-2 transition" title="Skift mellem Elev og Værkstedsfører">
+        <i data-lucide="shield" class="w-4 h-4 text-sky-400"></i>
+        <span id="roleLabel">Elev-visning</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN WORKSPACE -->
+  <div class="flex-1 flex overflow-hidden relative">
+
+    <!-- VENSTRE SIDEBAR: SPOR (TRACKS) & KØREKORT -->
+    <aside class="w-64 border-r border-slate-800/80 bg-slate-950/50 p-4 flex flex-col justify-between hidden lg:flex">
+      <div class="space-y-6">
+        <div>
+          <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-2 px-2">Faglige Spor</div>
+          <nav id="trackNav" class="space-y-1"></nav>
+        </div>
+
+        <div>
+          <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-2 px-2">Maskin-Kørekort</div>
+          <div id="licenseList" class="space-y-2 px-2"></div>
+        </div>
+      </div>
+
+      <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 text-xs space-y-2">
+        <div class="flex items-center justify-between text-slate-300 font-medium">
+          <span>Næste milepæl</span>
+          <span class="mono text-amber-400" id="nextMilestonePct">0%</span>
+        </div>
+        <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+          <div id="progressBar" class="h-full bg-gradient-to-r from-amber-500 to-emerald-400 transition-all duration-500" style="width: 0%"></div>
+        </div>
+        <p class="text-[11px] text-slate-400">Lås op for <strong class="text-slate-200">FabLab Pionér</strong> ved at gennemføre 4 grundmoduler.</p>
+      </div>
+    </aside>
+
+    <!-- CENTER: SKILL GRAPH / BENTO CANVAS -->
+    <main class="flex-1 overflow-y-auto bg-workbench p-6 md:p-8" id="mainCanvas">
+      <div id="tracksContainer" class="max-w-5xl mx-auto space-y-10 pb-24"></div>
+    </main>
+
+    <!-- HØJRE SLIDE-OVER INSPECTOR (NON-BLOCKING) -->
+    <aside id="inspectorDrawer" class="w-full sm:w-[420px] border-l border-slate-800 bg-slate-950/95 backdrop-blur-xl absolute right-0 top-0 bottom-0 transform translate-x-full transition-transform duration-300 ease-out z-40 flex flex-col shadow-2xl">
+      <div id="inspectorContent" class="flex-1 flex flex-col h-full"></div>
+    </aside>
+
+  </div>
+
+  <script>
+    // --- 1. FLEKSIBEL GRAF-DATAMODEL (Kommer normalt fra Supabase) ---
+    const TRACKS = [
+      { id: 'cad', title: '2D & 3D Design', icon: 'pen-tool', color: 'sky' },
+      { id: 'fab', title: 'Digital Fabrikation', icon: 'flame', color: 'amber' },
+      { id: 'elec', title: 'Elektronik & IoT', icon: 'cpu', color: 'emerald' },
+      { id: 'cult', title: 'Værkstedskultur', icon: 'users', color: 'purple' }
+    ];
+
+    const SKILLS = [
+      {
+        id: 'CULT-1', track: 'cult', code: 'SAFE-01', title: 'Sikkerhed & Nødstop', tier: 1, xp: 100,
+        verifyMode: 'self', requires: [], badge: null,
+        summary: 'Orientering i brandslukker, nødstop og udsugning i værkstedet.',
+        checklist: ['Ved hvor nødstoppet sidder', 'Kan tænde hovedudsugningen', 'Kender regler for løst hår og tøj']
+      },
+      {
+        id: 'CAD-1', track: 'cad', code: 'VEC-01', title: 'Vektor vs.uch Raster', tier: 1, xp: 100,
+        verifyMode: 'self', requires: [], badge: null,
+        summary: 'Forstå forskellen på pixels og matematiske kurver til skæring.',
+        checklist: ['Kan konvertere et logo til kurver (Trace)', 'Kan sætte stregtykkelse til Hairline / 0.01mm']
+      },
+      {
+        id: 'CAD-2', track: 'cad', code: 'VEC-02', title: 'Præcisions-samlinger (Kerf)', tier: 2, xp: 200,
+        verifyMode: 'self', requires: ['CAD-1'], badge: 'Vektor-Arkitekt',
+        summary: 'Design tap-samlinger der tager højde for laserens snitbredde (kerf).',
+        checklist: ['Har målt kerf med skydelære', 'Har tegnet en parametrisk finger-joint boks']
+      },
+      {
+        id: 'FAB-1', track: 'fab', code: 'LASER-01', title: 'CO2 Laserskærer: Kørekort', tier: 2, xp: 300,
+        verifyMode: 'instructor', requires: ['CULT-1', 'CAD-1'], badge: 'Laser-Certificeret',
+        summary: 'Selvstændig opstart, fokusering af linse og materialevalg på CO2-laseren.',
+        checklist: ['Tjekket at vandkøler og luftkompressor kører', 'Fokuseret laseren manuelt', 'Gennemført test-skæring under opsyn']
+      },
+      {
+        id: 'FAB-2', track: 'fab', code: 'PRINT-01', title: '3D-Print: Slicing & PLA', tier: 1, xp: 150,
+        verifyMode: 'self', requires: ['CULT-1'], badge: '3D-Starter',
+        summary: 'Klargøring af STL-fil i Slicer med korrekt support og infill.',
+        checklist: ['Rengjort byggeplade med IPA', 'Valgt korrekt laghøjde og support-type', 'Overvåget det første lag (First Layer)']
+      },
+      {
+        id: 'ELEC-1', track: 'elec', code: 'SOLDER-01', title: 'Lodning & Multimeter', tier: 1, xp: 150,
+        verifyMode: 'peer', requires: ['CULT-1'], badge: 'Hardware-Hacker',
+        summary: 'Sikker lodning af komponenter og gennemgangstest med multimeter.',
+        checklist: ['Tændt røgudsugning ved loddestation', 'Lavet en blank lodning uden koldlodning', 'Målt kontinuitet (bip-test) med multimeter']
+      }
+    ];
+
+    // --- 2. REAKTIV STATE ---
+    let userState = JSON.parse(localStorage.getItem('makeros_state')) || {
+      'CULT-1': { status: 'verified', checked: [0, 1, 2] },
+      'CAD-1': { status: 'verified', checked: [0, 1] }
+    };
+    let activeTrack = 'ALL';
+    let statusFilter = 'ALL';
+    let selectedSkillId = null;
+    let isInstructorMode = false;
+
+    function saveState() {
+      localStorage.setItem('makeros_state', JSON.stringify(userState));
+    }
+
+    // --- 3. HJÆLPEFUNKTIONER TIL GRAF-LOGIK ---
+    function isSkillUnlocked(skill) {
+      return skill.requires.every(reqId => userState[reqId]?.status === 'verified');
+    }
+
+    function getSkillState(skill) {
+      const entry = userState[skill.id];
+      if (entry?.status === 'verified') return 'VERIFIED';
+      if (entry?.status === 'pending') return 'PENDING';
+      if (isSkillUnlocked(skill)) return 'UNLOCKED';
+      return 'LOCKED';
+    }
+
+    // --- 4. RENDERING ---
+    function render() {
+      renderTopBar();
+      renderSidebar();
+      renderCanvas();
+      renderInspector();
+      lucide.createIcons();
+    }
+
+    function renderTopBar() {
+      const verifiedSkills = SKILLS.filter(s => getSkillState(s) === 'VERIFIED');
+      const totalXp = verifiedSkills.reduce((sum, s) => sum + s.xp, 0);
+      document.getElementById('xpCounter').innerText = `${totalXp} XP • ${verifiedSkills.length}/${SKILLS.length}`;
+
+      const pct = Math.round((verifiedSkills.length / SKILLS.length) * 100);
+      document.getElementById('nextMilestonePct').innerText = `${pct}%`;
+      document.getElementById('progressBar').style.width = `${pct}%`;
+
+      ['ALL', 'UNLOCKED', 'VERIFIED'].forEach(f => {
+        const btn = document.getElementById(`filter-${f}`);
+        btn.className = statusFilter === f
+          ? 'px-3 py-1 rounded-md bg-slate-800 text-white shadow-sm transition'
+          : 'px-3 py-1 rounded-md text-slate-400 hover:text-slate-200 transition';
+      });
+    }
+
+    function renderSidebar() {
+      const nav = document.getElementById('trackNav');
+      const allBtn = `
+        <button onclick="setTrack('ALL')" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition ${activeTrack === 'ALL' ? 'bg-slate-800/90 text-white' : 'text-slate-400 hover:bg-slate-900 hover:text-slate-200'}">
+          <span class="flex items-center gap-2.5"><i data-lucide="layers" class="w-4 h-4 text-slate-400"></i> Alle Spor</span>
+          <span class="mono text-xs text-slate-500">${SKILLS.length}</span>
+        </button>`;
+
+      const trackBtns = TRACKS.map(t => {
+        const count = SKILLS.filter(s => s.track === t.id).length;
+        const done = SKILLS.filter(s => s.track === t.id && getSkillState(s) === 'VERIFIED').length;
+        return `
+          <button onclick="setTrack('${t.id}')" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition ${activeTrack === t.id ? 'bg-slate-800/90 text-white' : 'text-slate-400 hover:bg-slate-900 hover:text-slate-200'}">
+            <span class="flex items-center gap-2.5"><i data-lucide="${t.icon}" class="w-4 h-4 text-${t.color}-400"></i> ${t.title}</span>
+            <span class="mono text-xs ${done === count ? 'text-emerald-400' : 'text-slate-500'}">${done}/${count}</span>
+          </button>`;
+      }).join('');
+
+      nav.innerHTML = allBtn + trackBtns;
+
+      // Kørekort / Badges
+      const licenses = SKILLS.filter(s => s.badge);
+      document.getElementById('licenseList').innerHTML = licenses.map(s => {
+        const verified = getSkillState(s) === 'VERIFIED';
+        return `
+          <div class="flex items-center gap-2.5 p-2 rounded-lg border ${verified ? 'bg-emerald-950/20 border-emerald-500/30 text-emerald-300' : 'bg-slate-900/40 border-slate-800/60 text-slate-500'}">
+            <i data-lucide="${verified ? 'award' : 'lock'}" class="w-4 h-4 shrink-0"></i>
+            <div class="truncate">
+              <div class="text-xs font-semibold truncate">${s.badge}</div>
+              <div class="text-[10px] opacity-75">${s.code}</div>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    function renderCanvas() {
+      const query = document.getElementById('searchInput').value.toLowerCase().trim();
+      const container = document.getElementById('tracksContainer');
+
+      const visibleTracks = activeTrack === 'ALL' ? TRACKS : TRACKS.filter(t => t.id === activeTrack);
+
+      container.innerHTML = visibleTracks.map(track => {
+        const trackSkills = SKILLS.filter(s => {
+          if (s.track !== track.id) return false;
+          if (query && !s.title.toLowerCase().includes(query) && !s.code.toLowerCase().includes(query)) return false;
+          const st = getSkillState(s);
+          if (statusFilter === 'UNLOCKED' && st !== 'UNLOCKED' && st !== 'PENDING') return false;
+          if (statusFilter === 'VERIFIED' && st !== 'VERIFIED') return false;
+          return true;
+        });
+
+        if (trackSkills.length === 0) return '';
+
+        return `
+          <section class="space-y-4">
+            <div class="flex items-center gap-3 border-b border-slate-800/80 pb-2">
+              <div class="w-7 h-7 rounded-lg bg-${track.color}-500/10 border border-${track.color}-500/30 flex items-center justify-center text-${track.color}-400">
+                <i data-lucide="${track.icon}" class="w-4 h-4"></i>
+              </div>
+              <h2 class="text-base font-bold tracking-tight text-slate-100">${track.title}</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              ${trackSkills.map(skill => renderSkillCard(skill, track)).join('')}
+            </div>
+          </section>
+        `;
+      }).join('');
+    }
+
+    function renderSkillCard(skill, track) {
+      const state = getSkillState(skill);
+      const isSelected = selectedSkillId === skill.id;
+
+      const styles = {
+        VERIFIED: 'bg-slate-900/90 border-emerald-500/40 hover:border-emerald-400 shadow-lg shadow-emerald-950/10',
+        PENDING: 'bg-slate-900/90 border-amber-500/50 hover:border-amber-400',
+        UNLOCKED: 'bg-slate-900/80 border-slate-700 hover:border-sky-400/60 hover:bg-slate-900',
+        LOCKED: 'bg-slate-950/40 border-slate-800/60 opacity-60 hover:opacity-80'
+      }[state];
+
+      const badgeChip = {
+        VERIFIED: `<span class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1"><i data-lucide="check" class="w-3 h-3"></i> Opnået</span>`,
+        PENDING: `<span class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3"></i> Afventer tjek</span>`,
+        UNLOCKED: `<span class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-sky-500/15 text-sky-300 border border-sky-500/30">Klar</span>`,
+        LOCKED: `<span class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-slate-800 text-slate-400 flex items-center gap-1"><i data-lucide="lock" class="w-3 h-3"></i> Låst</span>`
+      }[state];
+
+      const reqNames = skill.requires.map(rId => SKILLS.find(x => x.id === rId)?.code).join(' + ');
+
+      return `
+        <div onclick="selectSkill('${skill.id}')" 
+          class="group cursor-pointer rounded-2xl border p-4 transition-all duration-150 flex flex-col justify-between ${styles} ${isSelected ? 'ring-2 ring-amber-400' : ''}">
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-3">
+              <span class="mono text-[11px] font-bold px-2 py-0.5 rounded bg-slate-950 text-slate-400 border border-slate-800">${skill.code} • NIVEAU ${skill.tier}</span>
+              ${badgeChip}
+            </div>
+            <h3 class="font-semibold text-slate-100 group-hover:text-white text-base mb-1">${skill.title}</h3>
+            <p class="text-xs text-slate-400 line-clamp-2 leading-relaxed">${skill.summary}</p>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+            <span class="flex items-center gap-1.5">
+              <i data-lucide="${skill.verifyMode === 'instructor' ? 'shield-check' : (skill.verifyMode === 'peer' ? 'users' : 'user-check')}" class="w-3.5 h-3.5 text-slate-500"></i>
+              ${skill.verifyMode === 'instructor' ? 'Kørekort (Lærer)' : (skill.verifyMode === 'peer' ? 'Makker-tjek' : 'Selv-tjek')}
+            </span>
+            ${reqNames ? `<span class="mono text-[10px] text-slate-500">Kræver: ${reqNames}</span>` : `<span class="mono text-emerald-400 font-medium">+${skill.xp} XP</span>`}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderInspector() {
+      const drawer = document.getElementById('inspectorDrawer');
+      const content = document.getElementById('inspectorContent');
+
+      if (!selectedSkillId) {
+        drawer.classList.add('translate-x-full');
+        return;
+      }
+
+      drawer.classList.remove('translate-x-full');
+      const skill = SKILLS.find(s => s.id === selectedSkillId);
+      const state = getSkillState(skill);
+      const entry = userState[skill.id] || { checked: [] };
+      const allChecked = skill.checklist.every((_, idx) => entry.checked?.includes(idx));
+
+      const missingReqs = skill.requires
+        .filter(rId => userState[rId]?.status !== 'verified')
+        .map(rId => SKILLS.find(x => x.id === rId));
+
+      content.innerHTML = `
+        <div class="p-6 border-b border-slate-800 flex items-center justify-between">
+          <div>
+            <span class="mono text-xs text-amber-400 font-bold">${skill.code} • +${skill.xp} XP</span>
+            <h3 class="text-lg font-bold text-white mt-0.5">${skill.title}</h3>
+          </div>
+          <button onclick="selectSkill(null)" class="p-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+        <div class="p-6 flex-1 overflow-y-auto space-y-6">
+          <p class="text-sm text-slate-300 leading-relaxed">${skill.summary}</p>
+
+          ${missingReqs.length > 0 ? `
+            <div class="p-4 rounded-xl bg-rose-950/30 border border-rose-500/30 space-y-2">
+              <div class="text-xs font-semibold text-rose-300 flex items-center gap-2">
+                <i data-lucide="lock" class="w-4 h-4"></i> Forudsætninger mangler
+              </div>
+              <p class="text-xs text-slate-300">Du skal gennemføre følgende før du kan tage dette modul:</p>
+              <div class="flex flex-wrap gap-2 pt-1">
+                ${missingReqs.map(r => `<button onclick="selectSkill('${r.id}')" class="px-2.5 py-1 rounded bg-slate-900 border border-slate-700 text-xs mono text-amber-300 hover:border-amber-400">${r.code}: ${r.title}</button>`).join('')}
+              </div>
+            </div>
+          ` : ''}
+
+          <!-- Interaktiv Tjekliste -->
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400">Praktisk Tjekliste</h4>
+              <span class="mono text-xs text-slate-500">${entry.checked?.length || 0}/${skill.checklist.length}</span>
+            </div>
+            <div class="space-y-2">
+              ${skill.checklist.map((item, idx) => {
+                const isChecked = entry.checked?.includes(idx);
+                return `
+                  <label onclick="toggleCheckItem('${skill.id}', ${idx})" class="flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition ${isChecked ? 'bg-slate-900/90 border-emerald-500/40 text-slate-100' : 'bg-slate-900/40 border-slate-800 text-slate-400 hover:border-slate-700'}">
+                    <input type="checkbox" ${isChecked ? 'checked' : ''} class="mt-0.5 accent-emerald-500 pointer-events-none" />
+                    <span class="text-xs leading-relaxed">${item}</span>
+                  </label>
+                `;
+              }).join('')}
+            </div>
+          </div>
+
+          ${skill.badge ? `
+            <div class="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center gap-3">
+              <i data-lucide="award" class="w-6 h-6 text-amber-400 shrink-0"></i>
+              <div>
+                <div class="text-xs font-bold text-amber-300">Udløser Certifikat & Badge</div>
+                <div class="text-xs text-slate-300">${skill.badge}</div>
+              </div>
+            </div>
+          ` : ''}
+        </div>
+
+        <!-- Action Footer -->
+        <div class="p-5 border-t border-slate-800 bg-slate-950">
+          ${renderActionFooter(skill, state, allChecked)}
+        </div>
+      `;
+    }
+
+    function renderActionFooter(skill, state, allChecked) {
+      if (state === 'LOCKED') {
+        return `<button disabled class="w-full py-3 rounded-xl bg-slate-900 text-slate-500 text-sm font-semibold border border-slate-800 cursor-not-allowed">Lås forudsætninger op først</button>`;
+      }
+      if (state === 'VERIFIED') {
+        return `
+          <div class="flex gap-2">
+            <div class="flex-1 py-2.5 px-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-semibold flex items-center justify-center gap-2">
+              <i data-lucide="check-circle-2" class="w-4 h-4"></i> Certificeret i dit pas
+            </div>
+            <button onclick="resetSkill('${skill.id}')" class="px-3 py-2.5 rounded-xl bg-slate-900 hover:bg-rose-950/50 text-slate-400 hover:text-rose-300 border border-slate-800 text-xs">Nulstil</button>
+          </div>`;
+      }
+      if (state === 'PENDING') {
+        if (isInstructorMode) {
+          return `<button onclick="verifySkill('${skill.id}')" class="w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm transition shadow-lg shadow-emerald-500/20">⚡ Godkend Kørekort (Værkstedsfører)</button>`;
+        }
+        return `<div class="w-full py-3 px-4 rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-300 text-xs font-medium text-center">Afventer godkendelse fra underviser (Skift til Værkstedsfører øverst til højre for at teste)</div>`;
+      }
+
+      // UNLOCKED state
+      if (!allChecked) {
+        return `<button disabled class="w-full py-3 rounded-xl bg-slate-900 text-slate-500 text-sm font-semibold border border-slate-800 cursor-not-allowed">Gennemfør tjeklisten (${userState[skill.id]?.checked?.length || 0}/${skill.checklist.length}) for at fortsætte</button>`;
+      }
+
+      if (skill.verifyMode === 'instructor' && !isInstructorMode) {
+        return `<button onclick="requestReview('${skill.id}')" class="w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm transition">Anmod om Kørekort-tjek</button>`;
+      }
+
+      return `<button onclick="verifySkill('${skill.id}')" class="w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm transition">Markér som gennemført (+${skill.xp} XP)</button>`;
+    }
+
+    // --- 5. INTERAKTIONER ---
+    function setTrack(t) { activeTrack = t; render(); }
+    function setFilter(f) { statusFilter = f; render(); }
+    function selectSkill(id) { selectedSkillId = id; render(); }
+
+    function toggleVerifyRole() {
+      isInstructorMode = !isInstructorMode;
+      document.getElementById('roleLabel').innerText = isInstructorMode ? 'Værkstedsfører (Admin)' : 'Elev-visning';
+      document.getElementById('roleBtn').className = isInstructorMode
+        ? 'px-3 py-1.5 rounded-lg border border-amber-500/50 bg-amber-500/10 text-amber-300 text-xs font-semibold flex items-center gap-2 transition'
+        : 'px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-900 text-xs font-medium flex items-center gap-2 transition';
+      render();
+    }
+
+    function toggleCheckItem(skillId, idx) {
+      if (!userState[skillId]) userState[skillId] = { status: 'in_progress', checked: [] };
+      const arr = userState[skillId].checked || [];
+      if (arr.includes(idx)) {
+        userState[skillId].checked = arr.filter(i => i !== idx);
+      } else {
+        userState[skillId].checked = [...arr, idx];
+      }
+      saveState();
+      render();
+    }
+
+    function requestReview(skillId) {
+      userState[skillId].status = 'pending';
+      saveState();
+      render();
+    }
+
+    function verifySkill(skillId) {
+      if (!userState[skillId]) userState[skillId] = { checked: [] };
+      userState[skillId].status = 'verified';
+      saveState();
+      render();
+    }
+
+    function resetSkill(skillId) {
+      delete userState[skillId];
+      saveState();
+      render();
+    }
+
+    // Genvejstast '/' til søgning
+    window.addEventListener('keydown', (e) => {
+      if (e.key === '/' && document.activeElement.id !== 'searchInput') {
+        e.preventDefault();
+        document.getElementById('searchInput').focus();
+      }
+      if (e.key === 'Escape') selectSkill(null);
+    });
+
+    render();
+  </script>
+</body>
+</html>
